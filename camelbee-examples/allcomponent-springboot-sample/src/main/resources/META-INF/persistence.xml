@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<persistence
+        xmlns="https://jakarta.ee/xml/ns/persistence"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        version="3.0"
+        xsi:schemaLocation="
+        https://jakarta.ee/xml/ns/persistence 
+        https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd
+    "
+>
+
+    <!-- Define Persistence Unit -->
+
+    <persistence-unit name="camel" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <!--  DB Connection -->
+        <properties>
+            <property name="jakarta.persistence.jdbc.user" value="camelbee_user"/>
+            <property name="jakarta.persistence.jdbc.password" value="secret"/>
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:mariadb://localhost:3306/CAMELBEE_MARIADB"/>
+            <property name="jakarta.persistence.jdbc.driver" value="org.mariadb.jdbc.Driver"/>
+        </properties>
+    </persistence-unit>
+
+</persistence>

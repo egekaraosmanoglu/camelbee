@@ -1,0 +1,126 @@
+server:
+  port: 8080
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: camelbeeTesRrest
+  data:
+    mongodb:
+#      database: camelbee
+#      collection: orders
+      uri: mongodb://root:example@localhost:27017/camelbee?authSource=admin
+
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  datasource:
+    initialization-mode: always
+    generate-unique-name: false
+    url: jdbc:mariadb://localhost:3306/CAMELBEE_MARIADB
+    username: camelbee_user
+    password: secret
+    driver-class-name: org.mariadb.jdbc.Driver
+    # Hikari will use the above plus the following to setup connection pooling
+    hikari:
+      minimumIdle: 2
+      maximumPoolSize: 5
+      idleTimeout: 30000
+      poolName: SpringBootJPAHikariCP
+      maxLifetime: 2000000
+      connectionTimeout: 30000
+  jpa:
+    hibernate:
+      # To be updated in real production usage!
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.MariaDB103Dialect
+    show-sql: false
+  # Spring JMS configuration
+  artemis:
+    mode: native
+    broker-url: tcp://localhost:61616
+    user: artemis
+    password: :artemis
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+# all access to actuator endpoints without security
+management:
+  server:
+    port: 8080
+  security:
+    enabled: false
+  # expose actuator endpoint via HTTP for info,health,camelroutes
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+        metrics: metrics-default
+      cors:
+        allowed-origins: "http://localhost:8083" # Comma-separated list of origins you want to allow
+        allowed-methods: GET,POST,PUT,DELETE  # Allowed HTTP methods. Default to GET.
+        allowed-headers: "*"  # Allowed HTTP headers. Default to "*".
+        allow-credentials: true  # Set to true if you want to allow cookies, authorization headers, etc.
+        max-age: 1800  # Maximum age (in seconds) of the cache duration for CORS preflight responses.
+  # show verbose health details (/actuator/info) so you can see Camel information also
+  endpoint:
+    hystrix:
+      stream:
+        enabled: true
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  # allow to obtain basic information about Camel routes (read only mode)
+    camelroutes:
+      enabled: true
+      read-only: true
+
+
+
+camel:
+  springboot:
+    use-breadcrumb: true
+    use-m-d-c-logging: true
+    # The Camel context name
+    name: camelbeeExampleRest
+  # to reconfigure the camel servlet context-path mapping to use /api/* instead of /camel/*
+  # needs to be in alignment with basePath in swagger definition
+  component:
+    kafka:
+      brokers: "localhost:9092"
+      groupId: "camelbee-spring"
+      autoOffsetReset: "earliest"
+    servlet:
+      mapping:
+        context-path: /*
+    spring-rabbitmq:
+      # turn on auto declare so the exchange, queues are automatic created if not already present in rabbitmq broker
+      auto-declare: true
+  # rest can also be configured here instead in the CamelRouter class
+  # rest DSL configuration
+  rest:
+    component: servlet
+    binding-mode: json
+    enable-cors: true
+    consumer-property:
+      bridgeErrorHandler: true
+  # jackson properties
+  dataformat:
+    jackson:
+      object-mapper: jacksonObjectMapper
+      disable-features: FAIL_ON_EMPTY_BEANS
+      pretty-print: true
+      include: NON_NULL
+
+
+
+httpbin-api:
+  url: localhost/stream
