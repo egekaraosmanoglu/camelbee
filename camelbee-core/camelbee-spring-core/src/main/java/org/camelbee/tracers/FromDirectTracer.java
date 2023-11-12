@@ -31,7 +31,6 @@ import java.util.Deque;
 /**
  * Responsible for tracing Direct From Interceptor requests.
  */
-@SuppressWarnings("PMD.TooManyStaticImports")
 public class FromDirectTracer extends RequestResponseTracer {
 
     /**
