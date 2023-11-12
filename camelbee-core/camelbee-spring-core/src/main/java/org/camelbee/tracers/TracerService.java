@@ -18,13 +18,20 @@ package org.camelbee.tracers;
 import org.apache.camel.Exchange;
 import org.camelbee.debugger.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * CamelBee Tracer Service collects request/responses of Camel Components.
  */
 @Component(TracerService.CAMELBEE_TRACER)
 public class TracerService {
+
+    @Value("${camelbee.debugger-max-idle-time:300000}")
+    private long traceIdleTime;
 
     public static final String CAMELBEE_TRACER = "camelBeeTracer";
 
@@ -44,28 +51,58 @@ public class TracerService {
     private InterceptSendToRequestTracer interceptSendToRequestTracer = new InterceptSendToRequestTracer();
     private InterceptSendToResponseTracer interceptSendToResponseTracer = new InterceptSendToResponseTracer();
 
+    private AtomicBoolean tracingEnabled = new AtomicBoolean(false);
+
+    private AtomicLong lastTracingActivatedTime = new AtomicLong(System.currentTimeMillis());
 
     @Autowired
     MessageService messageService;
 
     public void traceFromDirectRequest(Exchange exchange) {
-        fromDirectTracer.trace(exchange, messageService);
+        if (isTracingEnabled()) {
+            fromDirectTracer.trace(exchange, messageService);
+        }
     }
 
     public void traceInterceptSendToEndpointRequest(Exchange exchange) {
-        interceptSendToRequestTracer.trace(exchange, messageService);
+        if (isTracingEnabled()) {
+            interceptSendToRequestTracer.trace(exchange, messageService);
+        }
     }
 
     public void traceInterceptSendToEndpointResponse(Exchange exchange) {
-        interceptSendToResponseTracer.trace(exchange, messageService);
+        if (isTracingEnabled()) {
+            interceptSendToResponseTracer.trace(exchange, messageService);
+        }
     }
 
     public void traceInterceptSendDirectEndpointRequest(Exchange exchange) {
-        interceptSendDirectRequestTracer.trace(exchange, messageService);
+        if (isTracingEnabled()) {
+            interceptSendDirectRequestTracer.trace(exchange, messageService);
+        }
     }
 
     public void traceInterceptSendDirectEndpointResponse(Exchange exchange) {
-        interceptSendDirectResponseTracer.trace(exchange, messageService);
+        if (isTracingEnabled()) {
+            interceptSendDirectResponseTracer.trace(exchange, messageService);
+        }
     }
+
+    public boolean isTracingEnabled() {
+        // if CamelBee WebGL application is not active anymore and not calling the keepTracingActive api
+        if (tracingEnabled.get() && System.currentTimeMillis() - lastTracingActivatedTime.get() > traceIdleTime) {
+            tracingEnabled.set(false);
+        }
+        return tracingEnabled.get();
+    }
+
+    public void setTracingEnabled(boolean tracingEnabled) {
+        this.tracingEnabled.set(tracingEnabled);
+    }
+
+    public void keepTracingActive() {
+        lastTracingActivatedTime.set(System.currentTimeMillis());
+    }
+
 
 }

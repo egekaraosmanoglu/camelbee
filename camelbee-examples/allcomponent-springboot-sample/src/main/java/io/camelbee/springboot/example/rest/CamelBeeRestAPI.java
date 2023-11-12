@@ -18,6 +18,7 @@ package io.camelbee.springboot.example.rest;
 import io.camelbee.springboot.example.model.rest.Musician;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.config.CamelBeeRouteConfigurer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -25,13 +26,15 @@ import org.springframework.stereotype.Component;
 @Component
 public final class CamelBeeRestAPI extends RouteBuilder {
 
+  @Autowired
+  CamelBeeRouteConfigurer camelBeeRouteConfigurer;
   /**
    * Defines Apache Camel routes using REST DSL fluent API.
    * Normally this rest configuration should be created by Camel Rest Dsl generator.
    */
   public void configure() throws Exception {
 
-    CamelBeeRouteConfigurer.configure(this);
+    camelBeeRouteConfigurer.configureRoute(this);
 
     restConfiguration().component("servlet").clientRequestValidation(true);
 

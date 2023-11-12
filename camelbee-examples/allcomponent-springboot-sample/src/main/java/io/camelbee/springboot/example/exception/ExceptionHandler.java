@@ -27,12 +27,14 @@ import org.springframework.stereotype.Component;
  * @author ekaraosmanoglu
  */
 @Component
-
 public class ExceptionHandler extends RouteBuilder {
+
+  final CamelBeeRouteConfigurer camelBeeRouteConfigurer;
 
   final ErrorProcessor globalErrorProcessor;
 
-  public ExceptionHandler(ErrorProcessor globalErrorProcessor) {
+  public ExceptionHandler(CamelBeeRouteConfigurer camelBeeRouteConfigurer, ErrorProcessor globalErrorProcessor) {
+    this.camelBeeRouteConfigurer = camelBeeRouteConfigurer;
     this.globalErrorProcessor = globalErrorProcessor;
   }
 
@@ -57,7 +59,7 @@ public class ExceptionHandler extends RouteBuilder {
   @Override
   public void configure() throws Exception {
 
-    CamelBeeRouteConfigurer.configure(this);
+    camelBeeRouteConfigurer.configureRoute(this);
 
     from("direct:error").routeId("errorHandlerDirectComponent")
         .process(globalErrorProcessor);

@@ -23,7 +23,9 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.ExchangeBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.camelbee.debugger.model.produce.ProduceMessage;
+import org.camelbee.tracers.TracerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:8083")
+@ConditionalOnExpression("'${camelbee.context-enabled:false}' && '${camelbee.producer-enabled:false}'")
 public class ProducerController {
 
     @Autowired
@@ -52,9 +55,15 @@ public class ProducerController {
     @Autowired
     Environment env;
 
+    @Autowired
+    TracerService tracerService;
+
 
     @PostMapping(value = "/camelbee/produce/direct", produces = "application/json", consumes = "application/json")
     public ResponseEntity<String> produceDirect(@Valid @RequestBody(required = true) ProduceMessage produceMessage) {
+
+        // first set the tracing status
+        tracerService.setTracingEnabled(Boolean.TRUE.equals(produceMessage.getTraceEnabled()));
 
         Exchange exchange = ExchangeBuilder.anExchange(camelContext).build();
 

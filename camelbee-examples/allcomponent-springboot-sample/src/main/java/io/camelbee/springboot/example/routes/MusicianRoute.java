@@ -34,17 +34,19 @@ public class MusicianRoute extends RouteBuilder {
 
     private static final String MUSICIAN_PROCESSOR_ROUTE = "direct:musicianProcessor";
 
+    final CamelBeeRouteConfigurer camelBeeRouteConfigurer;
     final ExceptionHandler genericExceptionHandler;
 
 
-    public MusicianRoute(ExceptionHandler genericExceptionHandler) {
+    public MusicianRoute(CamelBeeRouteConfigurer camelBeeRouteConfigurer, ExceptionHandler genericExceptionHandler) {
+        this.camelBeeRouteConfigurer = camelBeeRouteConfigurer;
         this.genericExceptionHandler = genericExceptionHandler;
     }
 
     @Override
     public void configure() throws Exception {
 
-        CamelBeeRouteConfigurer.configure(this);
+        camelBeeRouteConfigurer.configureRoute(this);
 
         errorHandler(genericExceptionHandler.appErrorHandler());
 

@@ -51,6 +51,12 @@ class CamelBeeRouteConfigurerTest{
     @Configuration
     static class TestConfig {
 
+        private final CamelBeeRouteConfigurer camelBeeRouteConfigurer;
+
+        public TestConfig(CamelBeeRouteConfigurer camelBeeRouteConfigurer) {
+            this.camelBeeRouteConfigurer = camelBeeRouteConfigurer;
+        }
+
         @Bean
         RoutesBuilder route() {
             return new RouteBuilder() {
@@ -58,7 +64,7 @@ class CamelBeeRouteConfigurerTest{
                 @Override
                 public void configure() throws Exception {
 
-                    CamelBeeRouteConfigurer.configure(this);
+                    camelBeeRouteConfigurer.configureRoute(this);
 
                     from("direct:test").to("mock:test");
                 }

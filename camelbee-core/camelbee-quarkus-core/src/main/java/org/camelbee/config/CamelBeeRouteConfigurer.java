@@ -15,17 +15,17 @@
  */
 package org.camelbee.config;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.tracers.TracerService;
 
 /**
  * The route configurer which sets all listeners, interceptors and the MDCUnitOfWork.
  */
+@ApplicationScoped
 public class CamelBeeRouteConfigurer {
-
-    private CamelBeeRouteConfigurer() {
-        throw new IllegalStateException("Utility class");
-    }
 
     /**
      * Configures a route for a CamelBee enabled Camel application.
@@ -33,7 +33,7 @@ public class CamelBeeRouteConfigurer {
      * @param  routeBuilder The routebuilder to be configured.
      * @throws Exception    The exception.
      */
-    public static void configure(RouteBuilder routeBuilder) {
+    public void configureRoute(RouteBuilder routeBuilder) {
 
         routeBuilder.getContext().setStreamCaching(true);
         routeBuilder.getContext().setUseMDCLogging(true);

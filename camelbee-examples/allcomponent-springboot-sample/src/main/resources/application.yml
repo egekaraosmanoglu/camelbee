@@ -14,6 +14,17 @@
 server:
   port: 8080
 
+camelbee:
+  # when enabled it allows the CamelBe WebGL application to fetch the topology of the Camel Context.
+  context-enabled: true
+  # when enabled it allows the CamelBe WebGL application to trigger the consumer routes.
+  producer-enabled: false
+  # debugger-enabled SHOULD BE ONLY ENABLED FOR DEVELOPMENT PURPOSES, NOT FOR PRODUCTION.
+  # when enabled intercepts/traces request and responses of all camel components and caches messages.
+  debugger-enabled: false
+  # maximum time the tracer can remain idle before deactivation tracing of messages.
+  debugger-max-idle-time: 300000
+
 spring:
   main:
     allow-bean-definition-overriding: true

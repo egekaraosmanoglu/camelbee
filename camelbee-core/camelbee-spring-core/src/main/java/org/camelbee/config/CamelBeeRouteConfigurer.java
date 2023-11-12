@@ -17,15 +17,20 @@ package org.camelbee.config;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.tracers.TracerService;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * The route configurer which sets all listeners, interceptors and the MDCUnitOfWork.
  */
+@Component
 public class CamelBeeRouteConfigurer {
 
-    private CamelBeeRouteConfigurer() {
-        throw new IllegalStateException("Utility class");
-    }
+    @Value("${camelbee.context-enabled:false}")
+    private boolean contextEnabled;
+
+    @Value("${camelbee.debugger-enabled:false}")
+    private boolean debuggerEnabled;
 
     /**
      * Configures a route for a CamelBee enabled Camel application.
@@ -33,7 +38,11 @@ public class CamelBeeRouteConfigurer {
      * @param routeBuilder The routebuilder to be configured.
      * @throws Exception The exception.
      */
-    public static void configure(RouteBuilder routeBuilder) {
+    public void configureRoute(RouteBuilder routeBuilder) {
+
+        // do not intercept and cache the messages
+        if (!contextEnabled || !debuggerEnabled)
+            return;
 
         routeBuilder.getContext().setStreamCaching(true);
         routeBuilder.getContext().setUseMDCLogging(true);

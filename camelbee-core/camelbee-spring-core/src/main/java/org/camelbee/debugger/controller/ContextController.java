@@ -25,6 +25,7 @@ import org.camelbee.debugger.model.route.CamelRouteList;
 import org.camelbee.debugger.model.route.CamelRouteOutput;
 import org.camelbee.debugger.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -39,6 +40,7 @@ import java.util.regex.Pattern;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:8083")
+@ConditionalOnProperty(value = "camelbee.context-enabled", havingValue = "true")
 public class ContextController {
 
     @Autowired

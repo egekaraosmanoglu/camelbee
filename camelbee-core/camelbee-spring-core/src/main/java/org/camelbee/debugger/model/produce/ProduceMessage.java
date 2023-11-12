@@ -27,12 +27,15 @@ public class ProduceMessage {
 
     private final ProduceMessageHeaderList headers;
 
-    public ProduceMessage(String routeName, String message, String clazz, String mediaType, ProduceMessageHeaderList headers) {
+    private final Boolean traceEnabled;
+
+    public ProduceMessage(String routeName, String message, String clazz, String mediaType, ProduceMessageHeaderList headers, Boolean traceEnabled) {
         this.routeName = routeName;
         this.message = message;
         this.clazz = clazz;
         this.mediaType = mediaType;
         this.headers = headers;
+        this.traceEnabled = traceEnabled;
     }
 
     public String getRouteName() {
@@ -53,5 +56,9 @@ public class ProduceMessage {
 
     public ProduceMessageHeaderList getHeaders() {
         return headers;
+    }
+
+    public Boolean getTraceEnabled() {
+        return traceEnabled;
     }
 }

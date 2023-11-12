@@ -54,7 +54,7 @@ public class InterceptSendDirectRequestTracer extends RequestResponseTracer {
             Deque<String> stack = (Deque<String>) exchange.getProperty(CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK);
 
             // happens only if a route is called via the producertemplate.
-            if(stack ==null){
+            if (stack == null) {
                 stack = new ArrayDeque<>();
             }
 
