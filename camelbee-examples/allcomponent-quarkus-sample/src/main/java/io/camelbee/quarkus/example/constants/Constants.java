@@ -13,26 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camelbee.debugger.model.produce;
+package io.camelbee.quarkus.example.constants;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
+/**
+ * Utility for CamelBee constant values.
+ *
+ * @author ekaraosmanoglu
+ */
+public final class Constants {
 
-import java.util.List;
-
-@RegisterForReflection
-public class ProduceMessageHeaderList {
-
-    private List<ProduceMessageHeader> headers;
-
-    public ProduceMessageHeaderList(List<ProduceMessageHeader> headers) {
-        this.headers = headers;
+    private Constants() {
+        throw new IllegalStateException("Utility class");
     }
 
-    public ProduceMessageHeaderList() {
-        this.headers = null;
-    }
+    public static final String ORIGINAL_BODY = "originalBody";
 
-    public List<ProduceMessageHeader> getHeaders() {
-        return headers;
-    }
 }

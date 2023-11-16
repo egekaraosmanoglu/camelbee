@@ -20,9 +20,12 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class ProduceMessageHeader {
 
-    private final String key;
+    private String key;
 
-    private final String value;
+    private String value;
+
+    public ProduceMessageHeader() {
+    }
 
     public ProduceMessageHeader(String key, String value) {
         this.key = key;

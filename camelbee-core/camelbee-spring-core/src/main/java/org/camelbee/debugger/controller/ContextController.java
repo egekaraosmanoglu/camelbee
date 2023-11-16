@@ -39,7 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8083")
+@CrossOrigin(origins = "https://www.camelbee.io")
 @ConditionalOnProperty(value = "camelbee.context-enabled", havingValue = "true")
 public class ContextController {
 

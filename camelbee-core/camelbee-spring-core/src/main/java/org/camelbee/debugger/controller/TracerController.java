@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8083")
+@CrossOrigin(origins = "https://www.camelbee.io")
 @ConditionalOnExpression("'${camelbee.context-enabled:false}' && '${camelbee.debugger-enabled:false}'")
 public class TracerController {
 
@@ -32,7 +32,7 @@ public class TracerController {
     TracerService tracerService;
 
     @GetMapping(value = "/camelbee/tracer/keepActive")
-    public ResponseEntity<String> getMessages() {
+    public ResponseEntity<String> getKeepActive() {
         tracerService.keepTracingActive();
         return ResponseEntity.ok("keeping active!");
     }

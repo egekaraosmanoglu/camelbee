@@ -13,30 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.camelbee.springboot.example.routes;
+package io.camelbee.quarkus.example.routes;
 
-import io.camelbee.springboot.example.constants.Constants;
-import io.camelbee.springboot.example.exception.ExceptionHandler;
-import io.camelbee.springboot.example.model.jpa.SongEntity;
+import io.camelbee.quarkus.example.constants.Constants;
+import io.camelbee.quarkus.example.exception.ExceptionHandler;
+import io.camelbee.quarkus.example.model.jpa.SongEntity;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.config.CamelBeeRouteConfigurer;
-import org.springframework.stereotype.Component;
 
 /**
  * Musician Route.
  *
  * @author ekaraosmanoglu
  */
-@Component
+@ApplicationScoped
 public class MusicianRoute extends RouteBuilder {
 
     private static final String MUSICIAN_PROCESSOR_ROUTE = "direct:musicianProcessor";
 
     final CamelBeeRouteConfigurer camelBeeRouteConfigurer;
-    final ExceptionHandler genericExceptionHandler;
 
+    final ExceptionHandler genericExceptionHandler;
 
     public MusicianRoute(CamelBeeRouteConfigurer camelBeeRouteConfigurer, ExceptionHandler genericExceptionHandler) {
         this.camelBeeRouteConfigurer = camelBeeRouteConfigurer;
@@ -71,7 +70,7 @@ public class MusicianRoute extends RouteBuilder {
                 .routeId("mqttListenerRoute")
                 .to(MUSICIAN_PROCESSOR_ROUTE);
 
-        from("jpa:io.camelbee.springboot.example.model.jpa.MusicianEntity?"
+        from("jpa:io.camelbee.quarkus.example.model.jpa.MusicianEntity?"
                 + "namedQuery=getMusicians&delay=5s&consumeDelete=true&maximumResults=5")
                 .routeId("jpaListenerRoute")
                 .to(MUSICIAN_PROCESSOR_ROUTE);
@@ -81,11 +80,11 @@ public class MusicianRoute extends RouteBuilder {
                 .routeId("jmsListenerRoute")
                 .to(MUSICIAN_PROCESSOR_ROUTE);
 
-        from("mongodb:mongoBean?database=camelbee&collection=musicians-in&createCollection=true")
+        from("mongodb:mongoClient?database=camelbee&collection=musicians-in&createCollection=true")
                 .routeId("mongodbListenerRoute")
                 .to(MUSICIAN_PROCESSOR_ROUTE);
 
-        from("spring-rabbitmq:cheese?queues=camelbee-northbound-queue&routingKey=musicians")
+        from("rabbitmq:cheese?queue=camelbee-northbound-queue&routingKey=musicians&autoDelete=true&durable=false")
                 .routeId("rabbitmqListenerRoute")
                 .to(MUSICIAN_PROCESSOR_ROUTE);
 
@@ -100,7 +99,6 @@ public class MusicianRoute extends RouteBuilder {
                 .routingSlip().constant("direct:invokeMockA,direct:invokeMockB")
                 .to("direct:invokeMockC")
                 .toD("direct:invokeRabbitMq");
-
 
         from("direct:invokeHttpBin").routeId("invokeHttpBinRoute")
                 .marshal().json()
@@ -120,12 +118,11 @@ public class MusicianRoute extends RouteBuilder {
         from("direct:invokeRabbitMq").routeId("invokeRabbitMqRoute")
                 .setBody(exchangeProperty(Constants.ORIGINAL_BODY))
                 .convertBodyTo(String.class)
-                .to(ExchangePattern.InOnly, "spring-rabbitmq:cheese?routingKey=songs")
+                .to("rabbitmq:cheese?routingKey=songs&durable=false&declare=false&autoDelete=false&arg.queue.x-message-ttl=20000")
                 .id("rabbitMqEndpoint");
 
-
         from("direct:invokeMongoDb").routeId("invokeMongoDbRoute")
-                .to("mongodb:mongoBean?database=camelbee&collection=musicians-out&operation=insert")
+                .to("mongodb:mongoClient?database=camelbee&collection=musicians-out&operation=insert")
                 .id("mongoDbEndpoint");
 
         from("direct:invokeJms").routeId("invokeJmsRoute")
@@ -133,8 +130,8 @@ public class MusicianRoute extends RouteBuilder {
                 .id("jmsEndpoint");
 
         from("direct:invokeJpa").routeId("invokeJpaRoute")
-                .process(e ->  e.getIn().setBody(new SongEntity()))
-                .to("jpa:io.camelbee.springboot.example.model.jpa.SongEntity")
+                .process(e -> e.getIn().setBody(new SongEntity()))
+                .to("jpa:io.camelbee.quarkus.example.model.jpa.SongEntity")
                 .id("jpaEndpoint");
 
         from("direct:invokeFile").routeId("invokeFileRoute")

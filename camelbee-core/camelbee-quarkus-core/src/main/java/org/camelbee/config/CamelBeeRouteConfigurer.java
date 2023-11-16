@@ -15,11 +15,10 @@
  */
 package org.camelbee.config;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Named;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.tracers.TracerService;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * The route configurer which sets all listeners, interceptors and the MDCUnitOfWork.
@@ -27,13 +26,22 @@ import org.camelbee.tracers.TracerService;
 @ApplicationScoped
 public class CamelBeeRouteConfigurer {
 
+    @ConfigProperty(name = "camelbee.context-enabled", defaultValue = "false")
+    private boolean contextEnabled;
+
+    @ConfigProperty(name = "camelbee.debugger-enabled", defaultValue = "false")
+    private boolean debuggerEnabled;
+
     /**
      * Configures a route for a CamelBee enabled Camel application.
      *
-     * @param  routeBuilder The routebuilder to be configured.
-     * @throws Exception    The exception.
+     * @param routeBuilder The routebuilder to be configured.
      */
     public void configureRoute(RouteBuilder routeBuilder) {
+
+        // do not intercept and cache the messages
+        if (!contextEnabled || !debuggerEnabled)
+            return;
 
         routeBuilder.getContext().setStreamCaching(true);
         routeBuilder.getContext().setUseMDCLogging(true);
@@ -43,7 +51,7 @@ public class CamelBeeRouteConfigurer {
                 TracerService.TRACE_FROM_DIRECT_REQUEST).afterPropertiesSet();
 
         // add interceptor for components other than direct|seda|servlet
-        routeBuilder.interceptSendToEndpoint("(?!direct|seda|servlet).+").bean(TracerService.CAMELBEE_TRACER,
+        routeBuilder.interceptSendToEndpoint("(?!direct|seda|platform-http).+").bean(TracerService.CAMELBEE_TRACER,
                 TracerService.TRACE_INTERCEPT_SEND_TO_REQUEST)
                 .afterUri("bean:%s?method=%s".formatted(TracerService.CAMELBEE_TRACER,
                         TracerService.TRACE_INTERCEPT_SEND_TO_RESPONSE));

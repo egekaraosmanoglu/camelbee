@@ -1,5 +1,6 @@
 package org.camelbee.debugger.controller;
 
+import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
@@ -21,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Path("/")
+@IfBuildProperty(name = "camelbee.context-enabled", stringValue = "true")
 public class ContextController {
 
     @Inject

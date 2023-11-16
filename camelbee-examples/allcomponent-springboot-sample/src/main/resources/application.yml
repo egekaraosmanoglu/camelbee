@@ -18,10 +18,10 @@ camelbee:
   # when enabled it allows the CamelBe WebGL application to fetch the topology of the Camel Context.
   context-enabled: true
   # when enabled it allows the CamelBe WebGL application to trigger the consumer routes.
-  producer-enabled: false
+  producer-enabled: true
   # debugger-enabled SHOULD BE ONLY ENABLED FOR DEVELOPMENT PURPOSES, NOT FOR PRODUCTION.
   # when enabled intercepts/traces request and responses of all camel components and caches messages.
-  debugger-enabled: false
+  debugger-enabled: true
   # maximum time the tracer can remain idle before deactivation tracing of messages.
   debugger-max-idle-time: 300000
 
@@ -84,8 +84,8 @@ management:
         prometheus: metrics
         metrics: metrics-default
       cors:
-        allowed-origins: "http://localhost:8083" # Comma-separated list of origins you want to allow
-        allowed-methods: GET,POST,PUT,DELETE  # Allowed HTTP methods. Default to GET.
+        allowed-origins: "https://www.camelbee.io" # Comma-separated list of origins you want to allow
+        allowed-methods: GET  # Allowed HTTP methods. Default to GET.
         allowed-headers: "*"  # Allowed HTTP headers. Default to "*".
         allow-credentials: true  # Set to true if you want to allow cookies, authorization headers, etc.
         max-age: 1800  # Maximum age (in seconds) of the cache duration for CORS preflight responses.

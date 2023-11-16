@@ -1,6 +1,7 @@
 package org.camelbee.debugger.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -14,6 +15,7 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.ExchangeBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.camelbee.debugger.model.produce.ProduceMessage;
+import org.camelbee.tracers.TracerService;
 import org.eclipse.microprofile.config.Config;
 
 import java.util.Map;
@@ -22,6 +24,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Path("/")
+@IfBuildProperty(name = "camelbee.context-enabled", stringValue = "true")
+@IfBuildProperty(name = "camelbee.producer-enabled", stringValue = "true")
 public class ProducerController {
 
     @Inject
@@ -36,12 +40,18 @@ public class ProducerController {
     @Inject
     Config config;
 
+    @Inject
+    TracerService tracerService;
+
     @POST
     @Consumes("application/json")
     @Produces("application/json")
     @Path("/camelbee/produce/direct")
-    public Response produceDirect(@Valid ProduceMessage produceMessage)
-            throws Exception {
+    public Response produceDirect(@Valid ProduceMessage produceMessage) {
+
+        // first set the tracing status
+        tracerService.setTracingEnabled(Boolean.TRUE.equals(produceMessage.getTraceEnabled()));
+
         Exchange exchange = ExchangeBuilder.anExchange(camelContext).build();
 
         Map<String, Object> defaultHeaders = produceMessage.getHeaders().getHeaders().stream()
@@ -57,7 +67,7 @@ public class ProducerController {
 
             if (produceMessage.getMediaType() != null && produceMessage.getMediaType().equals("json")
                     && !StringUtils.isEmpty(produceMessage.getClazz())) {
-                request = objectMapper.readValue(produceMessage.getMessage(), Class.forName(produceMessage.getClazz()));
+                request = objectMapper.readValue(produceMessage.getMessage(), loadClass(produceMessage.getClazz()));
 
             } else if (produceMessage.getMediaType() != null && produceMessage.getMediaType().equals("xml")) {
 
@@ -85,7 +95,7 @@ public class ProducerController {
         String adjustedRouteName = null;
 
         if (routeName.startsWith("From[rest:")) {
-            adjustedRouteName = "http:localhost:{{local.server.port}}/camel" + applyPattern(routeName, "://[a-zA-Z]+:(/[^?]+)")
+            adjustedRouteName = "http:localhost:{{quarkus.http.port}}" + applyPattern(routeName, "://[a-zA-Z]+:(/[^?]+)")
                     + "?throwExceptionOnFailure=false";
         } else if (routeName.startsWith("From[jpa:")) {
             adjustedRouteName = applyPattern(routeName, "From\\[(jpa:[^?]+)");
@@ -104,6 +114,17 @@ public class ProducerController {
             return matcher.group(1);
         }
         return null;
+    }
+
+    /**
+     * this is needed in quarkus for class loading in quarkus:dev mode
+     */
+    private Class<?> loadClass(String className) throws ClassNotFoundException {
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            return Thread.currentThread().getContextClassLoader().loadClass(className);
+        }
     }
 
 }

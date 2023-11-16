@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8083")
+@CrossOrigin(origins = "https://www.camelbee.io")
 @ConditionalOnExpression("'${camelbee.context-enabled:false}' && '${camelbee.producer-enabled:false}'")
 public class ProducerController {
 

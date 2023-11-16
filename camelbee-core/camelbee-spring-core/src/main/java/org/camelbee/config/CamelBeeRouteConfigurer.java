@@ -36,7 +36,6 @@ public class CamelBeeRouteConfigurer {
      * Configures a route for a CamelBee enabled Camel application.
      *
      * @param routeBuilder The routebuilder to be configured.
-     * @throws Exception The exception.
      */
     public void configureRoute(RouteBuilder routeBuilder) {
 

@@ -13,26 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camelbee.debugger.model.produce;
+package io.camelbee.quarkus.example.exception;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.enterprise.context.ApplicationScoped;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 
-import java.util.List;
+/**
+ * Error processor.
+ *
+ * @author ekaraosmanoglu
+ */
 
-@RegisterForReflection
-public class ProduceMessageHeaderList {
+@ApplicationScoped
+public class ErrorProcessor implements Processor {
 
-    private List<ProduceMessageHeader> headers;
+    @Override
+    public void process(Exchange exchange) throws Exception {
 
-    public ProduceMessageHeaderList(List<ProduceMessageHeader> headers) {
-        this.headers = headers;
-    }
+        Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
 
-    public ProduceMessageHeaderList() {
-        this.headers = null;
-    }
+        exchange.getIn().setHeader(Exchange.CONTENT_TYPE, "application/json");
 
-    public List<ProduceMessageHeader> getHeaders() {
-        return headers;
+        exchange.getIn().setBody(cause.getLocalizedMessage());
+
     }
 }

@@ -20,22 +20,29 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class ProduceMessage {
 
-    private final String routeName;
+    private String routeName;
 
-    private final String message;
+    private String message;
 
-    private final String clazz;
+    private String clazz;
 
-    private final String mediaType;
+    private String mediaType;
 
-    private final ProduceMessageHeaderList headers;
+    private ProduceMessageHeaderList headers;
 
-    public ProduceMessage(String routeName, String message, String clazz, String mediaType, ProduceMessageHeaderList headers) {
+    private Boolean traceEnabled;
+
+    public ProduceMessage() {
+    }
+
+    public ProduceMessage(String routeName, String message, String clazz, String mediaType, ProduceMessageHeaderList headers,
+            Boolean traceEnabled) {
         this.routeName = routeName;
         this.message = message;
         this.clazz = clazz;
         this.mediaType = mediaType;
         this.headers = headers;
+        this.traceEnabled = traceEnabled;
     }
 
     public String getRouteName() {
@@ -56,5 +63,9 @@ public class ProduceMessage {
 
     public ProduceMessageHeaderList getHeaders() {
         return headers;
+    }
+
+    public Boolean getTraceEnabled() {
+        return traceEnabled;
     }
 }
