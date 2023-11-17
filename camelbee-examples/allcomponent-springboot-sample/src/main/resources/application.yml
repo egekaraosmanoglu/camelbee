@@ -84,7 +84,7 @@ management:
         prometheus: metrics
         metrics: metrics-default
       cors:
-        allowed-origins: "https://www.camelbee.io" # Comma-separated list of origins you want to allow
+        allowed-origins: "https://www.camelbee.io,http://localhost:8083" # Comma-separated list of origins you want to allow
         allowed-methods: GET  # Allowed HTTP methods. Default to GET.
         allowed-headers: "*"  # Allowed HTTP headers. Default to "*".
         allow-credentials: true  # Set to true if you want to allow cookies, authorization headers, etc.

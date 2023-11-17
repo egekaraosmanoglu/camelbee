@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(origins = "https://www.camelbee.io")
+@CrossOrigin(origins = {"https://www.camelbee.io","http://localhost:8083"})
 @ConditionalOnExpression("'${camelbee.context-enabled:false}' && '${camelbee.debugger-enabled:false}'")
 public class TracerController {
 

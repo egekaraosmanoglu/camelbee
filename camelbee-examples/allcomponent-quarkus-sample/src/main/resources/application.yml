@@ -28,7 +28,7 @@ quarkus:
     port: 8080
     cors:
       ~: true
-      origins: https://www.camelbee.io
+      origins: https://www.camelbee.io,http://localhost:8083
       methods: GET,POST
       headers: "*"
       exposed-headers: Content-Disposition
