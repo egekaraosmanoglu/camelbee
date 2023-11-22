@@ -2,10 +2,8 @@ package org.camelbee.debugger.controller;
 
 import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import org.camelbee.tracers.TracerService;
 
@@ -14,17 +12,28 @@ import org.camelbee.tracers.TracerService;
 @IfBuildProperty(name = "camelbee.debugger-enabled", stringValue = "true")
 public class TracerController {
 
+    private enum TraceStatus {
+        ACTIVE,
+        DEACTIVE
+    }
+
     @Inject
     TracerService tracerService;
 
-    @GET
+    @POST
     @Consumes("application/json")
     @Produces("application/json")
-    @Path("/camelbee/tracer/keepActive")
-    public Response getKeepActive() {
+    @Path("/camelbee/tracer/status")
+    public Response updateTraceStatus(@Valid TraceStatus traceStatus) {
 
-        tracerService.keepTracingActive();
-        return Response.ok("keeping active!").build();
+        if (traceStatus == TraceStatus.ACTIVE) {
+            tracerService.setTracingEnabled(true);
+            tracerService.keepTracingActive();
+        } else if (traceStatus == TraceStatus.DEACTIVE) {
+            tracerService.setTracingEnabled(false);
+        }
+
+        return Response.ok("tracing status updated as:" + traceStatus.toString()).build();
     }
 
 }

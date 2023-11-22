@@ -15,26 +15,40 @@
  */
 package org.camelbee.debugger.controller;
 
+import jakarta.validation.Valid;
 import org.camelbee.tracers.TracerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin(origins = {"https://www.camelbee.io","http://localhost:8083"})
 @ConditionalOnExpression("'${camelbee.context-enabled:false}' && '${camelbee.debugger-enabled:false}'")
 public class TracerController {
 
+    private enum TraceStatus {
+        ACTIVE,
+        DEACTIVE
+    }
+
     @Autowired
     TracerService tracerService;
 
-    @GetMapping(value = "/camelbee/tracer/keepActive")
-    public ResponseEntity<String> getKeepActive() {
-        tracerService.keepTracingActive();
-        return ResponseEntity.ok("keeping active!");
+    @PostMapping(value = "/camelbee/tracer/status", produces = "application/json", consumes = "application/json")
+    public ResponseEntity<String> updateTraceStatus(@Valid @RequestBody(required = true) TraceStatus traceStatus) {
+
+        if(traceStatus == TraceStatus.ACTIVE)
+        {
+            tracerService.setTracingEnabled(true);
+            tracerService.keepTracingActive();
+        }
+        else if(traceStatus == TraceStatus.DEACTIVE)
+        {
+            tracerService.setTracingEnabled(false);
+        }
+
+        return ResponseEntity.ok("tracing status updated as:" + traceStatus.toString());
     }
 
 }

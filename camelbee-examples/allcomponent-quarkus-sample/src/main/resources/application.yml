@@ -21,7 +21,7 @@ camelbee:
   # when enabled intercepts/traces request and responses of all camel components and caches messages.
   debugger-enabled: true
   # maximum time the tracer can remain idle before deactivation tracing of messages.
-  debugger-max-idle-time: 300000
+  debugger-max-idle-time: 60000
 
 quarkus:
   http:
