@@ -22,6 +22,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.config.CamelBeeRouteConfigurer;
+import org.camelbee.tracers.TracerService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -93,13 +94,19 @@ public class MusicianRoute extends RouteBuilder {
                 .setProperty(Constants.ORIGINAL_BODY, body())
                 .to("direct:invokeHttpBin")
                 .to("direct:invokeKafka")
-                .to("direct:invokeMqtt")
+                .wireTap("direct:invokeMqtt")
+                .multicast().parallelProcessing()
+                .to("direct:invokeMockA")
+                .to("direct:invokeMockB")
+                .end()
                 .enrich("direct:invokeJms")
                 .enrich().constant("direct:invokeMongoDb")
                 .recipientList().constant("direct:invokeJpa,direct:invokeFile")
                 .routingSlip().constant("direct:invokeMockA,direct:invokeMockB")
-                .to("direct:invokeMockC")
-                .toD("direct:invokeRabbitMq");
+                .toD("direct:invokeRabbitMq")
+                .pollEnrich("file://pollEnrichDir/?fileName=enricher.txt&noop=true", 1000, (original, resource) -> resource)
+                .bean(TracerService.CAMELBEE_TRACER, TracerService.TRACE_INTERCEPT_POLLENRICH_RESPONSE)
+                .to("direct:invokeMockC");
 
 
         from("direct:invokeHttpBin").routeId("invokeHttpBinRoute")
@@ -133,7 +140,7 @@ public class MusicianRoute extends RouteBuilder {
                 .id("jmsEndpoint");
 
         from("direct:invokeJpa").routeId("invokeJpaRoute")
-                .process(e ->  e.getIn().setBody(new SongEntity()))
+                .process(e -> e.getIn().setBody(new SongEntity()))
                 .to("jpa:io.camelbee.springboot.example.model.jpa.SongEntity")
                 .id("jpaEndpoint");
 

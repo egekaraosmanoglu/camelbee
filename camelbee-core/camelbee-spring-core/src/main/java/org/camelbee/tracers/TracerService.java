@@ -37,6 +37,8 @@ public class TracerService {
 
     public static final String TRACE_FROM_DIRECT_REQUEST = "traceFromDirectRequest";
 
+    public static final String TRACE_INTERCEPT_POLLENRICH_RESPONSE = "traceInterceptPollEnrichResponse";
+
     public static final String TRACE_INTERCEPT_SEND_DIRECT_REQUEST = "traceInterceptSendDirectEndpointRequest";
     public static final String TRACE_INTERCEPT_SEND_DIRECT_RESPONSE = "traceInterceptSendDirectEndpointResponse";
 
@@ -44,6 +46,7 @@ public class TracerService {
     public static final String TRACE_INTERCEPT_SEND_TO_RESPONSE = "traceInterceptSendToEndpointResponse";
 
     private FromDirectTracer fromDirectTracer = new FromDirectTracer();
+    private InterceptPollEnrichResponseTracer  interceptPollEnrichResponseTracer = new InterceptPollEnrichResponseTracer();
 
     private InterceptSendDirectRequestTracer interceptSendDirectRequestTracer = new InterceptSendDirectRequestTracer();
     private InterceptSendDirectResponseTracer interceptSendDirectResponseTracer = new InterceptSendDirectResponseTracer();
@@ -61,6 +64,12 @@ public class TracerService {
     public void traceFromDirectRequest(Exchange exchange) {
         if (isTracingEnabled()) {
             fromDirectTracer.trace(exchange, messageService);
+        }
+    }
+
+    public void traceInterceptPollEnrichResponse(Exchange exchange) {
+        if (isTracingEnabled()) {
+            interceptPollEnrichResponseTracer.trace(exchange, messageService);
         }
     }
 

@@ -15,10 +15,10 @@
  */
 package io.camelbee.quarkus.example.model.rest;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.Objects;
 
 /**
  * Song

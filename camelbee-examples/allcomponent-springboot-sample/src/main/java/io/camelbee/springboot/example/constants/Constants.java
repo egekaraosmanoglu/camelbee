@@ -22,10 +22,10 @@ package io.camelbee.springboot.example.constants;
  */
 public final class Constants {
 
-  private Constants() {
-    throw new IllegalStateException("Utility class");
-  }
+    private Constants() {
+        throw new IllegalStateException("Utility class");
+    }
 
-  public static final String ORIGINAL_BODY = "originalBody";
+    public static final String ORIGINAL_BODY = "originalBody";
 
 }

@@ -22,6 +22,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.config.CamelBeeRouteConfigurer;
+import org.camelbee.tracers.TracerService;
 
 /**
  * Musician Route.
@@ -92,13 +93,19 @@ public class MusicianRoute extends RouteBuilder {
                 .setProperty(Constants.ORIGINAL_BODY, body())
                 .to("direct:invokeHttpBin")
                 .to("direct:invokeKafka")
-                .to("direct:invokeMqtt")
+                .wireTap("direct:invokeMqtt")
+                .multicast().parallelProcessing()
+                .to("direct:invokeMockA")
+                .to("direct:invokeMockB")
+                .end()
                 .enrich("direct:invokeJms")
                 .enrich().constant("direct:invokeMongoDb")
                 .recipientList().constant("direct:invokeJpa,direct:invokeFile")
                 .routingSlip().constant("direct:invokeMockA,direct:invokeMockB")
-                .to("direct:invokeMockC")
-                .toD("direct:invokeRabbitMq");
+                .toD("direct:invokeRabbitMq")
+                .pollEnrich("file://pollEnrichDir/?fileName=enricher.txt&noop=true", 1000, (original, resource) -> resource)
+                .bean(TracerService.CAMELBEE_TRACER, TracerService.TRACE_INTERCEPT_POLLENRICH_RESPONSE)
+                .to("direct:invokeMockC");
 
         from("direct:invokeHttpBin").routeId("invokeHttpBinRoute")
                 .marshal().json()

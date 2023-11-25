@@ -25,11 +25,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MonitoringConfig {
 
-  /**
-   * MicrometerRoutePolicyFactory bean.
-   */
-  @Bean
-  public MicrometerRoutePolicyFactory micrometerRoutePolicyFactory() {
-    return new MicrometerRoutePolicyFactory();
-  }
+    /**
+     * MicrometerRoutePolicyFactory bean.
+     */
+    @Bean
+    public MicrometerRoutePolicyFactory micrometerRoutePolicyFactory() {
+        return new MicrometerRoutePolicyFactory();
+    }
 }

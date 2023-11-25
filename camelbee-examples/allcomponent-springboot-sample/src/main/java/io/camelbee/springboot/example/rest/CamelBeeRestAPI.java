@@ -26,33 +26,34 @@ import org.springframework.stereotype.Component;
 @Component
 public final class CamelBeeRestAPI extends RouteBuilder {
 
-  @Autowired
-  CamelBeeRouteConfigurer camelBeeRouteConfigurer;
-  /**
-   * Defines Apache Camel routes using REST DSL fluent API.
-   * Normally this rest configuration should be created by Camel Rest Dsl generator.
-   */
-  public void configure() throws Exception {
+    @Autowired
+    CamelBeeRouteConfigurer camelBeeRouteConfigurer;
 
-    camelBeeRouteConfigurer.configureRoute(this);
+    /**
+     * Defines Apache Camel routes using REST DSL fluent API.
+     * Normally this rest configuration should be created by Camel Rest Dsl generator.
+     */
+    public void configure() throws Exception {
 
-    restConfiguration().component("servlet").clientRequestValidation(true);
+        camelBeeRouteConfigurer.configureRoute(this);
 
-    rest()
-        .post("/testapi/v1/musician")
-        .id("postMusician")
-        .type(Musician.class)
-        .description("Save a musician")
-        .consumes(MediaType.APPLICATION_JSON_VALUE)
-        .produces(MediaType.APPLICATION_JSON_VALUE)
-        .to("direct:postMusician");
+        restConfiguration().component("servlet").clientRequestValidation(true);
 
-    rest()
-        .get("/testapi/v1/musician")
-        .id("getMusician")
-        .description("Get a musician")
-        .produces(MediaType.APPLICATION_JSON_VALUE)
-        .to("direct:getMusician");
+        rest()
+                .post("/testapi/v1/musician")
+                .id("postMusician")
+                .type(Musician.class)
+                .description("Save a musician")
+                .consumes(MediaType.APPLICATION_JSON_VALUE)
+                .produces(MediaType.APPLICATION_JSON_VALUE)
+                .to("direct:postMusician");
 
-  }
+        rest()
+                .get("/testapi/v1/musician")
+                .id("getMusician")
+                .description("Get a musician")
+                .produces(MediaType.APPLICATION_JSON_VALUE)
+                .to("direct:getMusician");
+
+    }
 }

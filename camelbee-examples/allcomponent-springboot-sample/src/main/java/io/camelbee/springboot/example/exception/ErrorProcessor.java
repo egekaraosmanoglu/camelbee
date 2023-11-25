@@ -28,15 +28,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class ErrorProcessor implements Processor {
 
-  @Override
-  public void process(Exchange exchange) throws Exception {
+    @Override
+    public void process(Exchange exchange) throws Exception {
 
-    Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+        Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
 
-    exchange.getIn().setHeader(Exchange.CONTENT_TYPE, "application/json");
+        exchange.getIn().setHeader(Exchange.CONTENT_TYPE, "application/json");
 
-    exchange.getIn().setBody(cause.getLocalizedMessage());
+        exchange.getIn().setBody(cause.getLocalizedMessage());
 
 
-  }
+    }
 }
