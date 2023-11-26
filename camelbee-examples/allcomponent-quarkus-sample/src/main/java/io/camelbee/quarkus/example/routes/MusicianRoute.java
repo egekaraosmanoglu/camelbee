@@ -102,6 +102,7 @@ public class MusicianRoute extends RouteBuilder {
                 .enrich().constant("direct:invokeMongoDb")
                 .recipientList().constant("direct:invokeJpa,direct:invokeFile")
                 .routingSlip().constant("direct:invokeMockA,direct:invokeMockB")
+                .removeHeaders("*")
                 .toD("direct:invokeRabbitMq")
                 .pollEnrich("file://pollEnrichDir/?fileName=enricher.txt&noop=true", 1000, (original, resource) -> resource)
                 .bean(TracerService.CAMELBEE_TRACER, TracerService.TRACE_INTERCEPT_POLLENRICH_RESPONSE)
@@ -125,7 +126,7 @@ public class MusicianRoute extends RouteBuilder {
         from("direct:invokeRabbitMq").routeId("invokeRabbitMqRoute")
                 .setBody(exchangeProperty(Constants.ORIGINAL_BODY))
                 .convertBodyTo(String.class)
-                .to("rabbitmq:cheese?routingKey=songs&durable=false&declare=false&autoDelete=false&arg.queue.x-message-ttl=20000")
+                .to("rabbitmq:cheese?routingKey=songs&durable=false&declare=false&autoDelete=false")
                 .id("rabbitMqEndpoint");
 
         from("direct:invokeMongoDb").routeId("invokeMongoDbRoute")
