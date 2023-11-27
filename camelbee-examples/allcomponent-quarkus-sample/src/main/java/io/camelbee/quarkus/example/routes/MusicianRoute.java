@@ -104,7 +104,7 @@ public class MusicianRoute extends RouteBuilder {
                 .routingSlip().constant("direct:invokeMockA,direct:invokeMockB")
                 .removeHeaders("*")
                 .toD("direct:invokeRabbitMq")
-                .pollEnrich("file://pollEnrichDir/?fileName=enricher.txt&noop=true", 1000, (original, resource) -> resource)
+                .pollEnrich("jms:queue:camelbee-southhbound-queue", 1000, (original, resource) -> resource)
                 .bean(TracerService.CAMELBEE_TRACER, TracerService.TRACE_INTERCEPT_POLLENRICH_RESPONSE)
                 .to("direct:invokeMockC");
 
