@@ -29,7 +29,7 @@ quarkus:
     cors:
       ~: true
       origins: https://www.camelbee.io,http://localhost:8083
-      methods: GET,POST
+      methods: GET,POST,DELETE
       headers: "*"
       exposed-headers: Content-Disposition
       access-control-allow-credentials: true
