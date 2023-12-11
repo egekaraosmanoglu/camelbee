@@ -52,13 +52,13 @@ public class CamelBeeRouteConfigurer {
 
         // add interceptor for components other than direct|seda|servlet
         routeBuilder.interceptSendToEndpoint("(?!direct|seda|platform-http).+").bean(TracerService.CAMELBEE_TRACER,
-                TracerService.TRACE_INTERCEPT_SEND_TO_REQUEST)
+                        TracerService.TRACE_INTERCEPT_SEND_TO_REQUEST)
                 .afterUri("bean:%s?method=%s".formatted(TracerService.CAMELBEE_TRACER,
                         TracerService.TRACE_INTERCEPT_SEND_TO_RESPONSE));
 
         // add interceptor for direct and seda components
         routeBuilder.interceptSendToEndpoint("^(direct|seda).*").bean(TracerService.CAMELBEE_TRACER,
-                TracerService.TRACE_INTERCEPT_SEND_DIRECT_REQUEST)
+                        TracerService.TRACE_INTERCEPT_SEND_DIRECT_REQUEST)
                 .afterUri("bean:%s?method=%s".formatted(TracerService.CAMELBEE_TRACER,
                         TracerService.TRACE_INTERCEPT_SEND_DIRECT_RESPONSE));
 

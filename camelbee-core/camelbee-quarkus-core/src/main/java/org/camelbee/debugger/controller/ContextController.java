@@ -8,18 +8,22 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
 import org.apache.camel.builder.DeadLetterChannelBuilder;
 import org.apache.camel.model.*;
+import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.MessageList;
+import org.camelbee.debugger.model.route.CamelBeeContext;
 import org.camelbee.debugger.model.route.CamelRoute;
-import org.camelbee.debugger.model.route.CamelRouteList;
 import org.camelbee.debugger.model.route.CamelRouteOutput;
 import org.camelbee.debugger.service.MessageService;
 import org.eclipse.microprofile.config.Config;
 
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Path("/")
 @IfBuildProperty(name = "camelbee.context-enabled", stringValue = "true")
@@ -44,7 +48,23 @@ public class ContextController {
 
         String name = camelContext.getName();
 
-        return Response.ok(new CamelRouteList(routes, name)).build();
+        String jvm = "%s - %s".formatted(System.getProperty(CamelBeeConstants.SYSTEM_JVM_VENDOR),
+                System.getProperty(CamelBeeConstants.SYSTEM_JVM_VERSION));
+
+        String framework = "%s - %s".formatted(CamelBeeConstants.FRAMEWORK,
+                io.quarkus.runtime.Quarkus.class.getPackage().getImplementationVersion());
+
+        String camelVersion = camelContext.getVersion();
+
+        String jvmInputParameters = ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .collect(Collectors.joining(", "));
+
+        String garbageCollectors = ManagementFactory.getGarbageCollectorMXBeans().stream().map(GarbageCollectorMXBean::getName)
+                .collect(Collectors.joining(", "));
+
+        return Response
+                .ok(new CamelBeeContext(routes, name, jvm, jvmInputParameters, garbageCollectors, framework, camelVersion))
+                .build();
     }
 
     private List<CamelRoute> getCamelRoutes() {
@@ -76,7 +96,7 @@ public class ContextController {
     }
 
     private void extractOutputs(List<ProcessorDefinition<?>> outputss,
-            List<CamelRouteOutput> outputs) {
+                                List<CamelRouteOutput> outputs) {
 
         ProcessorDefinitionHelper.filterTypeInOutputs(outputss, ToDefinition.class).stream()
                 .forEach(p -> outputs.add(new CamelRouteOutput(p.getId(), updateWithSystemProperties(p.toString()),

@@ -46,7 +46,7 @@ public class TracerService {
     public static final String TRACE_INTERCEPT_SEND_TO_RESPONSE = "traceInterceptSendToEndpointResponse";
 
     private FromDirectTracer fromDirectTracer = new FromDirectTracer();
-    private InterceptPollEnrichResponseTracer  interceptPollEnrichResponseTracer = new InterceptPollEnrichResponseTracer();
+    private InterceptPollEnrichResponseTracer interceptPollEnrichResponseTracer = new InterceptPollEnrichResponseTracer();
 
     private InterceptSendDirectRequestTracer interceptSendDirectRequestTracer = new InterceptSendDirectRequestTracer();
     private InterceptSendDirectResponseTracer interceptSendDirectResponseTracer = new InterceptSendDirectResponseTracer();

@@ -19,9 +19,10 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Route;
 import org.apache.camel.builder.DeadLetterChannelBuilder;
 import org.apache.camel.model.*;
+import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.MessageList;
+import org.camelbee.debugger.model.route.CamelBeeContext;
 import org.camelbee.debugger.model.route.CamelRoute;
-import org.camelbee.debugger.model.route.CamelRouteList;
 import org.camelbee.debugger.model.route.CamelRouteOutput;
 import org.camelbee.debugger.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,13 +34,16 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = {"https://www.camelbee.io","http://localhost:8083"})
+@CrossOrigin(origins = {"https://www.camelbee.io", "http://localhost:8083"})
 @ConditionalOnProperty(value = "camelbee.context-enabled", havingValue = "true")
 public class ContextController {
 
@@ -53,13 +57,23 @@ public class ContextController {
     Environment env;
 
     @GetMapping(value = "/camelbee/routes")
-    public ResponseEntity<CamelRouteList> getRoutes() {
+    public ResponseEntity<CamelBeeContext> getRoutes() {
 
         List<CamelRoute> routes = getCamelRoutes();
 
         String name = camelContext.getName();
 
-        return ResponseEntity.ok(new CamelRouteList(routes, name));
+        String jvm = "%s - %s".formatted(System.getProperty(CamelBeeConstants.SYSTEM_JVM_VENDOR), System.getProperty(CamelBeeConstants.SYSTEM_JVM_VERSION));
+
+        String framework = "%s - %s".formatted(CamelBeeConstants.FRAMEWORK, org.springframework.boot.SpringBootVersion.getVersion());
+
+        String camelVersion = camelContext.getVersion();
+
+        String jvmInputParameters = ManagementFactory.getRuntimeMXBean().getInputArguments().stream().collect(Collectors.joining(", "));
+
+        String garbageCollectors = ManagementFactory.getGarbageCollectorMXBeans().stream().map(GarbageCollectorMXBean::getName).collect(Collectors.joining(", "));
+
+        return ResponseEntity.ok(new CamelBeeContext(routes, name, jvm, jvmInputParameters, garbageCollectors, framework, camelVersion));
     }
 
     private List<CamelRoute> getCamelRoutes() {

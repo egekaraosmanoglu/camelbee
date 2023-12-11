@@ -36,7 +36,7 @@ public class ProduceMessage {
     }
 
     public ProduceMessage(String routeName, String message, String clazz, String mediaType, ProduceMessageHeaderList headers,
-            Boolean traceEnabled) {
+                          Boolean traceEnabled) {
         this.routeName = routeName;
         this.message = message;
         this.clazz = clazz;

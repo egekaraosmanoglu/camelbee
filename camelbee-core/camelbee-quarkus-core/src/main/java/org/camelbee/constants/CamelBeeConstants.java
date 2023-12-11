@@ -32,4 +32,12 @@ public final class CamelBeeConstants {
 
     public static final String SEND_ENDPOINT = "camelbee-send-endpoint";
 
+    public static final String FRAMEWORK = "Quarkus";
+
+    public static final String SYSTEM_JVM_VENDOR = "java.vendor";
+
+    public static final String SYSTEM_JVM_VENDOR_URL = "java.vendor.url";
+
+    public static final String SYSTEM_JVM_VERSION = "java.version";
+
 }

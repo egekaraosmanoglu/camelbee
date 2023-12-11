@@ -20,15 +20,31 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.List;
 
 @RegisterForReflection
-public class CamelRouteList {
+public class CamelBeeContext {
 
     private final List<CamelRoute> routes;
 
     private final String name;
 
-    public CamelRouteList(List<CamelRoute> routes, String name) {
+    private final String jvm;
+
+    private final String jvmInputParameters;
+
+    private final String garbageCollectors;
+
+    private final String framework;
+
+    private final String camelVersion;
+
+    public CamelBeeContext(List<CamelRoute> routes, String name, String jvm, String jvmInputParameters,
+                           String garbageCollectors, String framework, String camelVersion) {
         this.routes = routes;
         this.name = name;
+        this.jvm = jvm;
+        this.jvmInputParameters = jvmInputParameters;
+        this.garbageCollectors = garbageCollectors;
+        this.framework = framework;
+        this.camelVersion = camelVersion;
     }
 
     public List<CamelRoute> getRoutes() {
@@ -37,5 +53,25 @@ public class CamelRouteList {
 
     public String getName() {
         return name;
+    }
+
+    public String getJvm() {
+        return jvm;
+    }
+
+    public String getJvmInputParameters() {
+        return jvmInputParameters;
+    }
+
+    public String getGarbageCollectors() {
+        return garbageCollectors;
+    }
+
+    public String getFramework() {
+        return framework;
+    }
+
+    public String getCamelVersion() {
+        return camelVersion;
     }
 }
