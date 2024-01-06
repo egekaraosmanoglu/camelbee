@@ -1,8 +1,8 @@
 # CamelBee - Apache Camel Library for Microservices Monitoring and Debugging
 
-CamelBee is a powerful Apache Camel core library seamlessly integrated into the Camel Microservices ecosystem.
+CamelBee is a java library seamlessly integrated into the Camel Microservices ecosystem.
  
-This Java library is engineered to extract the architecture of Camel Routes, pinpoint endpoints, and map out the interconnections among them
+CamelBee java core libraries are engineered to extract the architecture of Camel Routes, pinpoint endpoints, and map out the interconnections among them
 to visualize the topology within the CamelBee WebGL application (https://www.camelbee.io).
 
 Additionally, the library plays a crucial role in application monitoring by retrieving all pertinent metrics data.
@@ -32,38 +32,6 @@ Beyond these capabilities, the WebGL application empowers users to initiate Came
 This debugging feature is further augmented by the ability to navigate through the debugging session's timeline, moving back and forth, to thoroughly analyze the process flow.
 
 ---
-
-## Getting Started
-
-To integrate CamelBee into your Apache Camel microservices project, follow the installation and usage instructions in the [official documentation](https://camelbee.example/docs).
-
----
-
-## Contributing
-
-We welcome contributions to make CamelBee even more powerful and versatile. If you have ideas, bug fixes, or enhancements, please check our [contribution guidelines](CONTRIBUTING.md).
-
----
-
-## License
-
-CamelBee is licensed under the [Apache License 2.0](LICENSE). You are free to use, modify, and distribute it in accordance with the license terms.
-
----
-
-## Support
-
-If you encounter any issues, have questions, or need assistance, please visit our [support page](https://camelbee.example/support) or open an issue on our GitHub repository.
-
----
-
-## Acknowledgments
-
-CamelBee is built upon the Apache Camel framework, and we extend our gratitude to the Camel community for their exceptional work in the integration domain.
-
----
-
-
 
 ## Project Structure
 
