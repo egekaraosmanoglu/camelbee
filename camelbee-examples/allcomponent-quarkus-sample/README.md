@@ -23,7 +23,7 @@ Once the library is in place, follow these steps to run the application:
 
 ## Visualizing in the CamelBee WebGL Application
 
-After launching the Java process using the previous command, open a web browser and navigate to https://www.camelbee.io/webgl/index.jsp.
+After launching the Java process using the previous command, open a web browser and navigate to https://www.camelbee.io/webgl.
 Within the WebGL application interface, locate the text field that prompts for a URL. 
 Replace the default value, "https://www.camelbee.io," with "http://localhost:8080" to establish a connection between the application and your locally running instance. 
 This allows you to visualize and interact with the CamelBee Quarkus AllComponents Project in real-time.
