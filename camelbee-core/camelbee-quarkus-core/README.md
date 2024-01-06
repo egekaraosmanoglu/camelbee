@@ -31,7 +31,6 @@ Once the Maven artifact is created, you can include it in your project by adding
 To enable the interceptors of the CamelBee library configure your camel routes like below:
 
 ```
-
 /**
  * Musician Route.
  *
@@ -47,11 +46,8 @@ public class MusicianRoute extends RouteBuilder {
     public void configure() throws Exception {
 
         camelBeeRouteConfigurer.configureRoute(this);
-
-	...
-    ...
-
-
+        ...
+        ...
 ```
 
 ### Enable CamelBee Features
