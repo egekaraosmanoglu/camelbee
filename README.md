@@ -13,32 +13,32 @@ Additionally, the library plays a crucial role in application monitoring by retr
 - Effortlessly visualize complex Camel routes and their interconnections for a better understanding of your microservice architecture.
 - Gain a clear overview of message routing and flow paths within your application.
 
-![Alt Text](images/debuggerscene.jpg)
+![Alt Text](debuggerscene.png)
 
 ### Message Tracing
 - Trace messages as they traverse through Camel routes, enabling real-time debugging and issue identification.
 - Detect bottlenecks, errors, or unexpected behavior in your message processing.
 
-![Alt Text](images/messages.png)
+![Alt Text](messages.png)
  
 ### Debugging and Replay
 - Debug Camel routes interactively by inspecting message contents, and analyzing route behavior.
 - Replay debug sessions to reproduce and investigate issues.
 - Navigate through the debugging session's timeline, moving back and forth, to thoroughly analyze the process flow.
 
-![Alt Text](images/replay.jpg)
+![Alt Text](replay.png)
 
 ### Trigger Consumer Endpoints
 - Initiate any kind of consumer endpoints direclty from the 3D environment and track message traffic.
 
-![Alt Text](images/routecaller.jpg)
+![Alt Text](routecaller.png)
 
 ### Real-time Monitoring
 - Monitor Camel microservices with essential metrics and variables, ensuring the health and performance of your application.
 - Retrieve comprehensive metrics data to keep your microservices running smoothly.
 - Concurrently invoke consumer endpoints to conduct a stress test.
 
-![Alt Text](images/metrics.jpg)
+![Alt Text](metrics.png)
   
 ---
 
