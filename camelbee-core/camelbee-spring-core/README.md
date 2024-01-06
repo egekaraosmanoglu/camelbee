@@ -26,11 +26,37 @@ Once the Maven artifact is created, you can include it in your project by adding
 
 ## Configuration
 
-Configure the following properties in your `application.yaml` file:
+### Configure your each Camel Route with org.camelbee.config.CamelBeeRouteConfigurer
+
+To enable the interceptors of the CamelBee library configure your camel routes like below:
+
+```
+
+/**
+ * Musician Route.
+ *
+ * @author ekaraosmanoglu
+ */
+@Component
+public class MusicianRoute extends RouteBuilder {
+
+	...
+    ...
+
+    @Override
+    public void configure() throws Exception {
+
+        camelBeeRouteConfigurer.configureRoute(this);
+    
+	...
+    ...
+
+
+```
 
 ### Enable CamelBee Features
 
-To enable specific features of the CamelBee library, add/modify the following properties:
+To enable specific features of the CamelBee library, add/modify the following properties in your `application.yaml` file:
 
 ```
 camelbee:
@@ -49,7 +75,7 @@ camelbee:
 
 ### Enable Metrics and CORS for https://www.camelbee.io
 
-To enable metrics and configure CORS for https://www.camelbee.io, adjust the following properties:
+To enable metrics and configure CORS for https://www.camelbee.io, adjust the following properties to your `application.yaml` file:
 
 ```
 management:
