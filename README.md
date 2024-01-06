@@ -1,4 +1,4 @@
-# CamelBee - Apache Camel Core Library for Microservices Monitoring and Debugging
+# CamelBee - Apache Camel Library for Microservices Monitoring and Debugging
 
 CamelBee is a powerful Apache Camel core library seamlessly integrated into the Camel Microservices ecosystem.
  
@@ -69,7 +69,7 @@ CamelBee is built upon the Apache Camel framework, and we extend our gratitude t
 
 The project is structured as follows:
 
-
+```shell
 camelbee/
 |-- camelbee-core/
 | |-- camelbee-quarkus-core/
@@ -86,6 +86,7 @@ camelbee/
 | | |-- README.md
 | | |-- ...
 |-- README.md
+```
 
 
 - `camelbee-core`: Contains the core modules for CamelBee.
