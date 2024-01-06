@@ -31,7 +31,7 @@ Additionally, the library plays a crucial role in application monitoring by retr
 ### Trigger Consumer Endpoints
 - Initiate any kind of consumer endpoints direclty from the 3D environment and track message traffic.
 
-![Alt Text](routercaller.png)
+![Alt Text](routecaller.png)
 
 ### Real-time Monitoring
 - Monitor Camel microservices with essential metrics and variables, ensuring the health and performance of your application.
