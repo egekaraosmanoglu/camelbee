@@ -7,6 +7,15 @@ This project showcases how the library seamlessly integrates with CamelBee WebGL
 
 ## Running the Application with Maven
 
+### Initiate all the backend components
+ 
+Before running this application, it is essential to verify that all the backend services it relies on are operational. 
+You can start these backend services by executing the following docker-compose command in the "/camelbee/camelbee-examples/allcomponent-quarkus-sample/backends" directory:
+
+`docker-compose -f compose-backends.yml up -d`
+
+### Running the Quarkus Application with Maven
+
 To execute this application, you must first ensure that you have successfully installed the camelbee-quarkus-core library from the camelbee/camelbee-core/camelbee-quarkus-core project. 
 Once the library is in place, follow these steps to run the application:
 

@@ -79,6 +79,7 @@ management:
 
 Discover a practical and functional application of this core library within the 'allcomponent-springboot-sample' Maven project showcased below as a successful and operational example:
 
+```shell
 camelbee/
 |-- camelbee-core/
 | |-- camelbee-springboot-core/
@@ -86,3 +87,4 @@ camelbee/
 |-- camelbee-examples/
 | |-- allcomponent-springboot-sample/
 | | |-- ...
+```

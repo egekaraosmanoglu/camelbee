@@ -70,6 +70,7 @@ quarkus:
 
 Discover a practical and functional application of this core library within the 'allcomponent-quarkus-sample' Maven project showcased below as a successful and operational example:
 
+```shell
 camelbee/
 |-- camelbee-core/
 | |-- camelbee-quarkus-core/
@@ -77,3 +78,4 @@ camelbee/
 |-- camelbee-examples/
 | |-- allcomponent-quarkus-sample/
 | | |-- ...
+```
