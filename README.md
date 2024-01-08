@@ -1,11 +1,10 @@
-# CamelBee - Apache Camel Library for Microservices Monitoring and Debugging
+# CamelBee - Apache Camel Library for Microservices Monitoring and Debugging in the CamelBee WebGL Application
 
 CamelBee java core libraries are engineered to extract the architecture of Camel Routes, pinpoint endpoints, and map out the interconnections among them
 to visualize the topology within the CamelBee WebGL application (https://www.camelbee.io).
 
-Additionally, the library plays a crucial role in application monitoring by retrieving all pertinent metrics data.
+![Alt Text](images/startscene.png)
 
----
 
 ## Features
 
