@@ -27,6 +27,11 @@ to visualize the topology within the CamelBee WebGL application (https://www.cam
 
 ![Alt Text](images/replay.png)
 
+### Filtering
+- Seamlessly filter messages to display only the relevant ones.
+
+![Alt Text](images/filter.png)
+
 ### Trigger Consumer Endpoints
 - Initiate any kind of consumer endpoints direclty from the 3D environment and track message traffic.
 
@@ -73,22 +78,13 @@ camelbee/
   - `allcomponent-quarkus-sample`:  Quarkus example project which uses camelbee-quarkus-core library.
   - `allcomponent-springboot-sample`: Spring Boot example project which uses camelbee-springboot-core library.
 
-Each subproject may have its own README file for detailed information specific to that project.
+Each subproject have its own README file for detailed information specific to that project.
 
 ## Getting Started
 
 To get started with any of the subprojects, follow the instructions in their respective README files located in their subdirectories. 
 These README files provide step-by-step instructions on how to build, configure, and run each project.
 
-## Contributing
-
-If you would like to contribute to this project, please follow these steps:
-
-1. Fork the repository.
-2. Create a new branch for your feature or bug fix: `git checkout -b feature/new-feature`.
-3. Make your changes and commit them: `git commit -m "Add new feature"`.
-4. Push your changes to your forked repository: `git push origin feature/new-feature`.
-5. Create a merge request against the main repository, explaining your changes and why they should be merged.
 
 ## License
 
