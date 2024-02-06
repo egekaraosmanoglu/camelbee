@@ -78,7 +78,8 @@ public class ProducerController {
 
         try {
 
-            if (produceMessage.getMediaType() != null && produceMessage.getMediaType().equals("json") && !StringUtils.isEmpty(produceMessage.getClazz())) {
+            if (produceMessage.getMediaType() != null && produceMessage.getMediaType().equals("json")
+                    && !StringUtils.isEmpty(produceMessage.getClazz())) {
                 request = objectMapper.readValue(produceMessage.getMessage(), Class.forName(produceMessage.getClazz()));
 
             } else if (produceMessage.getMediaType() != null && produceMessage.getMediaType().equals("xml")) {

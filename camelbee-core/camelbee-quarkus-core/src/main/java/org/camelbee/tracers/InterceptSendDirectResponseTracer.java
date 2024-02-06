@@ -16,23 +16,21 @@
 package org.camelbee.tracers;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.converter.stream.InputStreamCache;
-import org.apache.cxf.message.MessageContentsList;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
 import org.camelbee.debugger.service.MessageService;
+import org.camelbee.utils.ExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
 /**
  * Responsible for tracing Send Direct Responses via logger beans.
  */
-public class InterceptSendDirectResponseTracer extends RequestResponseTracer {
+public class InterceptSendDirectResponseTracer extends InterceptorTracer {
 
     /**
      * The logger.
@@ -44,27 +42,7 @@ public class InterceptSendDirectResponseTracer extends RequestResponseTracer {
 
         try {
 
-            String httpResponseBody = null;
-
-            if (exchange.getIn().getBody() instanceof MessageContentsList msgList) {
-
-                httpResponseBody = !msgList.isEmpty() ? msgList.get(0).toString() : null;
-
-            } else if (exchange.getIn().getBody() instanceof InputStreamCache requestStreamCache) {
-
-                httpResponseBody = new String(requestStreamCache.readAllBytes());
-
-                exchange.getIn().setBody(httpResponseBody);
-
-            } else if (exchange.getIn().getBody() instanceof InputStream requestStream) {
-
-                httpResponseBody = new String(requestStream.readAllBytes());
-
-                exchange.getIn().setBody(httpResponseBody);
-
-            } else if (exchange.getIn().getBody() != null) {
-                httpResponseBody = exchange.getIn().getBody(String.class);
-            }
+            String responseBody = getBodyAndConvertInputStreamsToString(exchange);
 
             Deque<String> stack = (Deque<String>) exchange.getProperty(CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK);
             Deque<String> clonedStack = new ArrayDeque<>(stack);
@@ -80,10 +58,12 @@ public class InterceptSendDirectResponseTracer extends RequestResponseTracer {
              */
             exchange.setProperty(CamelBeeConstants.CURRENT_ROUTE_NAME, callerRoute);
 
-            final var requestHeaders = getHeaders(exchange);
+            final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-            messageService.addMessage(new Message(exchange.getExchangeId(), httpResponseBody, requestHeaders, callerRoute,
-                    currentRoute, MessageType.RESPONSE, null));
+            Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+            String exception = cause != null ? cause.getLocalizedMessage() : null;
+            messageService.addMessage(new Message(exchange.getExchangeId(), responseBody, requestHeaders, callerRoute,
+                    currentRoute, MessageType.RESPONSE, exception));
 
         } catch (Exception e) {
             LOGGER.error("Could not trace Send Direct Response Exchange: {} with exception: {}", exchange, e);

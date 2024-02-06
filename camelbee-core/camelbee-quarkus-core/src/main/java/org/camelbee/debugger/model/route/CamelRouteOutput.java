@@ -30,7 +30,7 @@ public class CamelRouteOutput {
     private final List<CamelRouteOutput> outputs;
 
     public CamelRouteOutput(String id, String description, String delimiter, String type,
-                            List<CamelRouteOutput> outputs) {
+            List<CamelRouteOutput> outputs) {
         this.id = id;
         this.description = description;
         this.delimiter = delimiter;

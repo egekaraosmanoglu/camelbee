@@ -19,5 +19,5 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
 public enum MessageType {
-    REQUEST, RESPONSE;
+    REQUEST, RESPONSE, ERROR_RESPONSE;
 }

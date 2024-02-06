@@ -63,15 +63,19 @@ public class ContextController {
 
         String name = camelContext.getName();
 
-        String jvm = "%s - %s".formatted(System.getProperty(CamelBeeConstants.SYSTEM_JVM_VENDOR), System.getProperty(CamelBeeConstants.SYSTEM_JVM_VERSION));
+        String jvm = "%s - %s".formatted(System.getProperty(CamelBeeConstants.SYSTEM_JVM_VENDOR),
+                System.getProperty(CamelBeeConstants.SYSTEM_JVM_VERSION));
 
-        String framework = "%s - %s".formatted(CamelBeeConstants.FRAMEWORK, org.springframework.boot.SpringBootVersion.getVersion());
+        String framework = "%s - %s".formatted(CamelBeeConstants.FRAMEWORK,
+                org.springframework.boot.SpringBootVersion.getVersion());
 
         String camelVersion = camelContext.getVersion();
 
-        String jvmInputParameters = ManagementFactory.getRuntimeMXBean().getInputArguments().stream().collect(Collectors.joining(", "));
+        String jvmInputParameters = ManagementFactory.getRuntimeMXBean().getInputArguments().stream()
+                .collect(Collectors.joining(", "));
 
-        String garbageCollectors = ManagementFactory.getGarbageCollectorMXBeans().stream().map(GarbageCollectorMXBean::getName).collect(Collectors.joining(", "));
+        String garbageCollectors = ManagementFactory.getGarbageCollectorMXBeans().stream().map(GarbageCollectorMXBean::getName)
+                .collect(Collectors.joining(", "));
 
         return ResponseEntity.ok(new CamelBeeContext(routes, name, jvm, jvmInputParameters, garbageCollectors, framework, camelVersion));
     }

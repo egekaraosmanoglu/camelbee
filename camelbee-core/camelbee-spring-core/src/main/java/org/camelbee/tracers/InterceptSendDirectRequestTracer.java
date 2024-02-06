@@ -20,6 +20,7 @@ import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
 import org.camelbee.debugger.service.MessageService;
+import org.camelbee.utils.ExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ import java.util.Deque;
  * Responsible for tracing Send Direct Requests triggered by the endpoint interceptor configured in the
  * route configuration {@see CamelBeeRouteConfigurer.configure}.
  */
-public class InterceptSendDirectRequestTracer extends RequestResponseTracer {
+public class InterceptSendDirectRequestTracer extends InterceptorTracer {
 
     /**
      * The logger.
@@ -43,11 +44,11 @@ public class InterceptSendDirectRequestTracer extends RequestResponseTracer {
 
         try {
 
-            String httpRequestBody = null;
+            String requestBody = null;
 
             if (exchange.getIn().getBody() != null) {
 
-                httpRequestBody = exchange.getIn().getBody(String.class);
+                requestBody = exchange.getIn().getBody(String.class);
 
             }
 
@@ -72,10 +73,16 @@ public class InterceptSendDirectRequestTracer extends RequestResponseTracer {
 
             exchange.setProperty(CamelBeeConstants.CURRENT_ROUTE_NAME, currentRoute);
 
-            final var requestHeaders = getHeaders(exchange);
+            exchange.setProperty(CamelBeeConstants.CURRENT_INTERCEPTOR_TYPE, InterceptorType.DIRECT_INTERCEPTOR);
 
-            messageService.addMessage(new Message(exchange.getExchangeId(), httpRequestBody, requestHeaders, currentRouteProperty,
-                    currentRoute, MessageType.REQUEST, null));
+            final var requestHeaders = ExchangeUtils.getHeaders(exchange);
+
+            Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+
+            String exception = cause != null ? cause.getLocalizedMessage() : null;
+
+            messageService.addMessage(new Message(exchange.getExchangeId(), requestBody, requestHeaders, currentRouteProperty,
+                    currentRoute, MessageType.REQUEST, exception));
 
         } catch (Exception e) {
             LOGGER.error("Could not trace Send Direct Request Exchange: {} with exception: {}", exchange, e);

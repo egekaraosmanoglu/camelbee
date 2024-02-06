@@ -37,7 +37,7 @@ public class Message {
     private final String timeStamp;
 
     public Message(String exchangeId, String messageBody, String headers, String routeId, String endpoint,
-                   MessageType messageType, String exception) {
+            MessageType messageType, String exception) {
         this.exchangeId = exchangeId;
         this.messageBody = messageBody;
         this.headers = headers;

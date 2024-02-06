@@ -13,8 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camelbee.debugger.model.exchange;
+package org.camelbee.utils;
 
-public enum MessageType {
-    REQUEST, RESPONSE, ERROR_RESPONSE;
+import org.apache.camel.Exchange;
+
+public class ExchangeUtils {
+
+    private ExchangeUtils() {
+        // Private constructor
+    }
+
+    public static String getHeaders(Exchange exchange) {
+
+        var headers = new StringBuilder();
+
+        exchange.getIn().getHeaders()
+                .forEach((p, q) -> headers.append(p).append(":").append(q).append("\n"));
+
+        return headers.toString();
+    }
+
 }

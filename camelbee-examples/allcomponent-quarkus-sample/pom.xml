@@ -183,7 +183,7 @@
         <dependency>
             <groupId>io.camelbee</groupId>
             <artifactId>camelbee-quarkus-core</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
 
         <dependency>
@@ -211,6 +211,13 @@
             <groupId>org.apache.camel.quarkus</groupId>
             <artifactId>camel-quarkus-mock</artifactId>
         </dependency>
+<!-- https://mvnrepository.com/artifact/org.graalvm.nativeimage/svm -->
+<dependency>
+    <groupId>org.graalvm.nativeimage</groupId>
+    <artifactId>svm</artifactId>
+    <version>23.1.2</version>
+ 
+</dependency>
 
     </dependencies>
 

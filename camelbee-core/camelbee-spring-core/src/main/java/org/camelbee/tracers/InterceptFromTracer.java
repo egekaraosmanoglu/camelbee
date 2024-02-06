@@ -22,6 +22,7 @@ import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
 import org.camelbee.debugger.service.MessageService;
+import org.camelbee.utils.ExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,13 +32,13 @@ import java.util.Deque;
 /**
  * Responsible for tracing Direct From Interceptor requests.
  */
-public class FromDirectTracer extends RequestResponseTracer {
+public class InterceptFromTracer extends InterceptorTracer {
 
     /**
      * The logger.
      */
     private static final Logger LOGGER =
-            LoggerFactory.getLogger(FromDirectTracer.class);
+            LoggerFactory.getLogger(InterceptFromTracer.class);
 
     @Override
     public void trace(Exchange exchange, MessageService messageService) {
@@ -70,7 +71,7 @@ public class FromDirectTracer extends RequestResponseTracer {
                 directRequestBody = null;
             }
 
-            final var requestHeaders = getHeaders(exchange);
+            final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
             addMessage(exchange, messageService, directRequestBody, requestHeaders);
 

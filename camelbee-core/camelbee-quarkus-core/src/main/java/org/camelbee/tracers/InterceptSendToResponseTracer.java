@@ -16,22 +16,19 @@
 package org.camelbee.tracers;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.converter.stream.InputStreamCache;
-import org.apache.cxf.message.MessageContentsList;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
 import org.camelbee.debugger.service.MessageService;
+import org.camelbee.utils.ExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
 
 /**
  * Responsible for tracing Send To Responses via logger beans.
  */
 
-public class InterceptSendToResponseTracer extends RequestResponseTracer {
+public class InterceptSendToResponseTracer extends InterceptorTracer {
 
     /**
      * The logger.
@@ -51,34 +48,18 @@ public class InterceptSendToResponseTracer extends RequestResponseTracer {
                 return;
             }
 
-            String httpResponseBody = null;
+            String responseBody = getBodyAndConvertInputStreamsToString(exchange);
 
-            if (exchange.getIn().getBody() instanceof MessageContentsList msgList) {
+            final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-                httpResponseBody = !msgList.isEmpty() ? msgList.get(0).toString() : null;
+            Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
 
-            } else if (exchange.getIn().getBody() instanceof InputStreamCache requestStreamCache) {
+            String exception = cause != null ? cause.getLocalizedMessage() : null;
 
-                httpResponseBody = new String(requestStreamCache.readAllBytes());
-
-                exchange.getIn().setBody(httpResponseBody);
-
-            } else if (exchange.getIn().getBody() instanceof InputStream requestStream) {
-
-                httpResponseBody = new String(requestStream.readAllBytes());
-
-                exchange.getIn().setBody(httpResponseBody);
-
-            } else if (exchange.getIn().getBody() != null) {
-                httpResponseBody = exchange.getIn().getBody(String.class);
-            }
-
-            final var requestHeaders = getHeaders(exchange);
-
-            messageService.addMessage(new Message(exchange.getExchangeId(), httpResponseBody, requestHeaders,
+            messageService.addMessage(new Message(exchange.getExchangeId(), responseBody, requestHeaders,
                     (String) exchange.getProperty(
                             CamelBeeConstants.CURRENT_ROUTE_NAME),
-                    (String) exchange.getProperty(CamelBeeConstants.SEND_ENDPOINT), MessageType.RESPONSE, null));
+                    (String) exchange.getProperty(CamelBeeConstants.SEND_ENDPOINT), MessageType.RESPONSE, exception));
 
         } catch (Exception e) {
             LOGGER.error("Could not trace Send To Response Exchange: {} with exception: {}", exchange, e);

@@ -33,7 +33,8 @@ public class CamelBeeContext {
 
     private final String camelVersion;
 
-    public CamelBeeContext(List<CamelRoute> routes, String name, String jvm, String jvmInputParameters, String garbageCollectors, String framework, String camelVersion) {
+    public CamelBeeContext(List<CamelRoute> routes, String name, String jvm, String jvmInputParameters,
+                           String garbageCollectors, String framework, String camelVersion) {
         this.routes = routes;
         this.name = name;
         this.jvm = jvm;

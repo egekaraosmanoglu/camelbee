@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camelbee.debugger.model.exchange;
+package org.camelbee.tracers;
 
-public enum MessageType {
-    REQUEST, RESPONSE, ERROR_RESPONSE;
+import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
+import org.camelbee.debugger.service.MessageService;
+
+abstract class CamelEventTracer extends Tracer {
+
+    public void trace(Exchange exchange, Processor failureHandler, MessageService messageService) {
+    }
+
 }

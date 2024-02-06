@@ -20,6 +20,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.camelbee.debugger.service.MessageService;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -39,7 +40,7 @@ public class TracerService {
 
     public static final String CAMELBEE_TRACER = "camelBeeTracer";
 
-    public static final String TRACE_FROM_DIRECT_REQUEST = "traceFromDirectRequest";
+    public static final String TRACE_INTERCEPT_FROM_REQUEST = "traceFromRequest";
 
     public static final String TRACE_INTERCEPT_POLLENRICH_RESPONSE = "traceInterceptPollEnrichResponse";
 
@@ -49,7 +50,7 @@ public class TracerService {
     public static final String TRACE_INTERCEPT_SEND_TO_REQUEST = "traceInterceptSendToEndpointRequest";
     public static final String TRACE_INTERCEPT_SEND_TO_RESPONSE = "traceInterceptSendToEndpointResponse";
 
-    private FromDirectTracer fromDirectTracer = new FromDirectTracer();
+    private InterceptFromTracer interceptFromTracer = new InterceptFromTracer();
     private InterceptPollEnrichResponseTracer interceptPollEnrichResponseTracer = new InterceptPollEnrichResponseTracer();
 
     private InterceptSendDirectRequestTracer interceptSendDirectRequestTracer = new InterceptSendDirectRequestTracer();
@@ -58,6 +59,8 @@ public class TracerService {
     private InterceptSendToRequestTracer interceptSendToRequestTracer = new InterceptSendToRequestTracer();
     private InterceptSendToResponseTracer interceptSendToResponseTracer = new InterceptSendToResponseTracer();
 
+    private ExchangeFailureHandlingEventTracer exchangeFailureHandlingEventTracer = new ExchangeFailureHandlingEventTracer();
+
     private AtomicBoolean tracingEnabled = new AtomicBoolean(false);
 
     private AtomicLong lastTracingActivatedTime = new AtomicLong(System.currentTimeMillis());
@@ -65,40 +68,83 @@ public class TracerService {
     @Inject
     MessageService messageService;
 
-    public void traceFromDirectRequest(Exchange exchange) {
+    public void traceFromRequest(Exchange exchange) {
         if (isTracingEnabled()) {
-            fromDirectTracer.trace(exchange, messageService);
+            interceptFromTracer.trace(exchange, messageService);
         }
+
+        interceptFromTracer.visit(exchange);
+    }
+
+    public void acceptTraceFromRequestVisitor(TracerVisitor tracerVisitor) {
+        interceptFromTracer.accept(tracerVisitor);
     }
 
     public void traceInterceptPollEnrichResponse(Exchange exchange) {
         if (isTracingEnabled()) {
             interceptPollEnrichResponseTracer.trace(exchange, messageService);
         }
+
+        interceptPollEnrichResponseTracer.visit(exchange);
+    }
+
+    public void acceptTraceInterceptPollEnrichResponseVisitor(TracerVisitor tracerVisitor) {
+        interceptPollEnrichResponseTracer.accept(tracerVisitor);
     }
 
     public void traceInterceptSendToEndpointRequest(Exchange exchange) {
         if (isTracingEnabled()) {
             interceptSendToRequestTracer.trace(exchange, messageService);
         }
+        interceptSendToRequestTracer.visit(exchange);
+    }
+
+    public void acceptTraceInterceptSendToEndpointRequestVisitor(TracerVisitor tracerVisitor) {
+        interceptSendToRequestTracer.accept(tracerVisitor);
     }
 
     public void traceInterceptSendToEndpointResponse(Exchange exchange) {
         if (isTracingEnabled()) {
             interceptSendToResponseTracer.trace(exchange, messageService);
         }
+        interceptSendToResponseTracer.visit(exchange);
+    }
+
+    public void acceptTraceInterceptSendToEndpointResponseVisitor(TracerVisitor tracerVisitor) {
+        interceptSendToResponseTracer.accept(tracerVisitor);
     }
 
     public void traceInterceptSendDirectEndpointRequest(Exchange exchange) {
         if (isTracingEnabled()) {
             interceptSendDirectRequestTracer.trace(exchange, messageService);
         }
+        interceptSendDirectRequestTracer.visit(exchange);
+    }
+
+    public void acceptTraceInterceptSendDirectEndpointRequestVisitor(TracerVisitor tracerVisitor) {
+        interceptSendDirectRequestTracer.accept(tracerVisitor);
     }
 
     public void traceInterceptSendDirectEndpointResponse(Exchange exchange) {
         if (isTracingEnabled()) {
             interceptSendDirectResponseTracer.trace(exchange, messageService);
         }
+        interceptSendDirectResponseTracer.visit(exchange);
+    }
+
+    public void acceptTraceInterceptSendDirectEndpointResponseVisitor(TracerVisitor tracerVisitor) {
+        interceptSendDirectResponseTracer.accept(tracerVisitor);
+    }
+
+    public void traceExchangeFailureHandlingEvent(Exchange exchange, Processor failureHandler) {
+        if (isTracingEnabled()) {
+            exchangeFailureHandlingEventTracer.trace(exchange, failureHandler, messageService);
+        }
+        exchangeFailureHandlingEventTracer.visit(exchange);
+    }
+
+    public void acceptTraceExchangeFailureHandlingEventVisitor(TracerVisitor tracerVisitor) {
+        exchangeFailureHandlingEventTracer.accept(tracerVisitor);
     }
 
     public boolean isTracingEnabled() {

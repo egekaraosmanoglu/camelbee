@@ -16,23 +16,21 @@
 package org.camelbee.tracers;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.converter.stream.InputStreamCache;
-import org.apache.cxf.message.MessageContentsList;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
 import org.camelbee.debugger.service.MessageService;
+import org.camelbee.utils.ExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.net.URLDecoder;
 
 /**
  * Responsible for tracing the response of
  * the PollEnrich component configured in the route
  */
-public class InterceptPollEnrichResponseTracer extends RequestResponseTracer {
+public class InterceptPollEnrichResponseTracer extends InterceptorTracer {
 
     /**
      * The logger.
@@ -45,30 +43,9 @@ public class InterceptPollEnrichResponseTracer extends RequestResponseTracer {
 
         try {
 
-            String httpResponseBody = null;
+            String responseBody = getBodyAndConvertInputStreamsToString(exchange);
 
-            if (exchange.getIn().getBody() instanceof MessageContentsList msgList) {
-
-                httpResponseBody =
-                        !msgList.isEmpty() ? msgList.get(0).toString() : null;
-
-            } else if (exchange.getIn().getBody() instanceof InputStreamCache requestStreamCache) {
-
-                httpResponseBody = new String(requestStreamCache.readAllBytes());
-
-                exchange.getIn().setBody(httpResponseBody);
-
-            } else if (exchange.getIn().getBody() instanceof InputStream requestStream) {
-
-                httpResponseBody = new String(requestStream.readAllBytes());
-
-                exchange.getIn().setBody(httpResponseBody);
-
-            } else if (exchange.getIn().getBody() != null) {
-                httpResponseBody = exchange.getIn().getBody(String.class);
-            }
-
-            final var requestHeaders = getHeaders(exchange);
+            final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
             String toEndpointDecode = URLDecoder.decode((String) exchange.getProperty(Exchange.TO_ENDPOINT), "UTF-8");
 
@@ -82,9 +59,13 @@ public class InterceptPollEnrichResponseTracer extends RequestResponseTracer {
                     CamelBeeConstants.CURRENT_ROUTE_NAME),
                     toEndpointDecode, MessageType.REQUEST, null));
 
-            messageService.addMessage(new Message(exchange.getExchangeId(), httpResponseBody, requestHeaders, (String) exchange.getProperty(
+            Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+
+            String exception = cause != null ? cause.getLocalizedMessage() : null;
+
+            messageService.addMessage(new Message(exchange.getExchangeId(), responseBody, requestHeaders, (String) exchange.getProperty(
                     CamelBeeConstants.CURRENT_ROUTE_NAME),
-                    (String) exchange.getProperty(CamelBeeConstants.SEND_ENDPOINT), MessageType.RESPONSE, null));
+                    (String) exchange.getProperty(CamelBeeConstants.SEND_ENDPOINT), MessageType.RESPONSE, exception));
 
         } catch (Exception e) {
             LOGGER.error("Could not trace PollEnrich Respone Exchange: {} with exception: {}", exchange, e);

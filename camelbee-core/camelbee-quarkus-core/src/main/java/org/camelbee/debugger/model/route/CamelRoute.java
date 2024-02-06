@@ -31,7 +31,7 @@ public class CamelRoute {
     private final String errorHandler;
 
     public CamelRoute(String id, String input, List<CamelRouteOutput> outputs, Boolean rest,
-                      String errorHandler) {
+            String errorHandler) {
         this.id = id;
         this.input = input;
         this.outputs = outputs;

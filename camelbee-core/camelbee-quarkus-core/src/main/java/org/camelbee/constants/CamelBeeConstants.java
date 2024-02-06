@@ -40,4 +40,10 @@ public final class CamelBeeConstants {
 
     public static final String SYSTEM_JVM_VERSION = "java.version";
 
+    public static final String CURRENT_INTERCEPTOR_TYPE = "camelbee-current-interceptor-type";
+
+    public static final String CAMEL_HTTP_PATH_HEADER = "camelbee-camelhttppath";
+
+    public static final String CAMEL_FAILED_EVENT_IDENTITIY_HASHCODE = "camelbee-failedevent-identitiy";
+
 }

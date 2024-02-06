@@ -107,8 +107,8 @@ public class MusicianRoute extends RouteBuilder {
                 .toD("direct:invokeRabbitMq")
                 .pollEnrich("jms:queue:camelbee-southhbound-queue", 1000, (original, resource) -> resource)
                 .bean(TracerService.CAMELBEE_TRACER, TracerService.TRACE_INTERCEPT_POLLENRICH_RESPONSE)
-                .to("direct:invokeMockC");
-
+                .to("direct:invokeMockC")
+                .to("direct:invokeHttpBinError");
 
         from("direct:invokeHttpBin").routeId("invokeHttpBinRoute")
                 .marshal().json()
@@ -116,6 +116,14 @@ public class MusicianRoute extends RouteBuilder {
                 .setHeader("hhId", constant("2"))
                 .toD("http:{{httpbin-api.url}}/${header.hhId}?bridgeEndpoint=true")
                 .id("httpBinEndpoint");
+
+        from("direct:invokeHttpBinError").routeId("invokeHttpBinErrorRoute")
+                .doTry()
+                .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+                .toD("http:{{httpbin-error-api.url}}/400?bridgeEndpoint=true")
+                .id("httpBinEndpointError")
+                .doCatch(Exception.class)
+                .endDoTry();
 
         from("direct:invokeKafka").routeId("invokeKafkaRoute")
                 .to("kafka:camelbee-southbound-topic")

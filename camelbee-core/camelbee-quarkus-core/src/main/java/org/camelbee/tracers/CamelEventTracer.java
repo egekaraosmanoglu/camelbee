@@ -16,21 +16,12 @@
 package org.camelbee.tracers;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.camelbee.debugger.service.MessageService;
 
-abstract class RequestResponseTracer {
+abstract class CamelEventTracer extends Tracer {
 
-    public void trace(Exchange exchange, MessageService messageService) {
-    }
-
-    protected String getHeaders(Exchange exchange) {
-
-        var headers = new StringBuilder();
-
-        exchange.getIn().getHeaders()
-                .forEach((p, q) -> headers.append(p).append(":").append(q).append("\n"));
-
-        return headers.toString();
+    public void trace(Exchange exchange, Processor failureHandler, MessageService messageService) {
     }
 
 }

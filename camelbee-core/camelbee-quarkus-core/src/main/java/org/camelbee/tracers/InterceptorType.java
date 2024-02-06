@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.camelbee.debugger.model.exchange;
+package org.camelbee.tracers;
 
-public enum MessageType {
-    REQUEST, RESPONSE, ERROR_RESPONSE;
+public enum InterceptorType {
+    DIRECT_INTERCEPTOR, ENDPOINT_INTERCEPTOR;
 }

@@ -144,3 +144,6 @@ camel:
 
 httpbin-api:
   url: localhost/stream
+
+httpbin-error-api:
+  url: localhost/status
