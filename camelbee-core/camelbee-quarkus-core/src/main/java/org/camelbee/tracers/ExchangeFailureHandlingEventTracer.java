@@ -84,22 +84,22 @@ public class ExchangeFailureHandlingEventTracer extends CamelEventTracer {
 
             if (interceptorType != null && interceptorType.equals(InterceptorType.DIRECT_INTERCEPTOR)) {
 
-                extracted2(exchange, messageService, responseBody, clonedStack, callerRoute, handlerRouteEndpoint);
+                handleDirectResponse(exchange, messageService, responseBody, clonedStack, callerRoute, handlerRouteEndpoint);
 
             } else if (interceptorType != null && interceptorType.equals(InterceptorType.ENDPOINT_INTERCEPTOR)) {
 
-                extracted(exchange, messageService, responseBody, clonedStack, handlerRouteEndpoint);
+                handleEndpointResponse(exchange, messageService, responseBody, clonedStack, handlerRouteEndpoint);
 
             }
         } catch (Exception e) {
-            LOGGER.error("Could not trace Send Direct Response Exchange: {} with exception: {}", exchange, e);
+            LOGGER.error("Could not trace ExchangeFailureHandlingEvent Exchange: {} with exception: {}", exchange, e);
         }
 
     }
 
-    private void extracted(Exchange exchange, MessageService messageService, String httpResponseBody, Deque<String> clonedStack,
+    private void handleEndpointResponse(Exchange exchange, MessageService messageService, String httpResponseBody,
+            Deque<String> clonedStack,
             String handlerRouteEndpoint) {
-        // if endpoint response
 
         /*
         endpoint called from ProducerController is also intercepted here
@@ -126,9 +126,8 @@ public class ExchangeFailureHandlingEventTracer extends CamelEventTracer {
 
     }
 
-    private void extracted2(Exchange exchange, MessageService messageService, String httpResponseBody,
+    private void handleDirectResponse(Exchange exchange, MessageService messageService, String httpResponseBody,
             Deque<String> clonedStack, String callerRoute, String handlerRouteEndpoint) {
-        // if direct response
 
         exchange.setProperty(CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK, clonedStack);
 
