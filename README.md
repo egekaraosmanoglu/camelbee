@@ -29,7 +29,7 @@ to visualize the topology within the CamelBee WebGL application (https://www.cam
 ### Filtering
 - Seamlessly filter messages to display only the relevant ones.
 
-![Alt Text](images/filter.png)
+[![ Watch the Video](images/filter.png)](https://www.youtube.com/watch?v=W29ilyAsXlM)
 
 ### Trigger Consumer Endpoints
 - Initiate any kind of consumer endpoints direclty from the 3D environment and track message traffic.
