@@ -17,14 +17,14 @@ to visualize the topology within the CamelBee WebGL application (https://www.cam
 - Trace messages as they traverse through Camel routes, enabling real-time debugging and issue identification.
 - Detect bottlenecks, errors, or unexpected behavior in your message processing.
 
-![Alt Text](images/messages.png)
+[![ Watch the Video](images/messages.png)](https://www.youtube.com/watch?v=W29ilyAsXlM)
  
 ### Debugging and Replay
 - Debug Camel routes interactively by inspecting message contents, and analyzing route behavior.
 - Replay debug sessions to reproduce and investigate issues.
 - Navigate through the debugging session's timeline, moving back and forth, to thoroughly analyze the process flow.
 
-![Alt Text](images/replay.png)
+[![ Watch the Video](images/replay.png)](https://www.youtube.com/watch?v=W29ilyAsXlM)
 
 ### Filtering
 - Seamlessly filter messages to display only the relevant ones.
@@ -34,14 +34,15 @@ to visualize the topology within the CamelBee WebGL application (https://www.cam
 ### Trigger Consumer Endpoints
 - Initiate any kind of consumer endpoints direclty from the 3D environment and track message traffic.
 
-![Alt Text](images/routecaller.png)
+[![ Watch the Video](images/routecaller.png)](https://www.youtube.com/watch?v=W29ilyAsXlM)
 
 ### Real-time Monitoring
 - Monitor Camel microservices with essential metrics and variables, ensuring the health and performance of your application.
 - Retrieve comprehensive metrics data to keep your microservices running smoothly.
 - Concurrently invoke consumer endpoints to conduct a stress test.
 
-![Alt Text](images/metrics.png)
+[![ Watch the Video](images/metrics.png)](https://www.youtube.com/watch?v=W29ilyAsXlM)
+
   
 ---
 
