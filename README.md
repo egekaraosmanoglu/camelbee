@@ -3,12 +3,7 @@
 CamelBee java core libraries are engineered to extract the architecture of Camel Routes, pinpoint endpoints, and map out the interconnections among them
 to visualize the topology within the CamelBee WebGL application (https://www.camelbee.io).
 
-![Alt Text](images/startscene.png)
-
-# Watch the Video: Embark on a quick tour of CamelBee's capabilities and see firsthand how it can transform your microservice projects.
-
-[![CamelBee](https://img.youtube.com/vi/W29ilyAsXlM/0.jpg)](https://www.youtube.com/watch?v=W29ilyAsXlM)
-
+[![ Watch the Video](images/startscene.png)](https://www.youtube.com/watch?v=W29ilyAsXlM)
 
 ## Features
 
@@ -16,7 +11,7 @@ to visualize the topology within the CamelBee WebGL application (https://www.cam
 - Effortlessly visualize complex Camel routes and their interconnections for a better understanding of your microservice architecture.
 - Gain a clear overview of message routing and flow paths within your application.
 
-![Alt Text](images/debuggerscene.png)
+[![ Watch the Video](images/debuggerscene.png)](https://www.youtube.com/watch?v=W29ilyAsXlM)
 
 ### Message Tracing
 - Trace messages as they traverse through Camel routes, enabling real-time debugging and issue identification.
