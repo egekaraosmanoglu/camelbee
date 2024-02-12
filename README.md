@@ -5,6 +5,10 @@ to visualize the topology within the CamelBee WebGL application (https://www.cam
 
 ![Alt Text](images/startscene.png)
 
+# Watch the Video: Embark on a quick tour of CamelBee's capabilities and see firsthand how it can transform your microservice projects.
+
+[![Alt text](https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg)](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
+
 
 ## Features
 
