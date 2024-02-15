@@ -1,7 +1,7 @@
 # CamelBee - Apache Camel Library for Microservices Monitoring and Debugging in the CamelBee WebGL Application
 
 CamelBee java core libraries are engineered to extract the architecture of Camel Routes, pinpoint endpoints, and map out the interconnections among them
-to visualize the topology within the CamelBee WebGL application (https://www.camelbee.io).
+to visualize the topology within either the CamelBee WebGL application (https://www.camelbee.io) or through the local Docker version (accessed at http://localhost:8083 by executing 'docker run -d -p 8083:80 camelbee/webgl').
 
 [![ Watch the Video](images/startscene.png)](https://www.youtube.com/watch?v=W29ilyAsXlM)
 
@@ -70,9 +70,9 @@ camelbee/
 ```
 
 
-- `camelbee-core`: Contains the core modules for CamelBee.
-  - `camelbee-quarkus-core`: Quarkus-specific core module to integrate with the CamelBee WebGL Application (https://www.camelbee.io).
-  - `camelbee-springboot-core`: Spring Boot-specific core module to integrate with the CamelBee WebGL Application (https://www.camelbee.io).
+- `camelbee-core`: Contains the core modules for CamelBee.to integrate with either the CamelBee WebGL application (https://www.camelbee.io) or through the local Docker version (accessed at http://localhost:8083 by executing 'docker run -d -p 8083:80 camelbee/webgl').
+  - `camelbee-quarkus-core`: Quarkus-specific core module.
+  - `camelbee-springboot-core`: Spring Boot-specific core module.
 
 - `camelbee-examples`: Contains example projects demonstrating the usage of CamelBee.
   - `allcomponent-quarkus-sample`:  Quarkus example project which uses camelbee-quarkus-core library.
