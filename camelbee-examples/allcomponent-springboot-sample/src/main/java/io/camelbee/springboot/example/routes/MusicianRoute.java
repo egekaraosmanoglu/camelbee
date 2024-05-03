@@ -60,11 +60,11 @@ public class MusicianRoute extends RouteBuilder {
 
         from("file://inputdir/?delete=true").routeId("fileListenerRoute")
                 .to(MUSICIAN_PROCESSOR_ROUTE);
-
+/*
         from("timer://foo?fixedRate=true&period=500000").routeId("timerRoute")
                 .setBody(constant("timerTestMessage"))
                 .to(MUSICIAN_PROCESSOR_ROUTE);
-
+*/
         from("kafka:camelbee-northbound-topic").routeId("kafkaListenerRoute")
                 .to(MUSICIAN_PROCESSOR_ROUTE);
 
@@ -114,8 +114,14 @@ public class MusicianRoute extends RouteBuilder {
                 .marshal().json()
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("hhId", constant("2"))
+                .process( e -> {
+                    System.out.println("1111:" + e.getIn().getBody(String.class));
+                })
                 .toD("http:{{httpbin-api.url}}/${header.hhId}?bridgeEndpoint=true")
-                .id("httpBinEndpoint");
+                .id("httpBinEndpoint")
+                .process( e -> {
+                    System.out.println("2222:" + e.getIn().getBody(String.class));
+                });
 
         from("direct:invokeHttpBinError").routeId("invokeHttpBinErrorRoute")
                 .doTry()

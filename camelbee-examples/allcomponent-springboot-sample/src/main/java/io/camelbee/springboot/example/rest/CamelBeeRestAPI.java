@@ -37,7 +37,7 @@ public final class CamelBeeRestAPI extends RouteBuilder {
 
         camelBeeRouteConfigurer.configureRoute(this);
 
-        restConfiguration().component("servlet").clientRequestValidation(true);
+        restConfiguration().component("platform-http").clientRequestValidation(true);
 
         rest()
                 .post("/testapi/v1/musician")

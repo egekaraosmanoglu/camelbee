@@ -19,14 +19,21 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.impl.event.ExchangeFailureHandlingEvent;
 import org.apache.camel.spi.CamelEvent;
+import org.apache.camel.spi.CamelEvent.ExchangeCreatedEvent;
+import org.apache.camel.spi.CamelEvent.ExchangeSendingEvent;
+import org.apache.camel.spi.CamelEvent.ExchangeSentEvent;
 import org.apache.camel.support.EventNotifierSupport;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.tracers.TracerService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class CamelBeeContextConfigurer {
+
+    @Autowired
+    TracerService tracerService;
 
     @Bean
     public EventNotifierSupport eventNotifier(CamelContext camelContext, TracerService tracerService) {
@@ -34,12 +41,55 @@ public class CamelBeeContextConfigurer {
             @Override
             public void notify(CamelEvent event) throws Exception {
 
+                if (event instanceof ExchangeCreatedEvent exchangeCreatedEvent) {
+
+                    tracerService.traceFromRequest(exchangeCreatedEvent.getExchange());
+
+                    String fromRouteId = (String)  ((ExchangeCreatedEvent) event).getExchange().getFromRouteId();
+                    String fromEndpoint =  ((ExchangeCreatedEvent) event).getExchange().getFromEndpoint().toString();
+                    String currentRoute = (String)  ((ExchangeCreatedEvent) event).getExchange().getProperty(Exchange.TO_ENDPOINT);
+
+                    System.out.println("stop");
+
+                }
+                else if(event instanceof ExchangeSendingEvent exchangeSendingEvent){
+
+                    String fromRouteId = (String)  ((ExchangeSendingEvent) event).getExchange().getFromRouteId();
+                    String fromEndpoint =  ((ExchangeSendingEvent) event).getExchange().getFromEndpoint().toString();
+                    String currentRoute = (String)  ((ExchangeSendingEvent) event).getExchange().getProperty(Exchange.TO_ENDPOINT);
+
+                    if(currentRoute != null && (currentRoute.startsWith("direct:") || currentRoute.startsWith("seda:")))
+                    {
+                        tracerService.traceInterceptSendDirectEndpointRequest(exchangeSendingEvent.getExchange());
+                    }else{
+                        tracerService.traceInterceptSendToEndpointRequest(exchangeSendingEvent.getExchange());
+                    }
+
+
+                    System.out.println("stop");
+
+                }
+                else if(event instanceof ExchangeSentEvent exchangeSentEvent){
+                    String fromRouteId = (String)  ((ExchangeSentEvent) event).getExchange().getFromRouteId();
+                    String fromEndpoint =  ((ExchangeSentEvent) event).getExchange().getFromEndpoint().toString();
+                    String currentRoute = (String)  ((ExchangeSentEvent) event).getExchange().getProperty(Exchange.TO_ENDPOINT);
+
+                    if(currentRoute != null && (currentRoute.startsWith("direct:") || currentRoute.startsWith("seda:")))
+                    {
+                        tracerService.traceInterceptSendDirectEndpointResponse(exchangeSentEvent.getExchange());
+                    }else{
+                        tracerService.traceInterceptSendToEndpointResponse(exchangeSentEvent.getExchange());
+                    }
+
+                    System.out.println("stop");
+
+                }
                 /*
                  when exceptions are handled with a doTry()..doCatch() block
                  then afterUri of the interceptors are not triggered.
                  so we need to handle the response messages with the eventNotifier
                  */
-                if (event instanceof ExchangeFailureHandlingEvent failedEvent) {
+                else if (event instanceof ExchangeFailureHandlingEvent failedEvent) {
 
                     Exchange exchange = failedEvent.getExchange();
 

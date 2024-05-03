@@ -45,13 +45,13 @@ public class CamelBeeRouteConfigurer {
 
         routeBuilder.getContext().setStreamCaching(true);
         routeBuilder.getContext().setUseMDCLogging(true);
-
+/*
         // add interceptor for from direct
         routeBuilder.interceptFrom("*").bean(TracerService.CAMELBEE_TRACER,
                 TracerService.TRACE_INTERCEPT_FROM_REQUEST).afterPropertiesSet();
 
         // add interceptor for components other than direct|seda|servlet
-        routeBuilder.interceptSendToEndpoint("(?!direct|seda|servlet).+").bean(TracerService.CAMELBEE_TRACER,
+        routeBuilder.interceptSendToEndpoint("(?!direct|seda|servlet|platform-http).+").bean(TracerService.CAMELBEE_TRACER,
                         TracerService.TRACE_INTERCEPT_SEND_TO_REQUEST)
                 .afterUri("bean:%s?method=%s".formatted(TracerService.CAMELBEE_TRACER,
                         TracerService.TRACE_INTERCEPT_SEND_TO_RESPONSE));
@@ -61,7 +61,7 @@ public class CamelBeeRouteConfigurer {
                         TracerService.TRACE_INTERCEPT_SEND_DIRECT_REQUEST)
                 .afterUri("bean:%s?method=%s".formatted(TracerService.CAMELBEE_TRACER,
                         TracerService.TRACE_INTERCEPT_SEND_DIRECT_RESPONSE));
-
+*/
     }
 
 
