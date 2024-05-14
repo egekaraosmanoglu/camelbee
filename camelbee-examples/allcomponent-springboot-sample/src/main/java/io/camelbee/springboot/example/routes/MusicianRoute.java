@@ -94,6 +94,8 @@ public class MusicianRoute extends RouteBuilder {
                 .setProperty(Constants.ORIGINAL_BODY, body())
                 .to("direct:invokeHttpBin")
                 .to("direct:invokeKafka")
+
+            /*
                 .wireTap("direct:invokeMqtt")
                 .multicast().parallelProcessing()
                 .to("direct:invokeMockA")
@@ -107,6 +109,9 @@ public class MusicianRoute extends RouteBuilder {
                 .toD("direct:invokeRabbitMq")
                 .pollEnrich("jms:queue:camelbee-southhbound-queue", 1000, (original, resource) -> resource)
                 .bean(TracerService.CAMELBEE_TRACER, TracerService.TRACE_INTERCEPT_POLLENRICH_RESPONSE)
+
+
+             */
                 .to("direct:invokeMockC")
                 .to("direct:invokeHttpBinError");
 
@@ -115,12 +120,12 @@ public class MusicianRoute extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant("GET"))
                 .setHeader("hhId", constant("2"))
                 .process( e -> {
-                    System.out.println("1111:" + e.getIn().getBody(String.class));
+                    System.out.println("breakpoint1:" + e.getIn().getBody(String.class));
                 })
                 .toD("http:{{httpbin-api.url}}/${header.hhId}?bridgeEndpoint=true")
                 .id("httpBinEndpoint")
                 .process( e -> {
-                    System.out.println("2222:" + e.getIn().getBody(String.class));
+                    System.out.println("breakpoint2:" + e.getIn().getBody(String.class));
                 });
 
         from("direct:invokeHttpBinError").routeId("invokeHttpBinErrorRoute")

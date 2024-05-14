@@ -43,13 +43,11 @@ public class CamelBeeContextConfigurer {
 
                 if (event instanceof ExchangeCreatedEvent exchangeCreatedEvent) {
 
-                    tracerService.traceFromRequest(exchangeCreatedEvent.getExchange());
-
                     String fromRouteId = (String)  ((ExchangeCreatedEvent) event).getExchange().getFromRouteId();
                     String fromEndpoint =  ((ExchangeCreatedEvent) event).getExchange().getFromEndpoint().toString();
                     String currentRoute = (String)  ((ExchangeCreatedEvent) event).getExchange().getProperty(Exchange.TO_ENDPOINT);
 
-                    System.out.println("stop");
+                    System.out.println("test");
 
                 }
                 else if(event instanceof ExchangeSendingEvent exchangeSendingEvent){
@@ -58,7 +56,11 @@ public class CamelBeeContextConfigurer {
                     String fromEndpoint =  ((ExchangeSendingEvent) event).getExchange().getFromEndpoint().toString();
                     String currentRoute = (String)  ((ExchangeSendingEvent) event).getExchange().getProperty(Exchange.TO_ENDPOINT);
 
-                    if(currentRoute != null && (currentRoute.startsWith("direct:") || currentRoute.startsWith("seda:")))
+
+                    if(exchangeSendingEvent.getExchange().getProperty(CamelBeeConstants.INITIAL_MESSAGE) == null){
+                        tracerService.traceFromRequest(exchangeSendingEvent.getExchange());
+
+                    }else if(currentRoute != null && (currentRoute.startsWith("direct:") || currentRoute.startsWith("seda:")))
                     {
                         tracerService.traceInterceptSendDirectEndpointRequest(exchangeSendingEvent.getExchange());
                     }else{
@@ -66,12 +68,9 @@ public class CamelBeeContextConfigurer {
                     }
 
 
-                    System.out.println("stop");
-
                 }
                 else if(event instanceof ExchangeSentEvent exchangeSentEvent){
-                    String fromRouteId = (String)  ((ExchangeSentEvent) event).getExchange().getFromRouteId();
-                    String fromEndpoint =  ((ExchangeSentEvent) event).getExchange().getFromEndpoint().toString();
+
                     String currentRoute = (String)  ((ExchangeSentEvent) event).getExchange().getProperty(Exchange.TO_ENDPOINT);
 
                     if(currentRoute != null && (currentRoute.startsWith("direct:") || currentRoute.startsWith("seda:")))
@@ -80,8 +79,6 @@ public class CamelBeeContextConfigurer {
                     }else{
                         tracerService.traceInterceptSendToEndpointResponse(exchangeSentEvent.getExchange());
                     }
-
-                    System.out.println("stop");
 
                 }
                 /*
