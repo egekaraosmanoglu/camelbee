@@ -1,0 +1,150 @@
+# Copyright 2023 Rahmi Ege Karaosmanoglu
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+server:
+  port: 8080
+
+camelbee:
+  # when enabled it allows the CamelBe WebGL application to fetch the topology of the Camel Context.
+  context-enabled: true
+  # when enabled it allows the CamelBe WebGL application to trigger the consumer routes.
+  producer-enabled: true
+  # debugger-enabled SHOULD BE ONLY ENABLED FOR DEVELOPMENT PURPOSES, NOT FOR PRODUCTION.
+  # when enabled intercepts/traces request and responses of all camel components and caches messages.
+  debugger-enabled: true
+  # maximum time the tracer can remain idle before deactivation tracing of messages.
+  debugger-max-idle-time: 60000
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: camelbeeTesRrest
+  data:
+    mongodb:
+      uri: mongodb://root:example@localhost:27017/camelbee?authSource=admin
+
+  datasource:
+    sql:
+      init:
+        mode: always
+    # Hikari will use the below plus the following to setup connection pooling
+    hikari:
+      minimumIdle: 2
+      maximumPoolSize: 5
+      idleTimeout: 30000
+      poolName: SpringBootJPAHikariCP
+      maxLifetime: 2000000
+      connectionTimeout: 30000
+      #    initialization-mode: always
+    generate-unique-name: false
+    url: jdbc:mariadb://localhost:3306/CAMELBEE_MARIADB
+    username: camelbee_user
+    password: secret
+    driver-class-name: org.mariadb.jdbc.Driver
+  jpa:
+    hibernate:
+      # To be updated in real production usage!
+      ddl-auto: none
+    database-platform: org.hibernate.dialect.MariaDB106Dialect
+    show-sql: false
+  # Spring JMS configuration
+  artemis:
+    mode: native
+    broker-url: tcp://localhost:61616
+    user: artemis
+    password: :artemis
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+# all access to actuator endpoints without security
+management:
+  server:
+    port: 8080
+  security:
+    enabled: false
+  # expose actuator endpoint via HTTP for info,health,camelroutes
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+      base-path: /
+      path-mapping:
+        prometheus: metrics
+        metrics: metrics-default
+      cors:
+        allowed-origins: "https://www.camelbee.io,http://localhost:8083" # Comma-separated list of origins you want to allow
+        allowed-methods: GET  # Allowed HTTP methods. Default to GET.
+        allowed-headers: "*"  # Allowed HTTP headers. Default to "*".
+        allow-credentials: true  # Set to true if you want to allow cookies, authorization headers, etc.
+        max-age: 1800  # Maximum age (in seconds) of the cache duration for CORS preflight responses.
+  # show verbose health details (/actuator/info) so you can see Camel information also
+  endpoint:
+    hystrix:
+      stream:
+        enabled: true
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  # allow to obtain basic information about Camel routes (read only mode)
+    camelroutes:
+      enabled: true
+      read-only: true
+
+
+
+camel:
+  springboot:
+    use-breadcrumb: true
+    use-m-d-c-logging: true
+    # The Camel context name
+    name: camelbeeExampleRest
+  # to reconfigure the camel servlet context-path mapping to use /api/* instead of /camel/*
+  # needs to be in alignment with basePath in swagger definition
+  component:
+    kafka:
+      brokers: "localhost:9092"
+      groupId: "camelbee-spring"
+      autoOffsetReset: "earliest"
+    servlet:
+      mapping:
+        context-path: /*
+    spring-rabbitmq:
+      # turn on auto declare so the exchange, queues are automatic created if not already present in rabbitmq broker
+      auto-declare: true
+  # rest can also be configured here instead in the CamelRouter class
+  # rest DSL configuration
+  rest:
+    component: servlet
+    binding-mode: json
+    enable-cors: true
+    consumer-property:
+      bridgeErrorHandler: true
+  # jackson properties
+  dataformat:
+    jackson:
+      object-mapper: jacksonObjectMapper
+      disable-features: FAIL_ON_EMPTY_BEANS
+      pretty-print: true
+      include: NON_NULL
+
+httpbin-api:
+  url: localhost/stream
+
+httpbin-error-api:
+  url: localhost/status

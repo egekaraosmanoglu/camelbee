@@ -1,0 +1,102 @@
+# Copyright 2023 Rahmi Ege Karaosmanoglu
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+camelbee:
+  # when enabled it allows the CamelBe WebGL application to fetch the topology of the Camel Context.
+  context-enabled: true
+  # when enabled it allows the CamelBe WebGL application to trigger the consumer routes.
+  producer-enabled: true
+  # debugger-enabled SHOULD BE ONLY ENABLED FOR DEVELOPMENT PURPOSES, NOT FOR PRODUCTION.
+  # when enabled intercepts/traces request and responses of all camel components and caches messages.
+  debugger-enabled: true
+  # maximum time the tracer can remain idle before deactivation tracing of messages.
+  debugger-max-idle-time: 60000
+
+quarkus:
+  http:
+    port: 8080
+    cors:
+      ~: true
+      origins: https://www.camelbee.io,http://localhost:8083
+      methods: GET,POST,DELETE
+      headers: "*"
+      exposed-headers: Content-Disposition
+      access-control-allow-credentials: true
+      access-control-max-age: 24H
+
+  cxf:
+    path: /soap
+  devservices:
+    enabled: false
+  banner:
+    enabled: false
+  test:
+    continuous-testing: "disabled"
+  smallrye-health:
+    root-path: /health
+  index-dependency:
+    camelbeecore:
+      group-id: io.camelbee
+      artifact-id: camelbee-quarkus-core
+  jackson:
+    write-dates-as-timestamps: true
+  micrometer:
+    export:
+      prometheus:
+        path: /metrics
+  log:
+    category:
+      "org.apache.camel":
+        level: INFO
+    level: INFO
+  artemis:
+    url: tcp://localhost:61616
+    username: artemis
+    password: artemis
+  datasource:
+    dataSource:
+      db-kind: other
+      jdbc:
+        driver: org.mariadb.jdbc.Driver
+        url: jdbc:mariadb://localhost:3306/CAMELBEE_MARIADB
+      username: camelbee_user
+      password: secret
+  hibernate-orm:
+    datasource: dataSource
+    dialect: org.hibernate.dialect.MariaDBDialect
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+  mongodb:
+    connection-string: mongodb://root:example@localhost:27017/camelbee?authSource=admin
+camel:
+  context:
+    name: camelbee-quarkus-sample
+  component:
+    kafka:
+      brokers: "localhost:9092"
+      groupId: "camelbee"
+      autoOffsetReset: "earliest"
+    rabbitmq:
+      hostname: localhost
+      portNumber: 5672
+      username: guest
+      password: guest
+
+httpbin-api:
+  url: localhost/stream
+
+httpbin-error-api:
+  url: localhost/status
