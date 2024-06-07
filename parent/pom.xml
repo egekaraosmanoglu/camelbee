@@ -39,6 +39,7 @@
         <checkstyle.version>10.17.0</checkstyle.version>
         <commons-io.version>2.16.1</commons-io.version>
         <commons-lang3.version>3.14.0</commons-lang3.version>
+        <cxf-core.version>4.0.4</cxf-core.version>
         <dependency-lock-maven-plugin.version>1.0.2</dependency-lock-maven-plugin.version>
         <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.10.0</impsort-maven-plugin.version>
@@ -48,14 +49,22 @@
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <lombok.version>1.18.32</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <mariadb-java-client.version>3.4.0</mariadb-java-client.version>
         <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>3.6.1</maven-dependency-plugin.version>
         <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven-jxr-plugin.version>3.4.0</maven-jxr-plugin.version>
         <maven-pmd-plugin.version>3.22.0</maven-pmd-plugin.version>
         <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <maven-surefire-report-plugin.version>3.2.5</maven-surefire-report-plugin.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+
+        <maven.compiler.testSource>${maven.compiler.source}</maven.compiler.testSource>
+        <maven.compiler.testTarget>${maven.compiler.target}</maven.compiler.testTarget>
+
         <openapi-generator-maven-plugin.version>7.1.0</openapi-generator-maven-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -84,6 +93,11 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-core</artifactId>
+            <version>${cxf-core.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>

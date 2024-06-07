@@ -127,12 +127,6 @@
 			<groupId>org.apache.camel.quarkus</groupId>
 			<artifactId>camel-quarkus-bean-validator</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.wiremock</groupId>
-			<artifactId>wiremock</artifactId>
-			<version>${wiremock.version}</version>
-			<scope>compile</scope>
-		</dependency>
 	</dependencies>
 
 	<build>

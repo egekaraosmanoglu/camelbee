@@ -146,17 +146,7 @@
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-bean-validator-starter</artifactId>
         </dependency>
-        <!-- wiremock stubbing -->
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-contract-wiremock</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>net.minidev</groupId>
-                    <artifactId>json-smart</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+
     </dependencies>
 
     <build>

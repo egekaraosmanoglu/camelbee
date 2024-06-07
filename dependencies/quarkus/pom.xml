@@ -34,25 +34,9 @@
         <quarkus.platform.version>3.11.1</quarkus.platform.version>
         <camel-quarkus.platform.version>${quarkus.platform.version}</camel-quarkus.platform.version>
         <quarkiverse-artemis.version>3.0.0</quarkiverse-artemis.version>
-
         <assertj-core.version>3.26.0</assertj-core.version>
-        <formatter-maven-plugin.version>2.23.0</formatter-maven-plugin.version>
-        <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
-        <license-maven-plugin.version>4.2</license-maven-plugin.version>
-        <mariadb-java-client.version>3.4.0</mariadb-java-client.version>
-        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
-        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <maven.compiler.testSource>${maven.compiler.source}</maven.compiler.testSource>
-        <maven.compiler.testTarget>${maven.compiler.target}</maven.compiler.testTarget>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus-logging-json.version>3.1.0</quarkus-logging-json.version>
         <quarkiverse-artemis-jms.version>3.3.0</quarkiverse-artemis-jms.version>
-        <wiremock.version>3.6.0</wiremock.version>
         <camel-quarkus-rabbitmq.version>2.16.0</camel-quarkus-rabbitmq.version>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
@@ -95,6 +79,7 @@
                 <artifactId>mariadb-java-client</artifactId>
                 <version>${mariadb-java-client.version}</version>
             </dependency>
+
         </dependencies>
     </dependencyManagement>
 
