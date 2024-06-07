@@ -19,7 +19,7 @@
         <camel-spring-boot-bom.version>4.6.0</camel-spring-boot-bom.version>
         <jakarta-inject.version>2.0.1</jakarta-inject.version>
         <mysql-connector-java.version>8.0.33</mysql-connector-java.version>
-        <ojdbc11.version>23.3.0.23.09</ojdbc11.version>
+        <ojdbc11.version>23.4.0.24.05</ojdbc11.version>
         <saaj-impl.version>3.0.3</saaj-impl.version>
         <cxf-rt-transports-http-jetty.version>4.0.4</cxf-rt-transports-http-jetty.version>
     </properties>
