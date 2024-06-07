@@ -15,7 +15,7 @@
 
     <properties>
         <spring-boot-dependencies.version>3.3.0</spring-boot-dependencies.version>
-        <spring-cloud-dependencies.version>2023.0.1</spring-cloud-dependencies.version>
+        <spring-cloud-dependencies.version>2023.0.2</spring-cloud-dependencies.version>
         <camel-spring-boot-bom.version>4.6.0</camel-spring-boot-bom.version>
         <jakarta-inject.version>2.0.1</jakarta-inject.version>
         <mysql-connector-java.version>8.0.33</mysql-connector-java.version>
