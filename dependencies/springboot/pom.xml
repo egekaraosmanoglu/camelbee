@@ -21,7 +21,7 @@
         <mysql-connector-java.version>5.1.49</mysql-connector-java.version>
         <ojdbc11.version>23.3.0.23.09</ojdbc11.version>
         <saaj-impl.version>3.0.3</saaj-impl.version>
-        <cxf-rt-transports-http-jetty.version>3.5.1</cxf-rt-transports-http-jetty.version>
+        <cxf-rt-transports-http-jetty.version>3.6.3</cxf-rt-transports-http-jetty.version>
     </properties>
 
     <dependencyManagement>
