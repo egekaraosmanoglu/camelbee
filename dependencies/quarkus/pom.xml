@@ -39,7 +39,7 @@
         <formatter-maven-plugin.version>2.23.0</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
         <license-maven-plugin.version>4.2</license-maven-plugin.version>
-        <mariadb-java-client.version>1.4.6</mariadb-java-client.version>
+        <mariadb-java-client.version>3.4.0</mariadb-java-client.version>
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
