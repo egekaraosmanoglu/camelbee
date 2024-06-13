@@ -14,101 +14,102 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>io.camelbee</groupId>
-        <artifactId>camelbee-quarkus-starter</artifactId>
-        <version>1.0.0</version>
-        <relativePath>../../starters/camelbee-quarkus-starter/pom.xml</relativePath>
-    </parent>
+  <parent>
+    <groupId>io.camelbee</groupId>
+    <artifactId>camelbee-quarkus-starter</artifactId>
+    <version>1.0.0</version>
+    <relativePath>../../starters/camelbee-quarkus-starter/pom.xml</relativePath>
+  </parent>
 
-    <artifactId>allcomponent-quarkus-sample</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
+  <artifactId>allcomponent-quarkus-sample</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
 
 
-    <name>allcomponent-quarkus-sample</name>
-    <description>CamelBee quarkus Example with the most used Camel Components</description>
+  <name>allcomponent-quarkus-sample</name>
+  <description>CamelBee quarkus Example with the most used Camel Components</description>
 
-    <dependencies>
+  <dependencies>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-http</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-http</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-jackson</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-jackson</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-rest</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-rest</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy-jackson</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-jackson</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-jpa</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-jpa</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-mariadb</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-mariadb</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-timer</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-timer</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-jms</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-jms</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>io.quarkiverse.artemis</groupId>
-            <artifactId>quarkus-artemis-jms</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>io.quarkiverse.artemis</groupId>
+      <artifactId>quarkus-artemis-jms</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-kafka</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-kafka</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-rabbitmq</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-rabbitmq</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-paho-mqtt5</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-paho-mqtt5</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-mongodb</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-mongodb</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-mock</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-mock</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel.quarkus</groupId>
-            <artifactId>camel-quarkus-file</artifactId>
-        </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-file</artifactId>
+    </dependency>
+  </dependencies>
 
 </project>

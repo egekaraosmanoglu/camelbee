@@ -14,7 +14,8 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -33,103 +34,99 @@
   <name>allcomponent-springboot-sample</name>
   <description>CamelBee SpringBoot Example with the most used Camel Components</description>
 
-   <dependencies>
+  <dependencies>
 
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-jpa-starter</artifactId>
-     </dependency>
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-jpa-starter</artifactId>
+    </dependency>
 
-     <dependency>
-       <groupId>org.springframework.boot</groupId>
-       <artifactId>spring-boot-starter-data-jpa</artifactId>
-     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
 
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-sql-starter</artifactId>
-     </dependency>
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-sql-starter</artifactId>
+    </dependency>
 
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-file-starter</artifactId>
-     </dependency>
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-file-starter</artifactId>
+    </dependency>
 
-     <!-- camel-mongodb-starter has org.mongodb 5.0.1 which has an issue -->
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-mongodb-starter</artifactId>
-       <exclusions>
-         <exclusion>
+    <!-- camel-mongodb-starter has org.mongodb 5.0.1 which has an issue -->
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-mongodb-starter</artifactId>
+      <exclusions>
+        <exclusion>
           <groupId>org.mongodb</groupId>
           <artifactId>mongodb-driver-core</artifactId>
-         </exclusion>
-         <exclusion>
-           <groupId>org.mongodb</groupId>
-           <artifactId>mongodb-driver-sync</artifactId>
-         </exclusion>
-       </exclusions>
-     </dependency>
+        </exclusion>
+        <exclusion>
+          <groupId>org.mongodb</groupId>
+          <artifactId>mongodb-driver-sync</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 
-     <!-- manually include -->
-     <dependency>
-       <groupId>org.mongodb</groupId>
-       <artifactId>mongodb-driver-core</artifactId>
-     </dependency>
+    <!-- manually include -->
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-core</artifactId>
+    </dependency>
 
-     <!-- manually include -->
-     <dependency>
-       <groupId>org.mongodb</groupId>
-       <artifactId>mongodb-driver-sync</artifactId>
-     </dependency>
+    <!-- manually include -->
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-sync</artifactId>
+    </dependency>
 
-     <!-- mariadb for database -->
-     <dependency>
-       <groupId>org.mariadb.jdbc</groupId>
-       <artifactId>mariadb-java-client</artifactId>
-     </dependency>
+    <!-- mariadb for database -->
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-kafka-starter</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-paho-mqtt5-starter</artifactId>
+    </dependency>
 
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-kafka-starter</artifactId>
-     </dependency>
+    <!-- JMS -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-artemis</artifactId>
+    </dependency>
 
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-paho-mqtt5-starter</artifactId>
-     </dependency>
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-jms-starter</artifactId>
+    </dependency>
+    <!-- /JMS -->
 
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-spring-rabbitmq-starter</artifactId>
+    </dependency>
 
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-platform-http-starter</artifactId>
+    </dependency>
 
-     <!-- JMS -->
-     <dependency>
-       <groupId>org.springframework.boot</groupId>
-       <artifactId>spring-boot-starter-artemis</artifactId>
-     </dependency>
+    <dependency>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-http-starter</artifactId>
+    </dependency>
 
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-jms-starter</artifactId>
-     </dependency>
-     <!-- /JMS -->
-
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-spring-rabbitmq-starter</artifactId>
-     </dependency>
-
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-platform-http-starter</artifactId>
-     </dependency>
-
-     <dependency>
-       <groupId>org.apache.camel.springboot</groupId>
-       <artifactId>camel-http-starter</artifactId>
-     </dependency>
-
-   </dependencies>
+  </dependencies>
 
 </project>
