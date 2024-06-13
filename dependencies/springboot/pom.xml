@@ -20,7 +20,7 @@
         <jakarta-inject.version>2.0.1.MR</jakarta-inject.version>
         <saaj-impl.version>3.0.3</saaj-impl.version>
         <cxf-rt-transports-http-jetty.version>4.0.4</cxf-rt-transports-http-jetty.version>
-        <mongodb-driver-core.version>4.11.2</mongodb-driver-core.version>
+        <mongodb-driver-core.version>5.1.1</mongodb-driver-core.version>
         <mongodb-driver-sync.version>4.11.1</mongodb-driver-sync.version>
     </properties>
 
