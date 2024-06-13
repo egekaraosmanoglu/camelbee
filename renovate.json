@@ -2,6 +2,5 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base"],
   "branchPrefix": "renovate/",
-  "baseBranches": ["feature/project-reconstruction"]
-
+  "baseBranches": ["main"]
 }
