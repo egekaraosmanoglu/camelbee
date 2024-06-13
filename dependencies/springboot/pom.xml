@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.camelbee</groupId>
+        <artifactId>dependencies</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>camelbee-springboot-dependencies</artifactId>
+    <packaging>pom</packaging>
+
+    <properties>
+        <spring-boot-dependencies.version>3.3.0</spring-boot-dependencies.version>
+        <spring-cloud-dependencies.version>2023.0.2</spring-cloud-dependencies.version>
+        <camel-spring-boot-bom.version>4.6.0</camel-spring-boot-bom.version>
+        <jakarta-inject.version>2.0.1.MR</jakarta-inject.version>
+        <saaj-impl.version>3.0.3</saaj-impl.version>
+        <cxf-rt-transports-http-jetty.version>4.0.4</cxf-rt-transports-http-jetty.version>
+        <mongodb-driver-core.version>4.11.2</mongodb-driver-core.version>
+        <mongodb-driver-sync.version>4.11.1</mongodb-driver-sync.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud-dependencies.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.camel.springboot</groupId>
+                <artifactId>camel-spring-boot-bom</artifactId>
+                <version>${camel-spring-boot-bom.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>com.oracle.database.jdbc</groupId>
+                <artifactId>ojdbc11</artifactId>
+                <version>${ojdbc11.version}</version>
+            </dependency>
+
+            <!-- this can be moved to parent -->
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>${mysql-connector-java.version}</version>
+            </dependency>
+
+            <!-- mariadb for database -->
+            <dependency>
+                <groupId>org.mariadb.jdbc</groupId>
+                <artifactId>mariadb-java-client</artifactId>
+                <version>${mariadb-java-client.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-transports-http-jetty</artifactId>
+                <version>${cxf-rt-transports-http-jetty.version}</version>
+            </dependency>
+
+            <!--
+            org.mongodb driver version 5.0.1 which comes with mongodb starter 4.6.0
+            has runtime issues, so manually incliding 4.11.1, in never camel version this could be fixed
+             -->
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongodb-driver-core</artifactId>
+                <version>${mongodb-driver-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongodb-driver-sync</artifactId>
+                <version>${mongodb-driver-core.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+</project>
