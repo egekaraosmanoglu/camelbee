@@ -19,10 +19,12 @@ package org.camelbee.tracers;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import org.apache.camel.Exchange;
+import org.apache.camel.impl.event.ExchangeSendingEvent;
+import org.apache.camel.support.DefaultExchange;
+import org.apache.camel.support.ExtendedExchangeExtension;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
-import org.camelbee.debugger.service.MessageService;
 import org.camelbee.utils.ExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,15 +33,22 @@ import org.slf4j.LoggerFactory;
  * Responsible for tracing Send Direct Requests triggered by the endpoint interceptor configured in the route configuration {@see
  * CamelBeeRouteConfigurer.configure}.
  */
-public class InterceptSendDirectRequestTracer extends InterceptorTracer {
+public class ExchangeSendingEventTracer {
 
   /**
    * The logger.
    */
-  private static final Logger LOGGER = LoggerFactory.getLogger(InterceptSendDirectRequestTracer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeSendingEventTracer.class);
 
-  @Override
-  public void trace(Exchange exchange, MessageService messageService) {
+  public static Message traceEvent(ExchangeSendingEvent event) {
+
+    Exchange exchange = event.getExchange();
+    String endpointUri = event.getEndpoint().getEndpointUri();
+    /*
+    if an error happened before and still in failed state
+    remove that state since we are calling a new endpoint
+    */
+    exchange.removeProperty(CamelBeeConstants.CAMEL_FAILED_EVENT_STATE);
 
     try {
 
@@ -64,7 +73,9 @@ public class InterceptSendDirectRequestTracer extends InterceptorTracer {
 
       final String currentRouteProperty = (String) exchange.getProperty(CamelBeeConstants.CURRENT_ROUTE_NAME);
 
-      final String currentRoute = (String) exchange.getProperty(Exchange.TO_ENDPOINT);
+      final String currentRoute = endpointUri; //(String) exchange.getProperty(Exchange.TO_ENDPOINT);
+
+      final String endpointId = ((ExtendedExchangeExtension) ((DefaultExchange) exchange).getExchangeExtension()).getHistoryNodeId();
 
       clonedStack.push(currentRoute);
 
@@ -72,20 +83,20 @@ public class InterceptSendDirectRequestTracer extends InterceptorTracer {
 
       exchange.setProperty(CamelBeeConstants.CURRENT_ROUTE_NAME, currentRoute);
 
-      exchange.setProperty(CamelBeeConstants.CURRENT_INTERCEPTOR_TYPE, InterceptorType.DIRECT_INTERCEPTOR);
-
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
       Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
 
       String exception = cause != null ? cause.getLocalizedMessage() : null;
 
-      messageService.addMessage(new Message(exchange.getExchangeId(), requestBody, requestHeaders, currentRouteProperty,
-          currentRoute, MessageType.REQUEST, exception));
+      return new Message(exchange.getExchangeId(), requestBody, requestHeaders, currentRouteProperty,
+          currentRoute, endpointId, MessageType.REQUEST, exception);
 
     } catch (Exception e) {
       LOGGER.error("Could not trace Send Direct Request Exchange: {} with exception: {}", exchange, e);
     }
+
+    return null;
 
   }
 

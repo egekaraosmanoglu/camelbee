@@ -31,6 +31,8 @@ public class Message {
 
   private final String endpoint;
 
+  private final String endpointId;
+
   private final MessageType messageType;
 
   private final String exception;
@@ -49,12 +51,13 @@ public class Message {
    * @param exception   The exception.
    */
   public Message(String exchangeId, String messageBody, String headers, String routeId, String endpoint,
-      MessageType messageType, String exception) {
+      String endpointId, MessageType messageType, String exception) {
     this.exchangeId = exchangeId;
     this.messageBody = messageBody;
     this.headers = headers;
     this.routeId = routeId;
     this.endpoint = endpoint;
+    this.endpointId = endpointId;
     this.messageType = messageType;
     this.exception = exception;
     this.timeStamp = "%d".formatted(System.currentTimeMillis());
@@ -78,6 +81,10 @@ public class Message {
 
   public String getEndpoint() {
     return endpoint;
+  }
+
+  public String getEndpointId() {
+    return endpointId;
   }
 
   public MessageType getMessageType() {

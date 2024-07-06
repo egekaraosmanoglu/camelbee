@@ -19,30 +19,31 @@ package org.camelbee.tracers;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import org.apache.camel.Exchange;
+import org.apache.camel.impl.event.ExchangeCompletedEvent;
+import org.apache.camel.support.DefaultExchange;
+import org.apache.camel.support.ExtendedExchangeExtension;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
-import org.camelbee.debugger.service.MessageService;
 import org.camelbee.utils.ExchangeUtils;
+import org.camelbee.utils.TracerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for tracing Send Direct Responses via logger beans.
  */
-public class InterceptSendDirectResponseTracer extends InterceptorTracer {
+public class ExchangeCompletedEventTracer {
 
   /**
    * The logger.
    */
-  private static final Logger LOGGER = LoggerFactory.getLogger(InterceptSendDirectResponseTracer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeCompletedEventTracer.class);
 
-  @Override
-  public void trace(Exchange exchange, MessageService messageService) {
+  public static Message traceEvent(ExchangeCompletedEvent event) {
 
+    Exchange exchange = event.getExchange();
     try {
-
-      String responseBody = getBodyAndConvertInputStreamsToString(exchange);
 
       Deque<String> stack = (Deque<String>) exchange.getProperty(CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK);
       Deque<String> clonedStack = new ArrayDeque<>(stack);
@@ -60,16 +61,27 @@ public class InterceptSendDirectResponseTracer extends InterceptorTracer {
 
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-      Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+      MessageType messageType = MessageType.RESPONSE;
 
-      String exception = cause != null ? cause.getLocalizedMessage() : null;
+      String errorMessage = TracerUtils.handleError(exchange);
 
-      messageService.addMessage(new Message(exchange.getExchangeId(), responseBody, requestHeaders, callerRoute,
-          currentRoute, MessageType.RESPONSE, exception));
+      if (errorMessage != null) {
+        messageType = MessageType.ERROR_RESPONSE;
+      }
+      final String responseBody = ExchangeUtils.getBodyAndConvertInputStreamsToString(exchange);
+
+      final String endpointId = ((ExtendedExchangeExtension) ((DefaultExchange) exchange).getExchangeExtension()).getHistoryNodeId();
+
+      return new Message(exchange.getExchangeId(), responseBody, requestHeaders, callerRoute,
+          currentRoute, endpointId, messageType, errorMessage);
 
     } catch (Exception e) {
       LOGGER.error("Could not trace Send Direct Response Exchange: {} with exception: {}", exchange, e);
     }
 
+    return null;
+
   }
+
+
 }

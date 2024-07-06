@@ -18,6 +18,8 @@ package org.camelbee.tracers;
 
 import java.net.URLDecoder;
 import org.apache.camel.Exchange;
+import org.apache.camel.support.DefaultExchange;
+import org.apache.camel.support.ExtendedExchangeExtension;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
@@ -30,15 +32,20 @@ import org.slf4j.LoggerFactory;
  * Responsible for tracing Send To Requests triggered by the endpoint interceptor configured in the route configuration {@see
  * CamelBeeRouteConfigurer.configure}.
  */
-public class InterceptSendToRequestTracer extends InterceptorTracer {
+public class InterceptSendToRequestTracer {
 
   /**
    * The logger.
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(InterceptSendToRequestTracer.class);
 
-  @Override
-  public void trace(Exchange exchange, MessageService messageService) {
+  public Message trace(Exchange exchange, String endpointUri, MessageService messageService) {
+
+    /*
+     if an error happened before and still in failed state
+     remove that state since we are calling a new endpoint
+     */
+    exchange.removeProperty(CamelBeeConstants.CAMEL_FAILED_EVENT_STATE);
 
     try {
 
@@ -60,11 +67,11 @@ public class InterceptSendToRequestTracer extends InterceptorTracer {
 
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-      String toEndpointDecode = URLDecoder.decode((String) exchange.getProperty(Exchange.TO_ENDPOINT), "UTF-8");
+      //String toEndpointDecode = URLDecoder.decode((String) exchange.getProperty(Exchange.TO_ENDPOINT), "UTF-8");
+      String toEndpointDecode = URLDecoder.decode(endpointUri, "UTF-8");
+      final String endpointId = ((ExtendedExchangeExtension) ((DefaultExchange) exchange).getExchangeExtension()).getHistoryNodeId();
 
       exchange.setProperty(CamelBeeConstants.SEND_ENDPOINT, toEndpointDecode);
-
-      exchange.setProperty(CamelBeeConstants.CURRENT_INTERCEPTOR_TYPE, InterceptorType.ENDPOINT_INTERCEPTOR);
 
       setExtraCamelBeeProperties(exchange);
 
@@ -72,9 +79,9 @@ public class InterceptSendToRequestTracer extends InterceptorTracer {
 
       String exception = cause != null ? cause.getLocalizedMessage() : null;
 
-      messageService.addMessage(new Message(exchange.getExchangeId(), requestBody, requestHeaders, (String) exchange.getProperty(
+      return new Message(exchange.getExchangeId(), requestBody, requestHeaders, (String) exchange.getProperty(
           CamelBeeConstants.CURRENT_ROUTE_NAME),
-          toEndpointDecode, MessageType.REQUEST, exception));
+          toEndpointDecode, endpointId, MessageType.REQUEST, exception);
 
     } catch (Exception e) {
       LOGGER.error("Could not trace Send To Request Exchange: {} with exception: {}", exchange, e);

@@ -18,8 +18,10 @@ package org.camelbee.tracers;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
+import org.apache.camel.spi.CamelEvent.ExchangeCompletedEvent;
+import org.apache.camel.spi.CamelEvent.ExchangeCreatedEvent;
+import org.apache.camel.spi.CamelEvent.ExchangeSendingEvent;
+import org.apache.camel.spi.CamelEvent.ExchangeSentEvent;
 import org.camelbee.debugger.service.MessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,28 +38,7 @@ public class TracerService {
 
   public static final String CAMELBEE_TRACER = "camelBeeTracer";
 
-  public static final String TRACE_INTERCEPT_FROM_REQUEST = "traceFromRequest";
-
-  public static final String TRACE_INTERCEPT_POLLENRICH_RESPONSE = "traceInterceptPollEnrichResponse";
-
-  public static final String TRACE_INTERCEPT_SEND_DIRECT_REQUEST = "traceInterceptSendDirectEndpointRequest";
-  public static final String TRACE_INTERCEPT_SEND_DIRECT_RESPONSE = "traceInterceptSendDirectEndpointResponse";
-
-  public static final String TRACE_INTERCEPT_SEND_TO_REQUEST = "traceInterceptSendToEndpointRequest";
-  public static final String TRACE_INTERCEPT_SEND_TO_RESPONSE = "traceInterceptSendToEndpointResponse";
-
-  private InterceptFromTracer interceptFromTracer = new InterceptFromTracer();
-  private InterceptPollEnrichResponseTracer interceptPollEnrichResponseTracer = new InterceptPollEnrichResponseTracer();
-
-  private InterceptSendDirectRequestTracer interceptSendDirectRequestTracer = new InterceptSendDirectRequestTracer();
-  private InterceptSendDirectResponseTracer interceptSendDirectResponseTracer = new InterceptSendDirectResponseTracer();
-
-  private InterceptSendToRequestTracer interceptSendToRequestTracer = new InterceptSendToRequestTracer();
-  private InterceptSendToResponseTracer interceptSendToResponseTracer = new InterceptSendToResponseTracer();
-
-  private ExchangeFailureHandlingEventTracer exchangeFailureHandlingEventTracer = new ExchangeFailureHandlingEventTracer();
-
-  private AtomicBoolean tracingEnabled = new AtomicBoolean(false);
+  private AtomicBoolean tracingEnabled = new AtomicBoolean(true);
 
   private AtomicLong lastTracingActivatedTime = new AtomicLong(System.currentTimeMillis());
 
@@ -67,151 +48,47 @@ public class TracerService {
   /**
    * TraceFromRequest.
    *
-   * @param exchange The exchange.
+   * @param exchangeCreatedEvent The exchange.
    */
-  public void traceFromRequest(Exchange exchange) {
+  public void traceExchangeCreateEvent(ExchangeCreatedEvent exchangeCreatedEvent) {
     if (isTracingEnabled()) {
-      interceptFromTracer.trace(exchange, messageService);
+      messageService.addMessage(ExchangeCreatedEventTracer.traceEvent(exchangeCreatedEvent));
     }
-
-    interceptFromTracer.visit(exchange);
-  }
-
-  /**
-   * Accepts Tracer visitors for custom logic.
-   *
-   * @param tracerVisitor The tracerVisitor.
-   */
-  public void acceptTraceFromRequestVisitor(TracerVisitor tracerVisitor) {
-    interceptFromTracer.accept(tracerVisitor);
-  }
-
-  /**
-   * Trace poolEnrich component response.
-   *
-   * @param exchange The exchange.
-   */
-  public void traceInterceptPollEnrichResponse(Exchange exchange) {
-    if (isTracingEnabled()) {
-      interceptPollEnrichResponseTracer.trace(exchange, messageService);
-    }
-
-    interceptPollEnrichResponseTracer.visit(exchange);
-  }
-
-  /**
-   * Accepts Tracer visitors for custom logic.
-   *
-   * @param tracerVisitor The tracerVisitor.
-   */
-  public void acceptTraceInterceptPollEnrichResponseVisitor(TracerVisitor tracerVisitor) {
-    interceptPollEnrichResponseTracer.accept(tracerVisitor);
   }
 
   /**
    * Trace producer endpoint calls.
    *
-   * @param exchange The exchange.
+   * @param exchangeSendingEvent The exchange.
    */
-  public void traceInterceptSendToEndpointRequest(Exchange exchange) {
+  public void traceExchangeSendingEvent(ExchangeSendingEvent exchangeSendingEvent) {
     if (isTracingEnabled()) {
-      interceptSendToRequestTracer.trace(exchange, messageService);
+      messageService.addMessage(ExchangeSendingEventTracer.traceEvent(exchangeSendingEvent));
     }
-    interceptSendToRequestTracer.visit(exchange);
   }
 
-  /**
-   * Accepts Tracer visitors for custom logic for calling endpoint.
-   *
-   * @param tracerVisitor The tracerVisitor.
-   */
-  public void acceptTraceInterceptSendToEndpointRequestVisitor(TracerVisitor tracerVisitor) {
-    interceptSendToRequestTracer.accept(tracerVisitor);
-  }
 
   /**
    * traceInterceptSendToEndpointResponse.
    *
    * @param exchange The exchange.
    */
-  public void traceInterceptSendToEndpointResponse(Exchange exchange) {
+  public void traceExchangeSentEvent(ExchangeSentEvent exchangeSentEvent) {
     if (isTracingEnabled()) {
-      interceptSendToResponseTracer.trace(exchange, messageService);
+      interceptSendToResponseTracer.trace(exchangeSentEvent);
     }
-    interceptSendToResponseTracer.visit(exchange);
   }
 
-  /**
-   * acceptTraceInterceptSendToEndpointResponseVisitor.
-   *
-   * @param tracerVisitor The tracerVisitor.
-   */
-  public void acceptTraceInterceptSendToEndpointResponseVisitor(TracerVisitor tracerVisitor) {
-    interceptSendToResponseTracer.accept(tracerVisitor);
-  }
 
   /**
-   * traceInterceptSendDirectEndpointRequest.
+   * traceInterceptSendToEndpointResponse.
    *
    * @param exchange The exchange.
    */
-  public void traceInterceptSendDirectEndpointRequest(Exchange exchange) {
+  public void traceExchangeCompletedEvent(ExchangeCompletedEvent exchangeCompletedEvent) {
     if (isTracingEnabled()) {
-      interceptSendDirectRequestTracer.trace(exchange, messageService);
+      interceptSendToResponseTracer.trace(exchangeCompletedEvent);
     }
-    interceptSendDirectRequestTracer.visit(exchange);
-  }
-
-  /**
-   * acceptTraceInterceptSendDirectEndpointRequestVisitor.
-   *
-   * @param tracerVisitor The tracerVisitor.
-   */
-  public void acceptTraceInterceptSendDirectEndpointRequestVisitor(TracerVisitor tracerVisitor) {
-    interceptSendDirectRequestTracer.accept(tracerVisitor);
-  }
-
-  /**
-   * traceInterceptSendDirectEndpointResponse.
-   *
-   * @param exchange The exchange.
-   */
-  public void traceInterceptSendDirectEndpointResponse(Exchange exchange) {
-    if (isTracingEnabled()) {
-      interceptSendDirectResponseTracer.trace(exchange, messageService);
-    }
-    interceptSendDirectResponseTracer.visit(exchange);
-  }
-
-  /**
-   * acceptTraceInterceptSendDirectEndpointResponseVisitor.
-   *
-   * @param tracerVisitor The tracerVisitor.
-   */
-  public void acceptTraceInterceptSendDirectEndpointResponseVisitor(TracerVisitor tracerVisitor) {
-    interceptSendDirectResponseTracer.accept(tracerVisitor);
-  }
-
-  /**
-   * traceExchangeFailureHandlingEvent.
-   *
-   * @param exchange       The exchange.
-   * @param failureHandler The failureHandler.
-   */
-  public void traceExchangeFailureHandlingEvent(Exchange exchange, Processor failureHandler) {
-    if (isTracingEnabled()) {
-      exchangeFailureHandlingEventTracer.trace(exchange, failureHandler, messageService);
-    }
-    exchangeFailureHandlingEventTracer.visit(exchange);
-  }
-
-  /**
-   * acceptTraceExchangeFailureHandlingEventVisitor.
-   *
-   * @param tracerVisitor The tracerVisitor.
-   */
-  public void acceptTraceExchangeFailureHandlingEventVisitor(TracerVisitor tracerVisitor) {
-    exchangeFailureHandlingEventTracer.accept(tracerVisitor);
   }
 
   /**
@@ -222,7 +99,7 @@ public class TracerService {
   public boolean isTracingEnabled() {
     // if CamelBee WebGL application is not active anymore and not calling the keepTracingActive api
     if (tracingEnabled.get() && System.currentTimeMillis() - lastTracingActivatedTime.get() > traceIdleTime) {
-      tracingEnabled.set(false);
+      tracingEnabled.set(true);
     }
     return tracingEnabled.get();
   }

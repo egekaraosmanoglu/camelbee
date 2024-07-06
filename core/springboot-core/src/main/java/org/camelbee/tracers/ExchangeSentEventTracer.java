@@ -17,26 +17,31 @@
 package org.camelbee.tracers;
 
 import org.apache.camel.Exchange;
+import org.apache.camel.impl.event.ExchangeSentEvent;
+import org.apache.camel.support.DefaultExchange;
+import org.apache.camel.support.ExtendedExchangeExtension;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
-import org.camelbee.debugger.service.MessageService;
 import org.camelbee.utils.ExchangeUtils;
+import org.camelbee.utils.TracerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Responsible for tracing Send To Responses via logger beans.
  */
-public class InterceptSendToResponseTracer extends InterceptorTracer {
+public class ExchangeSentEventTracer {
 
   /**
    * The logger.
    */
-  private static final Logger LOGGER = LoggerFactory.getLogger(InterceptSendToResponseTracer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeSentEventTracer.class);
 
-  @Override
-  public void trace(Exchange exchange, MessageService messageService) {
+  public static Message traceEvent(ExchangeSentEvent event) {
+
+    Exchange exchange = event.getExchange();
+    String endpointUri = event.getEndpoint().getEndpointUri();
 
     try {
 
@@ -45,24 +50,32 @@ public class InterceptSendToResponseTracer extends InterceptorTracer {
         which we should not put into the messages
       */
       if (exchange.getProperty(CamelBeeConstants.CURRENT_ROUTE_NAME) == null) {
-        return;
+        return null;
       }
 
-      String responseBody = getBodyAndConvertInputStreamsToString(exchange);
+      String responseBody = ExchangeUtils.getBodyAndConvertInputStreamsToString(exchange);
 
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-      Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+      MessageType messageType = MessageType.RESPONSE;
 
-      String exception = cause != null ? cause.getLocalizedMessage() : null;
+      String errorMessage = TracerUtils.handleError(exchange);
 
-      messageService.addMessage(new Message(exchange.getExchangeId(), responseBody, requestHeaders, (String) exchange.getProperty(
+      if (errorMessage != null) {
+        messageType = MessageType.ERROR_RESPONSE;
+      }
+
+      final String endpointId = ((ExtendedExchangeExtension) ((DefaultExchange) exchange).getExchangeExtension()).getHistoryNodeId();
+
+      return new Message(exchange.getExchangeId(), responseBody, requestHeaders, (String) exchange.getProperty(
           CamelBeeConstants.CURRENT_ROUTE_NAME),
-          (String) exchange.getProperty(CamelBeeConstants.SEND_ENDPOINT), MessageType.RESPONSE, exception));
+          (String) exchange.getProperty(CamelBeeConstants.SEND_ENDPOINT), endpointId, messageType, errorMessage);
 
     } catch (Exception e) {
       LOGGER.error("Could not trace Send To Response Exchange: {} with exception: {}", exchange, e);
     }
+
+    return null;
 
   }
 }

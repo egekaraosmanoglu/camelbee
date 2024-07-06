@@ -34,7 +34,10 @@ public class MessageService {
   }
 
   public void addMessage(Message message) {
-    messageList.add(message);
+    if(message != null)
+    {
+      messageList.add(message);
+    }
   }
 
   public void reset() {

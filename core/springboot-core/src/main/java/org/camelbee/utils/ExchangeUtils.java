@@ -16,7 +16,11 @@
 
 package org.camelbee.utils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import org.apache.camel.Exchange;
+import org.apache.camel.converter.stream.InputStreamCache;
 
 /**
  * ExchangeUtils.
@@ -41,6 +45,33 @@ public class ExchangeUtils {
         .forEach((p, q) -> headers.append(p).append(":").append(q).append("\n"));
 
     return headers.toString();
+  }
+
+  public static String getBodyAndConvertInputStreamsToString(Exchange exchange) throws IOException {
+
+    String response = null;
+
+    if (exchange.getIn().getBody() instanceof InputStreamCache requestStreamCache) {
+
+      response = new String(requestStreamCache.readAllBytes());
+
+      exchange.getIn().setBody(response);
+
+    } else if (exchange.getIn().getBody() instanceof InputStream requestStream) {
+
+      response = new String(requestStream.readAllBytes());
+
+      exchange.getIn().setBody(response);
+
+    } else if (exchange.getIn().getBody() instanceof ArrayList msgList) {
+      // if it is a cxf MessageContectsList class
+      response = !msgList.isEmpty() ? msgList.get(0).toString() : null;
+
+    } else if (exchange.getIn().getBody() != null) {
+      response = exchange.getIn().getBody(String.class);
+    }
+
+    return response;
   }
 
 }

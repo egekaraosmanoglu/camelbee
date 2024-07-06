@@ -16,13 +16,12 @@
 
 package org.camelbee.tracers;
 
-import org.apache.camel.Exchange;
-import org.camelbee.debugger.service.MessageService;
+import org.apache.camel.spi.CamelEvent;
 
-abstract class InterceptorTracer extends Tracer {
+/**
+ * EventNotifier.
+ */
+public interface EventNotifier {
 
-  public void trace(Exchange exchange, MessageService messageService) {
-
-  }
-
+  void notify(CamelEvent camelEvent);
 }

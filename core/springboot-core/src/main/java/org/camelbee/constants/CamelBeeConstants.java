@@ -45,6 +45,8 @@ public final class CamelBeeConstants {
 
   public static final String CAMEL_HTTP_PATH_HEADER = "camelbee-camelhttppath";
 
+  public static final String CAMEL_FAILED_EVENT_STATE = "camelbee-failedevent-state";
+
   public static final String CAMEL_FAILED_EVENT_IDENTITIY_HASHCODE = "camelbee-failedevent-identitiy";
 
 }

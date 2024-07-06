@@ -21,10 +21,12 @@ import java.util.ArrayList;
 import java.util.Deque;
 import org.apache.camel.Exchange;
 import org.apache.camel.converter.stream.InputStreamCache;
+import org.apache.camel.spi.CamelEvent.ExchangeCreatedEvent;
+import org.apache.camel.support.DefaultExchange;
+import org.apache.camel.support.ExtendedExchangeExtension;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageType;
-import org.camelbee.debugger.service.MessageService;
 import org.camelbee.utils.ExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,20 +34,16 @@ import org.slf4j.LoggerFactory;
 /**
  * Responsible for tracing Direct From Interceptor requests.
  */
-public class InterceptFromTracer extends InterceptorTracer {
+public class ExchangeCreatedEventTracer {
 
   /**
    * The logger.
    */
-  private static final Logger LOGGER = LoggerFactory.getLogger(InterceptFromTracer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeCreatedEventTracer.class);
 
-  @Override
-  public void trace(Exchange exchange, MessageService messageService) {
+  public static Message traceEvent(ExchangeCreatedEvent event) {
+    Exchange exchange = event.getExchange();
 
-    //  trace only first From endpoint
-    if (exchange.getProperty(CamelBeeConstants.INITIAL_MESSAGE) != null) {
-      return;
-    }
     exchange.setProperty(CamelBeeConstants.INITIAL_MESSAGE, "received");
 
     try {
@@ -70,15 +68,17 @@ public class InterceptFromTracer extends InterceptorTracer {
 
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-      addMessage(exchange, messageService, directRequestBody, requestHeaders);
+      return addMessage(exchange, directRequestBody, requestHeaders);
 
     } catch (Exception e) {
       LOGGER.error("Could not trace From Direct Request Exchange: {} with exception: {}", exchange, e);
     }
 
+    return null;
+
   }
 
-  private void addMessage(Exchange exchange, MessageService messageService, String directRequestBody, String requestHeaders) {
+  private static Message addMessage(Exchange exchange, String directRequestBody, String requestHeaders) {
 
     final String currentRouteName = (String) exchange.getProperty(Exchange.TO_ENDPOINT);
 
@@ -96,8 +96,10 @@ public class InterceptFromTracer extends InterceptorTracer {
 
     String exception = cause != null ? cause.getLocalizedMessage() : null;
 
-    messageService.addMessage(new Message(exchange.getExchangeId(), directRequestBody, requestHeaders, callerRoute,
-        currentRouteName, MessageType.REQUEST, exception));
+    final String endpointId = ((ExtendedExchangeExtension) ((DefaultExchange) exchange).getExchangeExtension()).getHistoryNodeId();
+
+   return new Message(exchange.getExchangeId(), directRequestBody, requestHeaders, callerRoute,
+        currentRouteName, endpointId, MessageType.REQUEST, exception);
 
   }
 
