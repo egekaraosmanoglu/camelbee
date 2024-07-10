@@ -23,11 +23,13 @@ public class Message {
 
   private final String exchangeId;
 
+  private final MessageEventType exchangeEventType;
+
   private final String messageBody;
 
   private final String headers;
 
-  private final String routeId;
+  private String routeId;
 
   private final String endpoint;
 
@@ -50,9 +52,10 @@ public class Message {
    * @param messageType The messageType.
    * @param exception   The exception.
    */
-  public Message(String exchangeId, String messageBody, String headers, String routeId, String endpoint,
+  public Message(String exchangeId, MessageEventType exchangeEventType, String messageBody, String headers, String routeId, String endpoint,
       String endpointId, MessageType messageType, String exception) {
     this.exchangeId = exchangeId;
+    this.exchangeEventType = exchangeEventType;
     this.messageBody = messageBody;
     this.headers = headers;
     this.routeId = routeId;
@@ -67,6 +70,10 @@ public class Message {
     return exchangeId;
   }
 
+  public MessageEventType getExchangeEventType() {
+    return exchangeEventType;
+  }
+
   public String getMessageBody() {
     return messageBody;
   }
@@ -77,6 +84,10 @@ public class Message {
 
   public String getRouteId() {
     return routeId;
+  }
+
+  public void setRouteId(String routeId) {
+    this.routeId = routeId;
   }
 
   public String getEndpoint() {

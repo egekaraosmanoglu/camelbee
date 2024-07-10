@@ -17,7 +17,8 @@
 package org.camelbee.config;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.camel.spi.UnitOfWorkFactory;
+import org.camelbee.mdc.CamelBeeUnitOfWork;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,23 +27,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class CamelBeeRouteConfigurer {
 
-  @Value("${camelbee.context-enabled:false}")
-  private boolean contextEnabled;
-
-  @Value("${camelbee.debugger-enabled:false}")
-  private boolean debuggerEnabled;
-
   /**
    * Configures a route for a CamelBee enabled Camel application.
    *
    * @param routeBuilder The routebuilder to be configured.
    */
   public void configureRoute(RouteBuilder routeBuilder) {
-
-    // do not intercept and cache the messages
-    if (!contextEnabled || !debuggerEnabled) {
-      return;
-    }
 
     routeBuilder.getContext().setStreamCaching(true);
     routeBuilder.getContext().setUseMDCLogging(true);

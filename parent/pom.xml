@@ -42,23 +42,23 @@
         <cxf-core.version>4.0.4</cxf-core.version>
         <dependency-lock-maven-plugin.version>1.0.2</dependency-lock-maven-plugin.version>
         <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
-        <impsort-maven-plugin.version>1.10.0</impsort-maven-plugin.version>
+        <impsort-maven-plugin.version>1.11.0</impsort-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <jackson-databind-nullable.version>0.2.6</jackson-databind-nullable.version>
         <java.version>21</java.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
-        <lombok.version>1.18.32</lombok.version>
+        <lombok.version>1.18.34</lombok.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <mariadb-java-client.version>3.4.0</mariadb-java-client.version>
         <maven-checkstyle-plugin.version>3.4.0</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
-        <maven-dependency-plugin.version>3.7.0</maven-dependency-plugin.version>
-        <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+        <maven-dependency-plugin.version>3.7.1</maven-dependency-plugin.version>
+        <maven-failsafe-plugin.version>3.3.0</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven-jxr-plugin.version>3.4.0</maven-jxr-plugin.version>
         <maven-pmd-plugin.version>3.23.0</maven-pmd-plugin.version>
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <maven-surefire-report-plugin.version>3.2.5</maven-surefire-report-plugin.version>
+        <maven-surefire-plugin.version>3.3.0</maven-surefire-plugin.version>
+        <maven-surefire-report-plugin.version>3.3.0</maven-surefire-report-plugin.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
@@ -73,9 +73,9 @@
         <sonar.coverage.exclusions>**/*Test*.*, **/*Config*.*</sonar.coverage.exclusions>
         <sonar.projectKey>camelbee.${project.name}</sonar.projectKey>
         <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
-        <spotbugs-annotations.version>4.8.5</spotbugs-annotations.version>
-        <spotbugs-maven-plugin.version>4.8.5.0</spotbugs-maven-plugin.version>
-        <spotbugs.version>4.8.5</spotbugs.version>
+        <spotbugs-annotations.version>4.8.6</spotbugs-annotations.version>
+        <spotbugs-maven-plugin.version>4.8.6.2</spotbugs-maven-plugin.version>
+        <spotbugs.version>4.8.6</spotbugs.version>
         <testcontainers-bom.version>1.19.8</testcontainers-bom.version>
     </properties>
 
@@ -187,7 +187,7 @@
                 <version>${impsort-maven-plugin.version}</version>
                 <configuration>
                     <removeUnused>true</removeUnused>
-                    <compliance>17</compliance>
+                    <compliance>21</compliance>
                     <directories>src</directories>
                     <includes>**/*.java</includes>
                 </configuration>

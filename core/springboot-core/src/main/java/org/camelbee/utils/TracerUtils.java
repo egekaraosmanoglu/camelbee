@@ -20,7 +20,7 @@ import org.apache.camel.Exchange;
 import org.camelbee.constants.CamelBeeConstants;
 
 /**
- * ExchangeUtils.
+ * TracerUtils.
  */
 public class TracerUtils {
 
@@ -57,27 +57,23 @@ public class TracerUtils {
 
     if (cause != null) {
 
-      if (exchange.getProperty(CamelBeeConstants.CAMEL_FAILED_EVENT_STATE) != null) {
+      /*
+      check if this is the first time we are logging this error
+      */
+      Integer eventIdentityHashCode = System.identityHashCode(cause);
+
+      Object previousEventIdentityHashCode = exchange
+          .getProperty(CamelBeeConstants.CAMEL_FAILED_EVENT_IDENTITIY_HASHCODE);
+
+      if (!eventIdentityHashCode.equals(previousEventIdentityHashCode)) {
+        //first time
+        exchange.setProperty(CamelBeeConstants.CAMEL_FAILED_EVENT_IDENTITIY_HASHCODE, eventIdentityHashCode);
+
         errorMessage = cause.getLocalizedMessage();
-      } else {
-        /*
-        check if this is the first time we are logging this error
-        */
-        Integer eventIdentityHashCode = System.identityHashCode(cause);
-
-        Object previousEventIdentityHashCode = exchange
-            .getProperty(CamelBeeConstants.CAMEL_FAILED_EVENT_IDENTITIY_HASHCODE);
-
-        if (!eventIdentityHashCode.equals(previousEventIdentityHashCode)) {
-          //first time
-          exchange.setProperty(CamelBeeConstants.CAMEL_FAILED_EVENT_IDENTITIY_HASHCODE, eventIdentityHashCode);
-          exchange.setProperty(CamelBeeConstants.CAMEL_FAILED_EVENT_STATE, "failed");
-
-          errorMessage = cause.getLocalizedMessage();
-        }
       }
 
     }
     return errorMessage;
   }
+
 }

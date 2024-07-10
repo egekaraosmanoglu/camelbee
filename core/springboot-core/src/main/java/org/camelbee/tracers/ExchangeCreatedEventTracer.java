@@ -17,23 +17,25 @@
 package org.camelbee.tracers;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import org.apache.camel.Exchange;
-import org.apache.camel.converter.stream.InputStreamCache;
 import org.apache.camel.spi.CamelEvent.ExchangeCreatedEvent;
 import org.apache.camel.support.DefaultExchange;
 import org.apache.camel.support.ExtendedExchangeExtension;
 import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.exchange.Message;
+import org.camelbee.debugger.model.exchange.MessageEventType;
 import org.camelbee.debugger.model.exchange.MessageType;
+import org.camelbee.debugger.service.MessageService;
 import org.camelbee.utils.ExchangeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 /**
- * Responsible for tracing Direct From Interceptor requests.
+ * Responsible for tracing ExchangeCreatedEvent as an entry point.
  */
+@Component
 public class ExchangeCreatedEventTracer {
 
   /**
@@ -41,65 +43,74 @@ public class ExchangeCreatedEventTracer {
    */
   private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeCreatedEventTracer.class);
 
-  public static Message traceEvent(ExchangeCreatedEvent event) {
+  private final MessageService messageService;
+
+  public ExchangeCreatedEventTracer(MessageService messageService) {
+    this.messageService = messageService;
+  }
+
+  /**
+   * Trace ExchangeCreatedEvent.
+   *
+   * @param event The ExchangeCreatedEvent.
+   * @return The Messages.
+   */
+  public void traceEvent(ExchangeCreatedEvent event) {
+
     Exchange exchange = event.getExchange();
 
+    //  trace only first ExchangeCreatedEvent
+    if (exchange.getProperty(CamelBeeConstants.INITIAL_MESSAGE) != null) {
+      return;
+    }
     exchange.setProperty(CamelBeeConstants.INITIAL_MESSAGE, "received");
+
+    /*
+     endpoint called from ProducerController is also intercepted here
+     which we should not put into the messages
+     */
+    if (exchange.getProperty(CamelBeeConstants.CAMEL_PRODUCED_EXCHANGE) != null) {
+      return;
+    }
 
     try {
 
-      final String directRequestBody;
-
-      if (exchange.getIn().getBody() instanceof InputStreamCache requestStream) {
-
-        directRequestBody = new String(requestStream.readAllBytes());
-
-      } else if (exchange.getIn().getBody() instanceof ArrayList msgList) {
-
-        directRequestBody = !msgList.isEmpty() ? msgList.get(0).toString() : null;
-
-      } else if (exchange.getIn().getBody() != null) {
-
-        directRequestBody = exchange.getIn().getBody(String.class);
-
-      } else {
-        directRequestBody = null;
-      }
+      final String directRequestBody = ""; // ExchangeUtils.readBodyAsString(exchange);
 
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-      return addMessage(exchange, directRequestBody, requestHeaders);
-
+      addMessage(exchange, directRequestBody, requestHeaders);
     } catch (Exception e) {
       LOGGER.error("Could not trace From Direct Request Exchange: {} with exception: {}", exchange, e);
     }
 
-    return null;
-
   }
 
-  private static Message addMessage(Exchange exchange, String directRequestBody, String requestHeaders) {
+  private void addMessage(Exchange exchange, String directRequestBody, String requestHeaders) {
 
     final String currentRouteName = (String) exchange.getProperty(Exchange.TO_ENDPOINT);
 
-    final String callerRoute = exchange.getFromRouteId();
+    /*
+     when an exchange created by platform-http producer component then exchange.getFromRouteId() is null
+     so we need to find the routeId of the first entrypoint route in the first sending event notifier
+     note: the other producer component has this value set to the entrypoint route id.
+     */
+    final String initialRoute = exchange.getFromRouteId();
 
-    Deque<String> stack = new ArrayDeque<>();
+    if (initialRoute != null) {
 
-    stack.push(callerRoute);
+      Deque<String> routeStack = new ArrayDeque<>();
+      routeStack.push(initialRoute);
 
-    exchange.setProperty(CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK, stack);
+      exchange.setProperty(CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK, routeStack);
+    }
 
-    exchange.setProperty(CamelBeeConstants.CURRENT_ROUTE_NAME, currentRouteName != null ? currentRouteName : callerRoute);
-
-    Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
-
-    String exception = cause != null ? cause.getLocalizedMessage() : null;
+    exchange.setProperty(CamelBeeConstants.CURRENT_ROUTE_NAME, currentRouteName != null ? currentRouteName : initialRoute);
 
     final String endpointId = ((ExtendedExchangeExtension) ((DefaultExchange) exchange).getExchangeExtension()).getHistoryNodeId();
 
-   return new Message(exchange.getExchangeId(), directRequestBody, requestHeaders, callerRoute,
-        currentRouteName, endpointId, MessageType.REQUEST, exception);
+    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.CREATED, directRequestBody, requestHeaders, initialRoute,
+        currentRouteName, endpointId, MessageType.REQUEST, null));
 
   }
 

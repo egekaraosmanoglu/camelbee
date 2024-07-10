@@ -19,6 +19,7 @@ package org.camelbee.config;
 import org.apache.camel.CamelContext;
 import org.apache.camel.support.EventNotifierSupport;
 import org.camelbee.notifier.CamelBeeEventNotifier;
+import org.camelbee.tracers.TracerService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,11 +33,12 @@ public class CamelBeeEventNotifierConfigurer {
    * Creates EventNotifierSupport bean.
    *
    * @param camelContext  The camelContext.
-   * @param camelBeeEventNotifier The camelBeeEventNotifier.
+   * @param tracerService The tracerService.
    * @return EventNotifierSupport bean.
    */
   @Bean
-  public EventNotifierSupport eventNotifier(CamelContext camelContext, CamelBeeEventNotifier camelBeeEventNotifier) {
+  public EventNotifierSupport eventNotifier(CamelContext camelContext, TracerService tracerService) {
+    final CamelBeeEventNotifier camelBeeEventNotifier = new CamelBeeEventNotifier(tracerService);
     camelContext.getManagementStrategy().addEventNotifier(camelBeeEventNotifier);
     return camelBeeEventNotifier;
   }

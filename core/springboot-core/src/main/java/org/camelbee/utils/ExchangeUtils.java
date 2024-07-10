@@ -18,14 +18,24 @@ package org.camelbee.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import org.apache.camel.Exchange;
 import org.apache.camel.converter.stream.InputStreamCache;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ExchangeUtils.
  */
 public class ExchangeUtils {
+
+  /**
+   * The logger.
+   */
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeUtils.class);
 
   private ExchangeUtils() {
     // Private constructor
@@ -47,31 +57,52 @@ public class ExchangeUtils {
     return headers.toString();
   }
 
-  public static String getBodyAndConvertInputStreamsToString(Exchange exchange) throws IOException {
+  /**
+   * Reads all kind of bodies and convert to string.
+   *
+   * @param exchange The Exchange.
+   * @return String body.
+   * @throws IOException The exception.
+   */
+  public static String readBodyAsString(Exchange exchange) throws IOException {
 
-    String response = null;
+    try {
 
-    if (exchange.getIn().getBody() instanceof InputStreamCache requestStreamCache) {
+      String response = null;
 
-      response = new String(requestStreamCache.readAllBytes());
+      if (exchange.getIn().getBody() instanceof InputStreamCache requestStreamCache) {
+        /*
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(requestStreamCache, StandardCharsets.UTF_8))) {
+          return reader.lines().collect(Collectors.joining(System.lineSeparator()));
+        } catch (IOException e) {
+          return StringUtils.EMPTY;
+        } finally {
+          requestStreamCache.reset();
+        }
+        */
+        response = IOUtils.toString(requestStreamCache, StandardCharsets.UTF_8);
+        requestStreamCache.reset();
 
-      exchange.getIn().setBody(response);
+      } else if (exchange.getIn().getBody() instanceof InputStream requestStream) {
 
-    } else if (exchange.getIn().getBody() instanceof InputStream requestStream) {
+        response = new String(requestStream.readAllBytes());
 
-      response = new String(requestStream.readAllBytes());
+        requestStream.reset();
 
-      exchange.getIn().setBody(response);
+      } else if (exchange.getIn().getBody() instanceof ArrayList msgList) {
+        // if it is a cxf MessageContectsList class
+        response = !msgList.isEmpty() ? msgList.get(0).toString() : null;
 
-    } else if (exchange.getIn().getBody() instanceof ArrayList msgList) {
-      // if it is a cxf MessageContectsList class
-      response = !msgList.isEmpty() ? msgList.get(0).toString() : null;
+      } else if (exchange.getIn().getBody() != null) {
+        response = exchange.getIn().getBody(String.class);
+      }
 
-    } else if (exchange.getIn().getBody() != null) {
-      response = exchange.getIn().getBody(String.class);
+      return response;
+
+    } catch (Exception e) {
+      LOGGER.error("Could not read Exchange body: {}", e);
+      return StringUtils.EMPTY;
     }
-
-    return response;
   }
 
 }

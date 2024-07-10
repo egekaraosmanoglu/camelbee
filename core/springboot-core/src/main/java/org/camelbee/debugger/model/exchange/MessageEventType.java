@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-package org.camelbee.tracers;
-
-import org.apache.camel.spi.CamelEvent;
+package org.camelbee.debugger.model.exchange;
 
 /**
- * EventNotifier.
+ * MessageType.
  */
-public interface EventNotifier {
-
-  void notify(CamelEvent camelEvent);
+public enum MessageEventType {
+  CREATED, SENDING, SENT, COMPLETED;
 }
