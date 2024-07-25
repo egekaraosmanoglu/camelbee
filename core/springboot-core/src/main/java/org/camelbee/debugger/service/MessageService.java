@@ -33,8 +33,16 @@ public class MessageService {
     return messageList;
   }
 
+  /**
+   * Add message to the messageList for
+   * the CamelBee WebGl application.
+   *
+   * @param message The message.
+   */
   public void addMessage(Message message) {
-    messageList.add(message);
+    if (message != null) {
+      messageList.add(message);
+    }
   }
 
   public void reset() {

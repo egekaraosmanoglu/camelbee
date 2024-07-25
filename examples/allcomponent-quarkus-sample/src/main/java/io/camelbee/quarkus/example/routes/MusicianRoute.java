@@ -23,7 +23,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.config.CamelBeeRouteConfigurer;
-import org.camelbee.tracers.TracerService;
 
 /**
  * Musician Route.
@@ -103,9 +102,8 @@ public class MusicianRoute extends RouteBuilder {
         .recipientList().constant("direct:invokeJpa,direct:invokeFile")
         .routingSlip().constant("direct:invokeMockA,direct:invokeMockB")
         .removeHeaders("*")
-        .toD("direct:invokeRabbitMq")
+        //.toD("direct:invokeRabbitMq")
         .pollEnrich("jms:queue:camelbee-southhbound-queue", 1000, (original, resource) -> resource)
-        .bean(TracerService.CAMELBEE_TRACER, TracerService.TRACE_INTERCEPT_POLLENRICH_RESPONSE)
         .to("direct:invokeMockC")
         .to("direct:invokeHttpBinError");
 

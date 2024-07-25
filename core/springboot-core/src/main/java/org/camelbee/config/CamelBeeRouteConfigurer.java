@@ -17,8 +17,6 @@
 package org.camelbee.config;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.camelbee.tracers.TracerService;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -27,12 +25,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class CamelBeeRouteConfigurer {
 
-  @Value("${camelbee.context-enabled:false}")
-  private boolean contextEnabled;
-
-  @Value("${camelbee.debugger-enabled:false}")
-  private boolean debuggerEnabled;
-
   /**
    * Configures a route for a CamelBee enabled Camel application.
    *
@@ -40,29 +32,8 @@ public class CamelBeeRouteConfigurer {
    */
   public void configureRoute(RouteBuilder routeBuilder) {
 
-    // do not intercept and cache the messages
-    if (!contextEnabled || !debuggerEnabled) {
-      return;
-    }
-
     routeBuilder.getContext().setStreamCaching(true);
     routeBuilder.getContext().setUseMDCLogging(true);
-
-    // add interceptor for from direct
-    routeBuilder.interceptFrom("*").bean(TracerService.CAMELBEE_TRACER,
-        TracerService.TRACE_INTERCEPT_FROM_REQUEST).afterPropertiesSet();
-
-    // add interceptor for components other than direct|seda|servlet
-    routeBuilder.interceptSendToEndpoint("(?!direct|seda|servlet|platform-http).+").bean(TracerService.CAMELBEE_TRACER,
-        TracerService.TRACE_INTERCEPT_SEND_TO_REQUEST)
-        .afterUri("bean:%s?method=%s".formatted(TracerService.CAMELBEE_TRACER,
-            TracerService.TRACE_INTERCEPT_SEND_TO_RESPONSE));
-
-    // add interceptor for direct and seda components
-    routeBuilder.interceptSendToEndpoint("^(direct|seda).*").bean(TracerService.CAMELBEE_TRACER,
-        TracerService.TRACE_INTERCEPT_SEND_DIRECT_REQUEST)
-        .afterUri("bean:%s?method=%s".formatted(TracerService.CAMELBEE_TRACER,
-            TracerService.TRACE_INTERCEPT_SEND_DIRECT_RESPONSE));
 
   }
 

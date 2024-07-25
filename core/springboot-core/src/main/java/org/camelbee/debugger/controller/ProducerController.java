@@ -27,6 +27,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.ExchangeBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.produce.ProduceMessage;
 import org.camelbee.tracers.TracerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,9 @@ public class ProducerController {
 
     Exchange exchange = ExchangeBuilder.anExchange(camelContext).build();
 
+    // setting this to exclude the events for this exchange from event notifiers
+    exchange.setProperty(CamelBeeConstants.CAMELBEE_PRODUCED_EXCHANGE, "true");
+
     Map<String, Object> defaultHeaders = produceMessage.getHeaders().getHeaders().stream()
         .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
 
@@ -121,7 +125,7 @@ public class ProducerController {
     String adjustedRouteName = null;
 
     if (routeName.startsWith("From[rest:")) {
-      adjustedRouteName = "http:localhost:{{local.server.port}}/camel" + applyPattern(routeName, "://[a-zA-Z]+:(/[^?]+)") + "?throwExceptionOnFailure=false";
+      adjustedRouteName = "http:localhost:{{local.server.port}}" + applyPattern(routeName, "://[a-zA-Z]+:(/[^?]+)") + "?throwExceptionOnFailure=false";
     } else if (routeName.startsWith("From[jpa:")) {
       adjustedRouteName = applyPattern(routeName, "From\\[(jpa:[^?]+)");
     } else {

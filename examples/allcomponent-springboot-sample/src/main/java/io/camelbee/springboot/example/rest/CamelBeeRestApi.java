@@ -44,7 +44,7 @@ public final class CamelBeeRestApi extends RouteBuilder {
 
     rest()
         .post("/testapi/v1/musician")
-        .id("postMusician")
+        .id("postMusician2")
         .type(Musician.class)
         .description("Save a musician")
         .consumes(MediaType.APPLICATION_JSON_VALUE)
@@ -53,7 +53,7 @@ public final class CamelBeeRestApi extends RouteBuilder {
 
     rest()
         .get("/testapi/v1/musician")
-        .id("getMusician")
+        .id("getMusician2")
         .description("Get a musician")
         .produces(MediaType.APPLICATION_JSON_VALUE)
         .to("direct:getMusician");

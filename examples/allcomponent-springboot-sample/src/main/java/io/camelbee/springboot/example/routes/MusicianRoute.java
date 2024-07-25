@@ -23,7 +23,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.config.CamelBeeRouteConfigurer;
-import org.camelbee.tracers.TracerService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -106,7 +105,6 @@ public class MusicianRoute extends RouteBuilder {
         .removeHeaders("*")
         .toD("direct:invokeRabbitMq")
         .pollEnrich("jms:queue:camelbee-southhbound-queue", 1000, (original, resource) -> resource)
-        .bean(TracerService.CAMELBEE_TRACER, TracerService.TRACE_INTERCEPT_POLLENRICH_RESPONSE)
         .to("direct:invokeMockC")
         .to("direct:invokeHttpBinError");
 

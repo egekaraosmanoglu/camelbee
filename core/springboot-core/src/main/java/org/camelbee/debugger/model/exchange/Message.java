@@ -23,13 +23,17 @@ public class Message {
 
   private final String exchangeId;
 
+  private final MessageEventType exchangeEventType;
+
   private final String messageBody;
 
   private final String headers;
 
-  private final String routeId;
+  private String routeId;
 
   private final String endpoint;
+
+  private final String endpointId;
 
   private final MessageType messageType;
 
@@ -48,13 +52,16 @@ public class Message {
    * @param messageType The messageType.
    * @param exception   The exception.
    */
-  public Message(String exchangeId, String messageBody, String headers, String routeId, String endpoint,
-      MessageType messageType, String exception) {
+  @SuppressWarnings("java:S107")
+  public Message(String exchangeId, MessageEventType exchangeEventType, String messageBody, String headers, String routeId, String endpoint,
+      String endpointId, MessageType messageType, String exception) {
     this.exchangeId = exchangeId;
+    this.exchangeEventType = exchangeEventType;
     this.messageBody = messageBody;
     this.headers = headers;
     this.routeId = routeId;
     this.endpoint = endpoint;
+    this.endpointId = endpointId;
     this.messageType = messageType;
     this.exception = exception;
     this.timeStamp = "%d".formatted(System.currentTimeMillis());
@@ -62,6 +69,10 @@ public class Message {
 
   public String getExchangeId() {
     return exchangeId;
+  }
+
+  public MessageEventType getExchangeEventType() {
+    return exchangeEventType;
   }
 
   public String getMessageBody() {
@@ -76,8 +87,16 @@ public class Message {
     return routeId;
   }
 
+  public void setRouteId(String routeId) {
+    this.routeId = routeId;
+  }
+
   public String getEndpoint() {
     return endpoint;
+  }
+
+  public String getEndpointId() {
+    return endpointId;
   }
 
   public MessageType getMessageType() {

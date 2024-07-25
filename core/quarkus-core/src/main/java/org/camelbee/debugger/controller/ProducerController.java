@@ -34,6 +34,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.ExchangeBuilder;
 import org.apache.commons.lang3.StringUtils;
+import org.camelbee.constants.CamelBeeConstants;
 import org.camelbee.debugger.model.produce.ProduceMessage;
 import org.camelbee.tracers.TracerService;
 import org.eclipse.microprofile.config.Config;
@@ -78,6 +79,8 @@ public class ProducerController {
 
     Exchange exchange = ExchangeBuilder.anExchange(camelContext).build();
 
+    // setting this to exclude the events for this exchange from event notifiers
+    exchange.setProperty(CamelBeeConstants.CAMELBEE_PRODUCED_EXCHANGE, "true");
     Map<String, Object> defaultHeaders = produceMessage.getHeaders().getHeaders().stream()
         .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));
 

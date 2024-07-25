@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.camelbee.tracers;
+package org.camelbee.debugger.model.exchange;
 
-import org.apache.camel.Exchange;
-import org.camelbee.debugger.service.MessageService;
-
-abstract class InterceptorTracer extends Tracer {
-
-  public void trace(Exchange exchange, MessageService messageService) {
-
-  }
-
+/**
+ * MessageType.
+ */
+public enum MessageEventType {
+  CREATED, SENDING, SENT, COMPLETED;
 }
