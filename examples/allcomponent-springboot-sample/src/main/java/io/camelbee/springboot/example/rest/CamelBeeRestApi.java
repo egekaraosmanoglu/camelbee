@@ -38,7 +38,7 @@ public final class CamelBeeRestApi extends RouteBuilder {
    */
   public void configure() throws Exception {
 
-     camelBeeRouteConfigurer.configureRoute(this);
+    camelBeeRouteConfigurer.configureRoute(this);
 
     restConfiguration().component("platform-http").clientRequestValidation(true);
 

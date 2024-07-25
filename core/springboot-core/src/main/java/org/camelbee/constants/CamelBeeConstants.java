@@ -25,7 +25,7 @@ public final class CamelBeeConstants {
     throw new IllegalStateException("Utility class");
   }
 
-  public static final String INITIAL_MESSAGE = "camelbee-initial-message-received";
+  public static final String INITIAL_EXCHANGE_ID = "camelbee-initial-exchange-id";
 
   public static final String CURRENT_ROUTE_NAME = "camelbee-current-route-name";
 
@@ -41,6 +41,7 @@ public final class CamelBeeConstants {
 
   public static final String CAMEL_FAILED_EVENT_IDENTITIY_HASHCODE = "camelbee-failedevent-identitiy";
 
-  public static final String CAMEL_PRODUCED_EXCHANGE = "camelbee-produced-exchange";
+  public static final String CAMELBEE_PRODUCED_EXCHANGE = "camelbee-produced-exchange";
+
   public static final String MDC_UNITOFWORK_EXECUTED = "camelbee-produced-exchange";
 }

@@ -20,6 +20,7 @@ import static org.camelbee.constants.CamelBeeConstants.CAMELBEE_PRODUCED_EXCHANG
 import static org.camelbee.constants.CamelBeeConstants.CURRENT_ROUTE_NAME;
 import static org.camelbee.constants.CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import org.apache.camel.Exchange;
@@ -33,12 +34,11 @@ import org.camelbee.utils.ExchangeUtils;
 import org.camelbee.utils.TracerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
  * Responsible for tracing ExchangeSentEventTracer.
  */
-@Component
+@ApplicationScoped
 public class ExchangeSentEventTracer {
 
   /**

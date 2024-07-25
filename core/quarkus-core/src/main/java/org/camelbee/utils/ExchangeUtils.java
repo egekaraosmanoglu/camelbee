@@ -16,12 +16,25 @@
 
 package org.camelbee.utils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import org.apache.camel.Exchange;
+import org.apache.camel.StreamCache;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ExchangeUtils.
  */
 public class ExchangeUtils {
+
+  /**
+   * The logger.
+   */
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeUtils.class);
 
   private ExchangeUtils() {
     // Private constructor
@@ -41,6 +54,38 @@ public class ExchangeUtils {
         .forEach((p, q) -> headers.append(p).append(":").append(q).append("\n"));
 
     return headers.toString();
+  }
+
+  /**
+   * Reads all kind of bodies and convert to string.
+   *
+   * @param exchange The Exchange.
+   * @return String body.
+   * @throws IOException The exception.
+   */
+  public static String readBodyAsString(Exchange exchange) throws IOException {
+
+    try {
+
+      String response = null;
+
+      if (exchange.getIn().getBody() instanceof StreamCache streamCache) {
+
+        InputStream inputStream = exchange.getContext().getTypeConverter().convertTo(InputStream.class, streamCache);
+        response = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        streamCache.reset();
+
+      } else if (exchange.getIn().getBody() != null) {
+        response = exchange.getIn().getBody(String.class);
+      }
+
+      return response;
+
+    } catch (Exception e) {
+      LOGGER.error("Could not Exchange body: {} with exception: {}", exchange, e);
+      return StringUtils.EMPTY;
+    }
   }
 
 }

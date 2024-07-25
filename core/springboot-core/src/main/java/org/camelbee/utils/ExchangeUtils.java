@@ -19,9 +19,8 @@ package org.camelbee.utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import org.apache.camel.Exchange;
-import org.apache.camel.converter.stream.InputStreamCache;
+import org.apache.camel.StreamCache;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -70,28 +69,12 @@ public class ExchangeUtils {
 
       String response = null;
 
-      if (exchange.getIn().getBody() instanceof InputStreamCache requestStreamCache) {
-        /*
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(requestStreamCache, StandardCharsets.UTF_8))) {
-          return reader.lines().collect(Collectors.joining(System.lineSeparator()));
-        } catch (IOException e) {
-          return StringUtils.EMPTY;
-        } finally {
-          requestStreamCache.reset();
-        }
-        */
-        response = IOUtils.toString(requestStreamCache, StandardCharsets.UTF_8);
-        requestStreamCache.reset();
+      if (exchange.getIn().getBody() instanceof StreamCache streamCache) {
 
-      } else if (exchange.getIn().getBody() instanceof InputStream requestStream) {
+        InputStream inputStream = exchange.getContext().getTypeConverter().convertTo(InputStream.class, streamCache);
+        response = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 
-        response = new String(requestStream.readAllBytes());
-
-        requestStream.reset();
-
-      } else if (exchange.getIn().getBody() instanceof ArrayList msgList) {
-        // if it is a cxf MessageContectsList class
-        response = !msgList.isEmpty() ? msgList.get(0).toString() : null;
+        streamCache.reset();
 
       } else if (exchange.getIn().getBody() != null) {
         response = exchange.getIn().getBody(String.class);
@@ -100,7 +83,7 @@ public class ExchangeUtils {
       return response;
 
     } catch (Exception e) {
-      LOGGER.error("Could not read Exchange body: {}", e);
+      LOGGER.error("Could not Exchange body: {} with exception: {}", exchange, e);
       return StringUtils.EMPTY;
     }
   }

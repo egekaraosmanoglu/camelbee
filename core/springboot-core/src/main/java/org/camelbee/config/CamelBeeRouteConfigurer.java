@@ -17,8 +17,6 @@
 package org.camelbee.config;
 
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.spi.UnitOfWorkFactory;
-import org.camelbee.mdc.CamelBeeUnitOfWork;
 import org.springframework.stereotype.Component;
 
 /**

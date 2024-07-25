@@ -37,6 +37,13 @@ public class Musician {
   private List<@Valid Song> songs;
 
   /**
+   * Default Constructor.
+   */
+  public Musician() {
+    super();
+  }
+
+  /**
    * Constructor with only required parameters.
    */
   public Musician(String id, String name) {

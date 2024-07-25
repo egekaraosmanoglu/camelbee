@@ -56,11 +56,11 @@
         <maven-failsafe-plugin.version>3.3.0</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven-jxr-plugin.version>3.4.0</maven-jxr-plugin.version>
-        <maven-pmd-plugin.version>3.23.0</maven-pmd-plugin.version>
+        <maven-pmd-plugin.version>3.24.0</maven-pmd-plugin.version>
         <maven-surefire-plugin.version>3.3.0</maven-surefire-plugin.version>
         <maven-surefire-report-plugin.version>3.3.0</maven-surefire-report-plugin.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
 
         <maven.compiler.testSource>${maven.compiler.source}</maven.compiler.testSource>
         <maven.compiler.testTarget>${maven.compiler.target}</maven.compiler.testTarget>
@@ -286,6 +286,7 @@
                 <artifactId>maven-pmd-plugin</artifactId>
                 <version>${maven-pmd-plugin.version}</version>
                 <configuration>
+                    <targetJdk>21</targetJdk>
                     <linkXRef>false</linkXRef>
                     <printFailingErrors>true</printFailingErrors>
                     <excludeRoots>

@@ -18,6 +18,7 @@ package org.camelbee.tracers;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import org.apache.camel.spi.CamelEvent.ExchangeCompletedEvent;
 import org.apache.camel.spi.CamelEvent.ExchangeCreatedEvent;
 import org.apache.camel.spi.CamelEvent.ExchangeSendingEvent;
 import org.apache.camel.spi.CamelEvent.ExchangeSentEvent;
@@ -34,29 +35,33 @@ public class TracerService {
   private final ExchangeCreatedEventTracer exchangeCreatedEventTracer;
   private final ExchangeSendingEventTracer exchangeSendingEventTracer;
   private final ExchangeSentEventTracer exchangeSentEventTracer;
+  private final ExchangeCompletedEventTracer exchangeCompletedEventTracer;
 
-  private AtomicBoolean tracingEnabled = new AtomicBoolean(true);
+  private AtomicBoolean tracingEnabled = new AtomicBoolean(false);
 
   private AtomicLong lastTracingActivatedTime = new AtomicLong(System.currentTimeMillis());
 
   /**
    * Constructor.
    *
-   * @param traceIdleTime              The traceIdleTime.
-   * @param exchangeCreatedEventTracer The exchangeCreatedEventTracer.
-   * @param exchangeSendingEventTracer The exchangeSendingEventTracer.
-   * @param exchangeSentEventTracer    The exchangeSentEventTracer.
+   * @param traceIdleTime                The traceIdleTime.
+   * @param exchangeCreatedEventTracer   The exchangeCreatedEventTracer.
+   * @param exchangeSendingEventTracer   The exchangeSendingEventTracer.
+   * @param exchangeSentEventTracer      The exchangeSentEventTracer.
+   * @param exchangeCompletedEventTracer The exchangeCompletedEventTracer.
    */
   public TracerService(@Value("${camelbee.debugger-max-idle-time:300000}") long traceIdleTime, ExchangeCreatedEventTracer exchangeCreatedEventTracer,
-      ExchangeSendingEventTracer exchangeSendingEventTracer, ExchangeSentEventTracer exchangeSentEventTracer) {
+      ExchangeSendingEventTracer exchangeSendingEventTracer, ExchangeSentEventTracer exchangeSentEventTracer,
+      ExchangeCompletedEventTracer exchangeCompletedEventTracer) {
     this.traceIdleTime = traceIdleTime;
     this.exchangeCreatedEventTracer = exchangeCreatedEventTracer;
     this.exchangeSendingEventTracer = exchangeSendingEventTracer;
     this.exchangeSentEventTracer = exchangeSentEventTracer;
+    this.exchangeCompletedEventTracer = exchangeCompletedEventTracer;
   }
 
   /**
-   * TraceFromRequest.
+   * traceExchangeCreateEvent.
    *
    * @param exchangeCreatedEvent The exchange.
    */
@@ -67,7 +72,7 @@ public class TracerService {
   }
 
   /**
-   * Trace producer endpoint calls.
+   * traceExchangeSendingEvent.
    *
    * @param exchangeSendingEvent The exchange.
    */
@@ -78,13 +83,24 @@ public class TracerService {
   }
 
   /**
-   * traceInterceptSendToEndpointResponse.
+   * traceExchangeSentEvent.
    *
    * @param exchangeSentEvent The exchange.
    */
   public void traceExchangeSentEvent(ExchangeSentEvent exchangeSentEvent) {
     if (isTracingEnabled()) {
       exchangeSentEventTracer.traceEvent(exchangeSentEvent);
+    }
+  }
+
+  /**
+   * traceExchangeCompletedEvent.
+   *
+   * @param exchangeCompletedEvent The exchange.
+   */
+  public void traceExchangeCompletedEvent(ExchangeCompletedEvent exchangeCompletedEvent) {
+    if (isTracingEnabled()) {
+      exchangeCompletedEventTracer.traceEvent(exchangeCompletedEvent);
     }
   }
 

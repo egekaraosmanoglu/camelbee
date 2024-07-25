@@ -52,6 +52,7 @@ public class Message {
    * @param messageType The messageType.
    * @param exception   The exception.
    */
+  @SuppressWarnings("java:S107")
   public Message(String exchangeId, MessageEventType exchangeEventType, String messageBody, String headers, String routeId, String endpoint,
       String endpointId, MessageType messageType, String exception) {
     this.exchangeId = exchangeId;

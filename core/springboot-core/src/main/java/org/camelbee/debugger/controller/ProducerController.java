@@ -77,7 +77,7 @@ public class ProducerController {
     Exchange exchange = ExchangeBuilder.anExchange(camelContext).build();
 
     // setting this to exclude the events for this exchange from event notifiers
-    exchange.setProperty(CamelBeeConstants.CAMEL_PRODUCED_EXCHANGE, "true");
+    exchange.setProperty(CamelBeeConstants.CAMELBEE_PRODUCED_EXCHANGE, "true");
 
     Map<String, Object> defaultHeaders = produceMessage.getHeaders().getHeaders().stream()
         .collect(Collectors.toMap(p -> p.getKey(), p -> p.getValue()));

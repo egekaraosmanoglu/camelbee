@@ -51,7 +51,6 @@ public class MusicianRoute extends RouteBuilder {
     errorHandler(genericExceptionHandler.appErrorHandler());
 
     from("direct:postMusician").routeId("postMusicianRoute")
-        .process(e -> e.getIn())
         .to("bean-validator://camelbee")
         .to(MUSICIAN_PROCESSOR_ROUTE);
 
@@ -61,9 +60,9 @@ public class MusicianRoute extends RouteBuilder {
     from("file://inputdir/?delete=true").routeId("fileListenerRoute")
         .to(MUSICIAN_PROCESSOR_ROUTE);
 
-     from("timer://foo?fixedRate=true&period=500000").routeId("timerRoute")
-         .setBody(constant("timerTestMessage"))
-         .to(MUSICIAN_PROCESSOR_ROUTE);
+    from("timer://foo?fixedRate=true&period=500000").routeId("timerRoute")
+        .setBody(constant("timerTestMessage"))
+        .to(MUSICIAN_PROCESSOR_ROUTE);
 
     from("kafka:camelbee-northbound-topic").routeId("kafkaListenerRoute")
         .to(MUSICIAN_PROCESSOR_ROUTE);
@@ -92,23 +91,13 @@ public class MusicianRoute extends RouteBuilder {
 
     from(MUSICIAN_PROCESSOR_ROUTE).routeId("musicianProcessorRoute")
         .setProperty(Constants.ORIGINAL_BODY, body())
-        .process(e -> e.getIn())
-        .to("direct:invokeHttpBinError")
-        .process(e -> e.getIn())
         .to("direct:invokeHttpBin")
-        .process(e -> e.getIn())
         .to("direct:invokeKafka")
-        .process(e -> e.getIn())
         .wireTap("direct:invokeMqtt")
-        .process(e -> e.getIn())
         .multicast().parallelProcessing()
-        .process(e -> e.getIn())
         .to("direct:invokeMockA")
-        .process(e -> e.getIn())
         .to("direct:invokeMockB")
-        .process(e -> e.getIn())
         .end()
-        .process(e -> e.getIn())
         .enrich("direct:invokeJms")
         .enrich().constant("direct:invokeMongoDb")
         .recipientList().constant("direct:invokeJpa,direct:invokeFile")
@@ -120,7 +109,6 @@ public class MusicianRoute extends RouteBuilder {
         .to("direct:invokeHttpBinError");
 
     from("direct:invokeHttpBin").routeId("invokeHttpBinRoute")
-        .to("direct:invokeMockA")
         .marshal().json()
         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
         .setHeader("hhId", constant("2"))
@@ -128,10 +116,12 @@ public class MusicianRoute extends RouteBuilder {
         .id("httpBinEndpoint");
 
     from("direct:invokeHttpBinError").routeId("invokeHttpBinErrorRoute")
+        .doTry()
         .setHeader(Exchange.HTTP_METHOD, constant("GET"))
         .toD("http:{{httpbin-error-api.url}}/400?bridgeEndpoint=true")
-        .id("httpBinEndpointError");
-
+        .id("httpBinEndpointError")
+        .doCatch(Exception.class)
+        .endDoTry();
 
     from("direct:invokeKafka").routeId("invokeKafkaRoute")
         .to("kafka:camelbee-southbound-topic")
@@ -167,7 +157,6 @@ public class MusicianRoute extends RouteBuilder {
         .id("fileEndpoint");
 
     from("direct:invokeMockA").routeId("invokeMockARoute")
-        .to("direct:invokeMockB")
         .to("mock:A")
         .id("mockAEndpoint");
 

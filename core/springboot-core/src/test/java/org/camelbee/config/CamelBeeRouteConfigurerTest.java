@@ -24,6 +24,10 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.camelbee.debugger.service.MessageService;
+import org.camelbee.debugger.service.RouteContextService;
+import org.camelbee.tracers.ExchangeCreatedEventTracer;
+import org.camelbee.tracers.ExchangeSendingEventTracer;
+import org.camelbee.tracers.ExchangeSentEventTracer;
 import org.camelbee.tracers.TracerService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,7 +39,13 @@ import org.springframework.test.annotation.DirtiesContext;
 
 @CamelSpringBootTest
 @SpringBootApplication
-@Import({TracerService.class, MessageService.class})
+@Import({TracerService.class,
+    MessageService.class,
+    ExchangeCreatedEventTracer.class,
+    ExchangeSendingEventTracer.class,
+    ExchangeSentEventTracer.class,
+    RouteContextService.class
+})
 @Configuration
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class CamelBeeRouteConfigurerTest {

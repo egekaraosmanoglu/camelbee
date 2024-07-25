@@ -17,13 +17,13 @@
 package org.camelbee.tracers;
 
 import static org.camelbee.constants.CamelBeeConstants.CAMELBEE_PRODUCED_EXCHANGE;
-import static org.camelbee.constants.CamelBeeConstants.CURRENT_ROUTE_NAME;
 import static org.camelbee.constants.CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK;
+import static org.camelbee.constants.CamelBeeConstants.INITIAL_EXCHANGE_ID;
 
-import java.util.ArrayDeque;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Deque;
 import org.apache.camel.Exchange;
-import org.apache.camel.spi.CamelEvent.ExchangeSentEvent;
+import org.apache.camel.spi.CamelEvent.ExchangeCompletedEvent;
 import org.apache.camel.support.DefaultExchange;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageEventType;
@@ -33,32 +33,31 @@ import org.camelbee.utils.ExchangeUtils;
 import org.camelbee.utils.TracerUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /**
- * Responsible for tracing ExchangeSentEventTracer.
+ * Responsible for tracing ExchangeCompletedEventTracer.
  */
-@Component
-public class ExchangeSentEventTracer {
+@ApplicationScoped
+public class ExchangeCompletedEventTracer {
 
   /**
    * The logger.
    */
-  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeSentEventTracer.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeCompletedEventTracer.class);
 
   private final MessageService messageService;
 
-  public ExchangeSentEventTracer(MessageService messageService) {
+  public ExchangeCompletedEventTracer(MessageService messageService) {
     this.messageService = messageService;
   }
 
   /**
-   * Trace ExchangeSentEvent.
+   * Trace ExchangeCompletedEvent.
    *
-   * @param event The ExchangeSentEvent.
+   * @param event The ExchangeCompletedEvent.
    * @return The Messages.
    */
-  public void traceEvent(ExchangeSentEvent event) {
+  public void traceEvent(ExchangeCompletedEvent event) {
 
     Exchange exchange = event.getExchange();
 
@@ -71,32 +70,29 @@ public class ExchangeSentEventTracer {
         return;
       }
 
-      final String responseSentBody = ExchangeUtils.readBodyAsString(exchange);
-      final var requestHeaders = ExchangeUtils.getHeaders(exchange);
+      //  trace completed event only for the first created Exchange instance
+      if (exchange.getProperty(INITIAL_EXCHANGE_ID) == null
+          || !exchange.getProperty(INITIAL_EXCHANGE_ID, String.class).equals(exchange.getExchangeId())) {
+        return;
+      }
 
-      addSentMessage(exchange, responseSentBody, requestHeaders);
+      final String responseCompletedBody = ExchangeUtils.readBodyAsString(exchange);
+      final var responseHeaders = ExchangeUtils.getHeaders(exchange);
+
+      addCompletedMessage(exchange, responseCompletedBody, responseHeaders);
 
     } catch (Exception e) {
-      LOGGER.error("Could not trace ExchangeSentEvent: {} with exception: {}", exchange, e);
+      LOGGER.error("Could not trace ExchangeCompletedEvent: {} with exception: {}", exchange, e);
     }
 
   }
 
-  private void addSentMessage(Exchange exchange, String responseSentBody, String requestHeaders) {
+  private void addCompletedMessage(Exchange exchange, String responseCompletedBody, String requestHeaders) {
 
     Deque<String> routeStack = (Deque<String>) exchange.getProperty(CURRENT_ROUTE_TRACE_STACK);
-    Deque<String> clonedRouteStack = new ArrayDeque<>(routeStack);
 
-    final String currentRoute = clonedRouteStack.pop();
-    final String callerRoute = clonedRouteStack.peek();
-
-    exchange.setProperty(CURRENT_ROUTE_TRACE_STACK, clonedRouteStack);
-
-    /*
-     set the previous route (callerRoute) as the current route
-     which would be used in SendToRequestTracers
-     */
-    exchange.setProperty(CURRENT_ROUTE_NAME, callerRoute);
+    final String currentRoute = routeStack.pop();
+    final String callerRoute = routeStack.peek();
 
     MessageType messageType = MessageType.RESPONSE;
 
@@ -107,13 +103,13 @@ public class ExchangeSentEventTracer {
     }
 
     /*
-      if this ExchangeSentEvent is triggered after another ExchangeSentEvent
+      if this ExchangeCompletedEvent is triggered after another ExchangeCompletedEvent
       then endpointId will be null, Camel does not keep track of nested getHistoryNodeId
       that's why we need the stack
      */
     final String endpointId = ((DefaultExchange) exchange).getExchangeExtension().getHistoryNodeId();
 
-    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.SENT, responseSentBody, requestHeaders, callerRoute,
+    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.SENT, responseCompletedBody, requestHeaders, callerRoute,
         currentRoute, endpointId, messageType, errorMessage));
   }
 
