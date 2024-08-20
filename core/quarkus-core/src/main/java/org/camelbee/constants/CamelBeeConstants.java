@@ -44,4 +44,11 @@ public final class CamelBeeConstants {
   public static final String CAMELBEE_PRODUCED_EXCHANGE = "camelbee-produced-exchange";
 
   public static final String MDC_UNITOFWORK_EXECUTED = "camelbee-produced-exchange";
+
+  public static final String DIRECT = "direct";
+
+  public static final String LAST_DIRECT_ROUTE = "camelbee-last-direct-route";
+
+  public static final String PREVIOUS_EXCHANGE_ID = "camelbee-previous-exchange-id";
+
 }

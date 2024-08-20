@@ -19,6 +19,7 @@ package io.camelbee.springboot.example.routes;
 import io.camelbee.springboot.example.constants.Constants;
 import io.camelbee.springboot.example.exception.ExceptionHandler;
 import io.camelbee.springboot.example.model.jpa.SongEntity;
+import java.util.Map;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
@@ -100,12 +101,12 @@ public class MusicianRoute extends RouteBuilder {
         .end()
         .enrich("direct:invokeJms")
         .enrich().constant("direct:invokeMongoDb")
-        .recipientList().constant("direct:invokeJpa,direct:invokeFile")
+        .recipientList().constant("direct:invokeJpa,direct:invokeFile,http:{{httpbin-api.url}}/6?bridgeEndpoint=true")
         .routingSlip().constant("direct:invokeMockA,direct:invokeMockB")
+        .dynamicRouter(method(this, "computeEndpoint"))
         .removeHeaders("*")
-        .toD("direct:invokeRabbitMq")
-        .pollEnrich("jms:queue:camelbee-southhbound-queue", 1000, (original, resource) -> resource)
-        .to("direct:invokeMockC")
+        //.toD("direct:invokeRabbitMq")
+        .pollEnrich("jms:queue:camelbee-southhbound-queue", 20000, (original, resource) -> resource)
         .to("direct:invokeHttpBinError");
 
     from("direct:invokeHttpBin").routeId("invokeHttpBinRoute")
@@ -138,6 +139,7 @@ public class MusicianRoute extends RouteBuilder {
         .id("rabbitMqEndpoint");
 
     from("direct:invokeMongoDb").routeId("invokeMongoDbRoute")
+        .setBody(exchangeProperty(Constants.ORIGINAL_BODY))
         .to("mongodb:mongoBean?database=camelbee&collection=musicians-out&operation=insert")
         .id("mongoDbEndpoint");
 
@@ -157,16 +159,51 @@ public class MusicianRoute extends RouteBuilder {
         .id("fileEndpoint");
 
     from("direct:invokeMockA").routeId("invokeMockARoute")
+        .setBody(constant("invokedMockABody"))
         .to("mock:A")
         .id("mockAEndpoint");
 
     from("direct:invokeMockB").routeId("invokeMockBRoute")
+        .setBody(constant("invokedMockBBody"))
         .to("mock:B")
         .id("mockBEndpoint");
 
     from("direct:invokeMockC").routeId("invokeMockCRoute")
+        .setBody(constant("invokedMockCBody"))
         .to("mock:C")
         .id("mockCEndpoint");
 
+    from("direct:invokeMockD").routeId("invokeMockDRoute")
+        .setBody(constant("invokedMockDBody"))
+        .to("mock:D")
+        .id("mockDEndpoint");
+
+  }
+
+  /**
+   * Compute new dynamic endpoint.
+   *
+   * @param properties The Exchange properties.
+   * @return target endpoint.
+   */
+  public String computeEndpoint(@org.apache.camel.ExchangeProperties Map<String, Object> properties) {
+    Integer invocationCount = (Integer) properties.get("invocationCount");
+    if (invocationCount == null) {
+      invocationCount = 0;
+    }
+    invocationCount++;
+    properties.put("invocationCount", invocationCount);
+
+    if (invocationCount == 1) {
+      return "direct:invokeMockC";
+    } else if (invocationCount == 2) {
+      return "direct:invokeMockD";
+    } else if (invocationCount == 3) {
+      return "mock:D";
+    } else if (invocationCount == 4) {
+      return "mock:E";
+    }
+    // no more so return null
+    return null;
   }
 }

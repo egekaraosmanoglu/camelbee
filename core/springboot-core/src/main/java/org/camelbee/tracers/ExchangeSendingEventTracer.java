@@ -19,6 +19,9 @@ package org.camelbee.tracers;
 import static org.camelbee.constants.CamelBeeConstants.CAMELBEE_PRODUCED_EXCHANGE;
 import static org.camelbee.constants.CamelBeeConstants.CURRENT_ROUTE_NAME;
 import static org.camelbee.constants.CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK;
+import static org.camelbee.constants.CamelBeeConstants.DIRECT;
+import static org.camelbee.constants.CamelBeeConstants.LAST_DIRECT_ROUTE;
+import static org.camelbee.constants.CamelBeeConstants.PREVIOUS_EXCHANGE_ID;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -27,6 +30,7 @@ import java.util.Optional;
 import org.apache.camel.Exchange;
 import org.apache.camel.spi.CamelEvent.ExchangeSendingEvent;
 import org.apache.camel.support.DefaultExchange;
+import org.apache.commons.lang3.StringUtils;
 import org.camelbee.debugger.model.exchange.Message;
 import org.camelbee.debugger.model.exchange.MessageEventType;
 import org.camelbee.debugger.model.exchange.MessageType;
@@ -42,6 +46,7 @@ import org.springframework.stereotype.Component;
  * Responsible for tracing ExchangeSendingEventTracer.
  */
 @Component
+@SuppressWarnings("PMD.TooManyStaticImports")
 public class ExchangeSendingEventTracer {
 
   /**
@@ -106,7 +111,9 @@ public class ExchangeSendingEventTracer {
       routeStack = initializeRouteStack(exchange, endpointId);
     }
 
-    Deque<String> clonedRouteStack = new ArrayDeque<>(routeStack);
+    Deque<String> clonedRouteStack;
+
+    clonedRouteStack = adjustStack(exchange, routeStack);
 
     final String currentRouteProperty = (String) exchange.getProperty(CURRENT_ROUTE_NAME);
 
@@ -116,8 +123,44 @@ public class ExchangeSendingEventTracer {
 
     exchange.setProperty(CURRENT_ROUTE_NAME, currentRoute);
 
-    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.SENDING, requestBody, requestHeaders, currentRouteProperty,
+    if (currentRouteProperty.startsWith(DIRECT)) {
+      exchange.setProperty(LAST_DIRECT_ROUTE, currentRouteProperty);
+    }
+    String routeId = null;
+    if (endpointId == null && !currentRouteProperty.startsWith(DIRECT) && !currentRoute.startsWith(DIRECT)) {
+      //dynamicRouter with 2 times producer endpoint next to each other like mock:D,mock:C
+      //change Caller route find the previous directRouteName
+      routeId = exchange.getProperty(LAST_DIRECT_ROUTE, String.class);
+    } else {
+      routeId = currentRouteProperty;
+    }
+
+    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.SENDING, requestBody, requestHeaders, routeId,
         currentRoute, endpointId, MessageType.REQUEST, null));
+  }
+
+  private Deque<String> adjustStack(Exchange exchange, Deque<String> routeStack) {
+    Deque<String> clonedRouteStack;
+    String previousExchangeId = (String) exchange.getProperty(PREVIOUS_EXCHANGE_ID);
+
+    if (previousExchangeId != null && !previousExchangeId.equalsIgnoreCase(exchange.getExchangeId())) {
+
+      /* clone the stack only if the exchangeId has changed
+       which means there is a new cloned exchange with exchangeId
+       */
+      clonedRouteStack = new ArrayDeque<>(routeStack);
+
+    } else {
+
+      /*
+       if the exchangeId is the same even it is a cloned exchange (which happens with the routeslip and dynamicRouter)
+       dont clone the stack because it is still the same routestack which is executed serially
+       */
+      clonedRouteStack = routeStack;
+    }
+
+    exchange.setProperty(PREVIOUS_EXCHANGE_ID, exchange.getExchangeId());
+    return clonedRouteStack;
   }
 
   private Deque<String> initializeRouteStack(Exchange exchange, String endpointId) {
@@ -161,7 +204,7 @@ public class ExchangeSendingEventTracer {
       return routeOptional.get().getId();
     }
 
-    return null;
+    return StringUtils.EMPTY;
   }
 
 }
