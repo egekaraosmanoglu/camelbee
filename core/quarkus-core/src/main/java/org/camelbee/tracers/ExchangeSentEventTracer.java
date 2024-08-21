@@ -19,9 +19,10 @@ package org.camelbee.tracers;
 import static org.camelbee.constants.CamelBeeConstants.CAMELBEE_PRODUCED_EXCHANGE;
 import static org.camelbee.constants.CamelBeeConstants.CURRENT_ROUTE_NAME;
 import static org.camelbee.constants.CamelBeeConstants.CURRENT_ROUTE_TRACE_STACK;
+import static org.camelbee.constants.CamelBeeConstants.DIRECT;
+import static org.camelbee.constants.CamelBeeConstants.LAST_DIRECT_ROUTE;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.ArrayDeque;
 import java.util.Deque;
 import org.apache.camel.Exchange;
 import org.apache.camel.spi.CamelEvent.ExchangeSentEvent;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
  * Responsible for tracing ExchangeSentEventTracer.
  */
 @ApplicationScoped
+@SuppressWarnings("PMD.TooManyStaticImports")
 public class ExchangeSentEventTracer {
 
   /**
@@ -85,12 +87,9 @@ public class ExchangeSentEventTracer {
   private void addSentMessage(Exchange exchange, String responseSentBody, String requestHeaders) {
 
     Deque<String> routeStack = (Deque<String>) exchange.getProperty(CURRENT_ROUTE_TRACE_STACK);
-    Deque<String> clonedRouteStack = new ArrayDeque<>(routeStack);
 
-    final String currentRoute = clonedRouteStack.pop();
-    final String callerRoute = clonedRouteStack.peek();
-
-    exchange.setProperty(CURRENT_ROUTE_TRACE_STACK, clonedRouteStack);
+    final String currentRoute = routeStack.pop();
+    String callerRoute = routeStack.peek();
 
     /*
      set the previous route (callerRoute) as the current route
@@ -112,6 +111,12 @@ public class ExchangeSentEventTracer {
       that's why we need the stack
      */
     final String endpointId = ((DefaultExchange) exchange).getExchangeExtension().getHistoryNodeId();
+
+    if (endpointId == null && callerRoute != null && !callerRoute.startsWith(DIRECT) && !currentRoute.startsWith(DIRECT)) {
+      //dynamicRouter with 2 times producer endpoint like mock:C and mock:D
+      //change Caller route find the previous direcrRouteName
+      callerRoute = exchange.getProperty(LAST_DIRECT_ROUTE, String.class);
+    }
 
     messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.SENT, responseSentBody, requestHeaders, callerRoute,
         currentRoute, endpointId, messageType, errorMessage));

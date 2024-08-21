@@ -25,6 +25,7 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.camelbee.debugger.service.MessageService;
 import org.camelbee.debugger.service.RouteContextService;
+import org.camelbee.tracers.ExchangeCompletedEventTracer;
 import org.camelbee.tracers.ExchangeCreatedEventTracer;
 import org.camelbee.tracers.ExchangeSendingEventTracer;
 import org.camelbee.tracers.ExchangeSentEventTracer;
@@ -44,6 +45,7 @@ import org.springframework.test.annotation.DirtiesContext;
     ExchangeCreatedEventTracer.class,
     ExchangeSendingEventTracer.class,
     ExchangeSentEventTracer.class,
+    ExchangeCompletedEventTracer.class,
     RouteContextService.class
 })
 @Configuration
