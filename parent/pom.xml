@@ -38,7 +38,7 @@
         <camelbee-common.version>1.0.0</camelbee-common.version>
         <checkstyle.version>10.18.0</checkstyle.version>
         <commons-io.version>2.16.1</commons-io.version>
-        <commons-lang3.version>3.14.0</commons-lang3.version>
+        <commons-lang3.version>3.16.0</commons-lang3.version>
         <cxf-core.version>4.0.5</cxf-core.version>
         <dependency-lock-maven-plugin.version>1.0.2</dependency-lock-maven-plugin.version>
         <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
