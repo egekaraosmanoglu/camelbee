@@ -2,6 +2,10 @@ package org.camelbee.debugger.service;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,6 +63,8 @@ public class RouteContextService {
       List<CamelRouteOutput> outputs = new ArrayList<>();
 
       extractOutputs(routeDefinition.getOutputs(), outputs);
+
+      checkRestOpenApiRouteDefinition(routeDefinition, outputs);
 
       String errorHandler = null;
 
@@ -126,4 +132,46 @@ public class RouteContextService {
     }
 
   }
+
+  private void checkRestOpenApiRouteDefinition(RouteDefinition routeDefinition, List<CamelRouteOutput> outputs) {
+    String inputUri = routeDefinition.getInput() != null ? routeDefinition.getInput().getUri() : null;
+
+    if (inputUri != null && inputUri.contains("rest-openapi://")) {
+
+      // Find the start index after "rest-openapi://"
+      int startIndex = inputUri.indexOf("rest-openapi://") + "rest-openapi://".length();
+
+      // Find the end index before the first "?" character
+      int endIndex = inputUri.indexOf("?", startIndex);
+
+      // Extract the substring
+      String openApiPath = inputUri.substring(startIndex, endIndex);
+
+      InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(openApiPath);
+
+      if (inputStream == null) {
+        System.out.println("File not found in resources");
+        return;
+      }
+
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+          if (line.trim().startsWith("operationId:")) {
+            // Extracting the part after "operationId:"
+            String operationId = line.substring(line.indexOf("operationId:") + "operationId:".length()).trim();
+            System.out.println(operationId);
+
+            outputs.add(new CamelRouteOutput("", "To[direct:" + operationId + "]",
+                null, null, null));
+          }
+        }
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+    }
+    //"rest-openapi://openapi/myvfz.yaml?missingOperation=ignore&produces=application%2Fjson&consumes=application%2Fjson"
+  }
+
 }
