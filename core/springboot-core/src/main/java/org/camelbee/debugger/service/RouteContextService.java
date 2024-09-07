@@ -1,5 +1,9 @@
 package org.camelbee.debugger.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -19,6 +23,8 @@ import org.apache.camel.model.ToDefinition;
 import org.apache.camel.model.ToDynamicDefinition;
 import org.camelbee.debugger.model.route.CamelRoute;
 import org.camelbee.debugger.model.route.CamelRouteOutput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -28,6 +34,14 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class RouteContextService {
+
+  public static final String OPENAPI_OPERATIONID = "operationId:";
+  public static final String REST_OPENAPI_COMPONENT = "rest-openapi://";
+
+  /**
+   * The logger.
+   */
+  private static final Logger LOGGER = LoggerFactory.getLogger(RouteContextService.class);
 
   @Autowired
   CamelContext camelContext;
@@ -49,6 +63,8 @@ public class RouteContextService {
     }
     routes = new ArrayList<>();
 
+    List<CamelRoute> restRoutes = new ArrayList<>();
+
     for (Route route : camelContext.getRoutes()) {
       String routeId = route.getId();
 
@@ -58,6 +74,10 @@ public class RouteContextService {
       List<CamelRouteOutput> outputs = new ArrayList<>();
 
       extractOutputs(routeDefinition.getOutputs(), outputs);
+
+      boolean isRestApiRoute = checkRestOpenApiRouteDefinition(routeDefinition, outputs);
+
+      checkRestOpenApiRouteDefinition(routeDefinition, outputs);
 
       String errorHandler = null;
 
@@ -69,8 +89,20 @@ public class RouteContextService {
           updateWithSystemProperties(routeDefinition.getInput().toString()), outputs,
           routeDefinition.isRest(), errorHandler);
 
-      routes.add(metaRoute);
+      if (isRestApiRoute) {
+        restRoutes.add(metaRoute);
+      } else {
+        routes.add(metaRoute);
+      }
+
     }
+    /*
+     set the rest property to true of the routes that are called
+     directly from the rest-openapi route,
+     this is not done by camel anymore if you use rest-openapi with a yaml file.
+     */
+    adjustRestInputRoutes(restRoutes, routes);
+
     return routes;
   }
 
@@ -124,4 +156,51 @@ public class RouteContextService {
       return id;
     }
   }
+
+  private boolean checkRestOpenApiRouteDefinition(RouteDefinition routeDefinition, List<CamelRouteOutput> outputs) {
+    String inputUri = routeDefinition.getInput() != null ? routeDefinition.getInput().getUri() : null;
+
+    if (inputUri != null && inputUri.contains(REST_OPENAPI_COMPONENT)) {
+
+      int startIndex = inputUri.indexOf(REST_OPENAPI_COMPONENT) + REST_OPENAPI_COMPONENT.length();
+
+      int endIndex = inputUri.indexOf("?", startIndex);
+
+      String openApiPath = inputUri.substring(startIndex, endIndex);
+
+      InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(openApiPath);
+
+      if (inputStream == null) {
+        //should not happen
+        return false;
+      }
+
+      try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+        String line;
+        while ((line = br.readLine()) != null) {
+          if (line.trim().startsWith(OPENAPI_OPERATIONID)) {
+            String operationId = line.substring(line.indexOf(OPENAPI_OPERATIONID) + OPENAPI_OPERATIONID.length()).trim();
+
+            outputs.add(new CamelRouteOutput("", "To[direct:" + operationId + "]",
+                null, null, null));
+          }
+        }
+      } catch (IOException e) {
+        LOGGER.error("Could not read the OpenApi spec: {} with exception: {}", inputUri, e);
+      }
+
+      return true;
+    }
+
+    return false;
+
+  }
+
+  private void adjustRestInputRoutes(List<CamelRoute> restApiRoutes, List<CamelRoute> routes) {
+
+    restApiRoutes.stream().forEach(e -> e.getOutputs().forEach(p -> {
+      routes.stream().filter(r -> r.getInput().equals(p)).forEach(s -> s.setRest(true));
+    }));
+  }
+
 }

@@ -21,7 +21,7 @@
     <parent>
         <groupId>io.camelbee</groupId>
         <artifactId>camelbee</artifactId>
-        <version>1.0.0</version>
+        <version>2.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -35,7 +35,6 @@
         <argLine>-Duser.language=en</argLine>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
         <camel-maven-plugin.version>4.7.0</camel-maven-plugin.version>
-        <camelbee-common.version>1.0.0</camelbee-common.version>
         <checkstyle.version>10.18.1</checkstyle.version>
         <commons-io.version>2.16.1</commons-io.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
@@ -50,6 +49,8 @@
         <lombok.version>1.18.34</lombok.version>
         <mapstruct.version>1.6.0</mapstruct.version>
         <mariadb-java-client.version>3.4.1</mariadb-java-client.version>
+        <mongodb-driver-core.version>4.11.2</mongodb-driver-core.version>
+        <mongodb-driver-sync.version>4.11.1</mongodb-driver-sync.version>
         <maven-checkstyle-plugin.version>3.5.0</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-dependency-plugin.version>3.8.0</maven-dependency-plugin.version>
@@ -160,7 +161,7 @@
                                 <artifactItem>
                                     <groupId>io.camelbee</groupId>
                                     <artifactId>common</artifactId>
-                                    <version>${camelbee-common.version}</version>
+                                    <version>2.0.0</version>
                                     <type>jar</type>
                                     <outputDirectory>${project.build.directory}</outputDirectory>
                                     <includes>config/**, formatter/**</includes>
