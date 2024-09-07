@@ -35,13 +35,13 @@
         <argLine>-Duser.language=en</argLine>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
         <camel-maven-plugin.version>4.7.0</camel-maven-plugin.version>
-        <checkstyle.version>10.18.0</checkstyle.version>
+        <checkstyle.version>10.18.1</checkstyle.version>
         <commons-io.version>2.16.1</commons-io.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <cxf-core.version>4.0.5</cxf-core.version>
         <dependency-lock-maven-plugin.version>1.0.2</dependency-lock-maven-plugin.version>
         <formatter-maven-plugin.version>2.24.1</formatter-maven-plugin.version>
-        <impsort-maven-plugin.version>1.11.0</impsort-maven-plugin.version>
+        <impsort-maven-plugin.version>1.12.0</impsort-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <jackson-databind-nullable.version>0.2.6</jackson-databind-nullable.version>
         <java.version>21</java.version>
@@ -76,7 +76,7 @@
         <sonar.projectKey>camelbee.${project.name}</sonar.projectKey>
         <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
         <spotbugs-annotations.version>4.8.6</spotbugs-annotations.version>
-        <spotbugs-maven-plugin.version>4.8.6.2</spotbugs-maven-plugin.version>
+        <spotbugs-maven-plugin.version>4.8.6.3</spotbugs-maven-plugin.version>
         <spotbugs.version>4.8.6</spotbugs.version>
         <testcontainers-bom.version>1.20.1</testcontainers-bom.version>
     </properties>
