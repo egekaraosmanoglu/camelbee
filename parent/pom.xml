@@ -49,7 +49,7 @@
         <lombok.version>1.18.34</lombok.version>
         <mapstruct.version>1.6.0</mapstruct.version>
         <mariadb-java-client.version>3.4.1</mariadb-java-client.version>
-        <mongodb-driver-core.version>4.11.2</mongodb-driver-core.version>
+        <mongodb-driver-core.version>4.11.4</mongodb-driver-core.version>
         <mongodb-driver-sync.version>4.11.1</mongodb-driver-sync.version>
         <maven-checkstyle-plugin.version>3.5.0</maven-checkstyle-plugin.version>
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
