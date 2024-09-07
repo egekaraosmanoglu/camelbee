@@ -27,12 +27,22 @@ import org.apache.camel.model.ToDynamicDefinition;
 import org.camelbee.debugger.model.route.CamelRoute;
 import org.camelbee.debugger.model.route.CamelRouteOutput;
 import org.eclipse.microprofile.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RouteContextService.
  */
 @ApplicationScoped
 public class RouteContextService {
+
+  public static final String OPENAPI_OPERATIONID = "operationId:";
+  public static final String REST_OPENAPI_COMPONENT = "rest-openapi://";
+
+  /**
+   * The logger.
+   */
+  private static final Logger LOGGER = LoggerFactory.getLogger(RouteContextService.class);
 
   @Inject
   CamelContext camelContext;
@@ -54,6 +64,8 @@ public class RouteContextService {
     }
     routes = new ArrayList<>();
 
+    List<CamelRoute> restRoutes = new ArrayList<>();
+
     for (Route route : camelContext.getRoutes()) {
       String routeId = route.getId();
 
@@ -64,7 +76,7 @@ public class RouteContextService {
 
       extractOutputs(routeDefinition.getOutputs(), outputs);
 
-      checkRestOpenApiRouteDefinition(routeDefinition, outputs);
+      boolean isRestApiRoute = checkRestOpenApiRouteDefinition(routeDefinition, outputs);
 
       String errorHandler = null;
 
@@ -76,8 +88,20 @@ public class RouteContextService {
           updateWithSystemProperties(routeDefinition.getInput().toString()), outputs,
           routeDefinition.isRest(), errorHandler);
 
-      routes.add(metaRoute);
+      if (isRestApiRoute) {
+        restRoutes.add(metaRoute);
+      } else {
+        routes.add(metaRoute);
+      }
+
     }
+    /*
+     set the rest property to true of the routes that are called
+     directly from the rest-openapi route,
+     this is not done by camel anymore if you use rest-openapi with a yaml file.
+     */
+    adjustRestInputRoutes(restRoutes, routes);
+
     return routes;
   }
 
@@ -133,45 +157,50 @@ public class RouteContextService {
 
   }
 
-  private void checkRestOpenApiRouteDefinition(RouteDefinition routeDefinition, List<CamelRouteOutput> outputs) {
+  private boolean checkRestOpenApiRouteDefinition(RouteDefinition routeDefinition, List<CamelRouteOutput> outputs) {
     String inputUri = routeDefinition.getInput() != null ? routeDefinition.getInput().getUri() : null;
 
-    if (inputUri != null && inputUri.contains("rest-openapi://")) {
+    if (inputUri != null && inputUri.contains(REST_OPENAPI_COMPONENT)) {
 
-      // Find the start index after "rest-openapi://"
-      int startIndex = inputUri.indexOf("rest-openapi://") + "rest-openapi://".length();
+      int startIndex = inputUri.indexOf(REST_OPENAPI_COMPONENT) + REST_OPENAPI_COMPONENT.length();
 
-      // Find the end index before the first "?" character
       int endIndex = inputUri.indexOf("?", startIndex);
 
-      // Extract the substring
       String openApiPath = inputUri.substring(startIndex, endIndex);
 
       InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(openApiPath);
 
       if (inputStream == null) {
-        System.out.println("File not found in resources");
-        return;
+        //should not happen
+        return false;
       }
 
       try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
         String line;
         while ((line = br.readLine()) != null) {
-          if (line.trim().startsWith("operationId:")) {
-            // Extracting the part after "operationId:"
-            String operationId = line.substring(line.indexOf("operationId:") + "operationId:".length()).trim();
-            System.out.println(operationId);
+          if (line.trim().startsWith(OPENAPI_OPERATIONID)) {
+            String operationId = line.substring(line.indexOf(OPENAPI_OPERATIONID) + OPENAPI_OPERATIONID.length()).trim();
 
             outputs.add(new CamelRouteOutput("", "To[direct:" + operationId + "]",
                 null, null, null));
           }
         }
       } catch (IOException e) {
-        e.printStackTrace();
+        LOGGER.error("Could not read the OpenApi spec: {} with exception: {}", inputUri, e);
       }
 
+      return true;
     }
-    //"rest-openapi://openapi/myvfz.yaml?missingOperation=ignore&produces=application%2Fjson&consumes=application%2Fjson"
+
+    return false;
+
+  }
+
+  private void adjustRestInputRoutes(List<CamelRoute> restApiRoutes, List<CamelRoute> routes) {
+
+    restApiRoutes.stream().forEach(e -> e.getOutputs().forEach(p -> {
+      routes.stream().filter(r -> r.getInput().equals(p)).forEach(s -> s.setRest(true));
+    }));
   }
 
 }

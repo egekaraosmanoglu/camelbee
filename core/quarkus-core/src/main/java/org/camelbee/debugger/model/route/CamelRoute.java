@@ -29,7 +29,7 @@ public class CamelRoute {
   private final String input;
   private final List<CamelRouteOutput> outputs;
 
-  private final Boolean rest;
+  private Boolean rest;
 
   private final String errorHandler;
 
@@ -65,6 +65,10 @@ public class CamelRoute {
 
   public Boolean getRest() {
     return rest;
+  }
+
+  public void setRest(boolean rest) {
+    this.rest = rest;
   }
 
   public String getErrorHandler() {
