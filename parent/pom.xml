@@ -79,7 +79,7 @@
         <spotbugs-maven-plugin.version>4.8.6.3</spotbugs-maven-plugin.version>
         <spotbugs.version>4.8.6</spotbugs.version>
         <testcontainers-bom.version>1.20.1</testcontainers-bom.version>
-        <snakeyaml.version>2.2</snakeyaml.version>
+        <snakeyaml.version>2.3</snakeyaml.version>
     </properties>
 
 
