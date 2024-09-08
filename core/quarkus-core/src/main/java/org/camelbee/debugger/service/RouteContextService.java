@@ -1,13 +1,14 @@
 package org.camelbee.debugger.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -29,6 +30,7 @@ import org.camelbee.debugger.model.route.CamelRouteOutput;
 import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * RouteContextService.
@@ -36,7 +38,7 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class RouteContextService {
 
-  public static final String OPENAPI_OPERATIONID = "operationId:";
+  public static final String OPENAPI_OPERATIONID = "operationId";
   public static final String REST_OPENAPI_COMPONENT = "rest-openapi://";
 
   /**
@@ -157,6 +159,13 @@ public class RouteContextService {
 
   }
 
+  private void adjustRestInputRoutes(List<CamelRoute> restApiRoutes, List<CamelRoute> routes) {
+
+    restApiRoutes.stream().forEach(e -> e.getOutputs().forEach(p -> routes.stream().filter(r -> r.getInput().equals(p.getDescription())).forEach(s -> s.setRest(
+        true))
+    ));
+  }
+
   private boolean checkRestOpenApiRouteDefinition(RouteDefinition routeDefinition, List<CamelRouteOutput> outputs) {
     String inputUri = routeDefinition.getInput() != null ? routeDefinition.getInput().getUri() : null;
 
@@ -167,27 +176,18 @@ public class RouteContextService {
       int endIndex = inputUri.indexOf("?", startIndex);
 
       String openApiPath = inputUri.substring(startIndex, endIndex);
+      List<String> operationIds = null;
 
-      InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(openApiPath);
-
-      if (inputStream == null) {
-        //should not happen
+      if (openApiPath.endsWith(".json")) {
+        operationIds = readOperationIdsFromJson(openApiPath);
+      } else if (openApiPath.endsWith(".yml") || openApiPath.endsWith(".yaml")) {
+        operationIds = readOperationIdsFromYaml(openApiPath);
+      } else {
+        LOGGER.error("Unknown file type for the OpenAPI spec: {}", openApiPath);
         return false;
       }
 
-      try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-        String line;
-        while ((line = br.readLine()) != null) {
-          if (line.trim().startsWith(OPENAPI_OPERATIONID)) {
-            String operationId = line.substring(line.indexOf(OPENAPI_OPERATIONID) + OPENAPI_OPERATIONID.length()).trim();
-
-            outputs.add(new CamelRouteOutput("", "To[direct:" + operationId + "]",
-                null, null, null));
-          }
-        }
-      } catch (IOException e) {
-        LOGGER.error("Could not read the OpenApi spec: {} with exception: {}", inputUri, e);
-      }
+      operationIds.forEach(p -> outputs.add(new CamelRouteOutput("", "From[direct:" + p + "]", null, null, null)));
 
       return true;
     }
@@ -196,11 +196,61 @@ public class RouteContextService {
 
   }
 
-  private void adjustRestInputRoutes(List<CamelRoute> restApiRoutes, List<CamelRoute> routes) {
+  private List<String> readOperationIdsFromYaml(String openApiPath) {
 
-    restApiRoutes.stream().forEach(e -> e.getOutputs().forEach(p -> {
-      routes.stream().filter(r -> r.getInput().equals(p)).forEach(s -> s.setRest(true));
-    }));
+    List<String> operationIds = new ArrayList<>();
+
+    Yaml yaml = new Yaml();
+
+    try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(openApiPath)) {
+
+      Map<String, Object> data = yaml.load(inputStream);
+
+      Map<String, Map<String, Map<String, Object>>> paths = (Map<String, Map<String, Map<String, Object>>>) data.get("paths");
+
+      for (Map<String, Map<String, Object>> methods : paths.values()) {
+        for (Map<String, Object> methodData : methods.values()) {
+          if (methodData.containsKey(OPENAPI_OPERATIONID)) {
+            operationIds.add(methodData.get(OPENAPI_OPERATIONID).toString());
+          }
+        }
+      }
+
+    } catch (Exception e) {
+      LOGGER.error("Could not read the OpenApi spec: {} with exception: {}", openApiPath, e);
+    }
+
+    return operationIds;
+  }
+
+  private List<String> readOperationIdsFromJson(String openApiPath) {
+
+    List<String> operationIds = new ArrayList<>();
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    try (InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream(openApiPath)) {
+
+      JsonNode rootNode = mapper.readTree(inputStream);
+
+      JsonNode pathsNode = rootNode.get("paths");
+      if (pathsNode != null) {
+        pathsNode.fields().forEachRemaining(entry -> {
+          JsonNode methodsNode = entry.getValue();
+          methodsNode.fields().forEachRemaining(method -> {
+            JsonNode operationIdNode = method.getValue().get(OPENAPI_OPERATIONID);
+            if (operationIdNode != null) {
+              operationIds.add(operationIdNode.asText());
+            }
+          });
+        });
+      }
+
+    } catch (IOException e) {
+      LOGGER.error("Could not read the OpenApi spec: {} with exception: {}", openApiPath, e);
+    }
+
+    return operationIds;
   }
 
 }
