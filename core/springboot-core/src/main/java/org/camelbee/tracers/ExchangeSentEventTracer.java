@@ -73,7 +73,7 @@ public class ExchangeSentEventTracer {
         return;
       }
 
-      final String responseSentBody = ExchangeUtils.readBodyAsString(exchange);
+      final String responseSentBody = ExchangeUtils.readBodyAsString(exchange, true);
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
       addSentMessage(exchange, responseSentBody, requestHeaders);

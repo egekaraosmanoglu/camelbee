@@ -76,7 +76,7 @@ public class ExchangeCompletedEventTracer {
         return;
       }
 
-      final String responseCompletedBody = ExchangeUtils.readBodyAsString(exchange);
+      final String responseCompletedBody = ExchangeUtils.readBodyAsString(exchange, true);
       final var responseHeaders = ExchangeUtils.getHeaders(exchange);
 
       addCompletedMessage(exchange, responseCompletedBody, responseHeaders);

@@ -37,20 +37,6 @@
             <artifactId>camelbee-springboot-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-
-        <!-- these ones will move to arhetype depending on the parameters -->
-        <!--
-        <dependency>
-            <groupId>com.sun.xml.messaging.saaj</groupId>
-            <artifactId>saaj-impl</artifactId>
-            <version>${saaj-impl.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-cxf-soap-starter</artifactId>
-        </dependency>
-        -->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -80,17 +66,6 @@
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
         </dependency>
-        <!-- these ones will move to arhetype depending on the parameters -->
-        <!--
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-platform-http-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-http-starter</artifactId>
-        </dependency>
-        -->
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-jackson-starter</artifactId>
@@ -128,25 +103,10 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-test-spring-junit5</artifactId>
         </dependency>
-
-        <!-- mapper selection these ones will move to arhetype -->
-        <!--
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-jslt-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-mapstruct-starter</artifactId>
-        </dependency>
-        -->
-
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-bean-validator-starter</artifactId>
         </dependency>
-
     </dependencies>
 
     <build>

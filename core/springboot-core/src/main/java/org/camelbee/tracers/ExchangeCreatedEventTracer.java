@@ -78,7 +78,7 @@ public class ExchangeCreatedEventTracer {
 
     try {
 
-      final String directRequestBody = ExchangeUtils.readBodyAsString(exchange);
+      final String directRequestBody = ExchangeUtils.readBodyAsString(exchange, false);
 
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 

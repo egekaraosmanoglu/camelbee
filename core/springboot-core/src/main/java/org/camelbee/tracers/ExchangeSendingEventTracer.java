@@ -84,7 +84,7 @@ public class ExchangeSendingEventTracer {
     try {
 
       final String endpointUri = event.getEndpoint().getEndpointUri();
-      final String requestBody = ExchangeUtils.readBodyAsString(exchange);
+      final String requestBody = ExchangeUtils.readBodyAsString(exchange, false);
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
       addSendingMessage(exchange, endpointUri, requestBody, requestHeaders);

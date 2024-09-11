@@ -63,7 +63,7 @@ public class ExchangeUtils {
    * @return String body.
    * @throws IOException The exception.
    */
-  public static String readBodyAsString(Exchange exchange) throws IOException {
+  public static String readBodyAsString(Exchange exchange, boolean resetBefore) throws IOException {
 
     try {
 
@@ -72,6 +72,11 @@ public class ExchangeUtils {
       if (exchange.getIn().getBody() instanceof StreamCache streamCache) {
 
         InputStream inputStream = exchange.getContext().getTypeConverter().convertTo(InputStream.class, streamCache);
+
+        if (resetBefore) {
+          streamCache.reset();
+        }
+
         response = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 
         streamCache.reset();

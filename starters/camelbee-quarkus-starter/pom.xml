@@ -37,25 +37,10 @@
 			<artifactId>camelbee-quarkus-core</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-
-		<!-- TODO these ones will move to arhetype depending on the parameters -->
-		<!--
-    <dependency>
-        <groupId>org.apache.camel.quarkus</groupId>
-        <artifactId>camel-quarkus-cxf-soap</artifactId>
-    </dependency>
-    -->
 		<dependency>
 			<groupId>org.apache.camel.quarkus</groupId>
 			<artifactId>camel-quarkus-jackson</artifactId>
 		</dependency>
-		<!-- TODO these ones will move to arhetype depending on the parameters -->
-		<!--
-		<dependency>
-			<groupId>org.apache.camel.quarkus</groupId>
-			<artifactId>camel-quarkus-rest</artifactId>
-		</dependency>
-		-->
 		<dependency>
 			<groupId>org.apache.camel.quarkus</groupId>
 			<artifactId>camel-quarkus-direct</artifactId>
@@ -64,13 +49,6 @@
 			<groupId>org.apache.camel.quarkus</groupId>
 			<artifactId>camel-quarkus-micrometer</artifactId>
 		</dependency>
-		<!-- TODO these ones will move to arhetype depending on the parameters -->
-		<!--
-		<dependency>
-			<groupId>org.apache.camel.quarkus</groupId>
-			<artifactId>camel-quarkus-http</artifactId>
-		</dependency>
-		-->
 		<dependency>
 			<groupId>org.apache.camel.quarkus</groupId>
 			<artifactId>camel-quarkus-bean</artifactId>
@@ -82,12 +60,6 @@
 		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-config-yaml</artifactId>
-		</dependency>
-
-		<!-- TODO is needed?-->
-		<dependency>
-			<groupId>io.quarkus</groupId>
-			<artifactId>quarkus-resteasy</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.camel.quarkus</groupId>
