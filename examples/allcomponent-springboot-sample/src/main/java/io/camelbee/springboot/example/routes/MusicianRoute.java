@@ -105,7 +105,7 @@ public class MusicianRoute extends RouteBuilder {
         .routingSlip().constant("direct:invokeMockA,direct:invokeMockB")
         .dynamicRouter(method(this, "computeEndpoint"))
         .removeHeaders("*")
-        //.toD("direct:invokeRabbitMq")
+        .toD("direct:invokeRabbitMq")
         .pollEnrich("jms:queue:camelbee-southhbound-queue", 20000, (original, resource) -> resource)
         .to("direct:invokeHttpBinError");
 
