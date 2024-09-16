@@ -75,21 +75,6 @@
                 <version>${cxf-rt-transports-http-jetty.version}</version>
             </dependency>
 
-            <!--
-            org.mongodb driver version 5.0.1 which comes with mongodb starter 4.6.0
-            has runtime issues, so manually incliding 4.11.1, in never camel version this could be fixed
-             -->
-            <dependency>
-                <groupId>org.mongodb</groupId>
-                <artifactId>mongodb-driver-core</artifactId>
-                <version>${mongodb-driver-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mongodb</groupId>
-                <artifactId>mongodb-driver-sync</artifactId>
-                <version>${mongodb-driver-core.version}</version>
-            </dependency>
 
         </dependencies>
     </dependencyManagement>

@@ -56,32 +56,9 @@
       <artifactId>camel-file-starter</artifactId>
     </dependency>
 
-    <!-- camel-mongodb-starter has org.mongodb 5.0.1 which has an issue -->
     <dependency>
       <groupId>org.apache.camel.springboot</groupId>
       <artifactId>camel-mongodb-starter</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>org.mongodb</groupId>
-          <artifactId>mongodb-driver-core</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.mongodb</groupId>
-          <artifactId>mongodb-driver-sync</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <!-- manually include -->
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-core</artifactId>
-    </dependency>
-
-    <!-- manually include -->
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-sync</artifactId>
     </dependency>
 
     <!-- mariadb for database -->
