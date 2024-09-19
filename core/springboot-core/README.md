@@ -12,17 +12,36 @@ To manually install the core library, follow the steps below:
 
 ### Maven Installation
 
-`mvn clean install`
+`mvn clean install` in the topmost parent folder "./camelbee"
 
-Once the Maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
+Once the maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
 
 ```xml
-<dependency>
-  <groupId>io.camelbee</groupId>
-  <artifactId>camelbee-spring-core</artifactId>
-  <version>latest-version</version>
-</dependency>
+  <parent>
+    <groupId>io.camelbee</groupId>
+    <artifactId>camelbee-springboot-starter</artifactId>
+    <version>2.0.0</version>
+  </parent>
 ```
+
+### Maven Installation Custom Without CamelBee Starter project directly adding core library
+
+If you prefer not to use `camelbee-springboot-starter` as the parent project, you can build `camelbee-spring-core` separately for your project using the provided `pom-custom.xml`. Follow these steps:
+
+1. Build the core library with the custom POM file:
+
+`mvn -f pom-custom.xml clean install` in the "./camelbee/core/springboot-core" folder
+
+Once the custom maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
+   
+```xml
+  <parent>
+    <groupId>io.camelbee</groupId>
+    <artifactId>camelbee-springboot-starter</artifactId>
+    <version>2.0.0</version>
+  </parent>
+```
+
 
 ## Configuration
 
@@ -97,7 +116,28 @@ management:
         max-age: 1800  # Maximum age (in seconds) of the cache duration for CORS preflight responses.
 ```
 
+### Enable CamelBee Spring Beans
 
+Add "org.camelbee" package to your ComponentScan folder of Spring like in the example project below:
+```
+/**
+ * CamelBee Rest microservice example.
+ */
+@SpringBootApplication
+@EnableAutoConfiguration
+@ComponentScan(
+    basePackages = {"org.camelbee", "io.camelbee.springboot.example"})
+public class CamelBeeApplication {
+
+  /**
+   * A main method to start this application.
+   */
+  public static void main(String[] args) {
+    SpringApplication.run(CamelBeeApplication.class, args);
+  }
+
+}
+```
 ## Example Implementation
 
 Discover a practical and functional application of this core library within the 'allcomponent-springboot-sample' Maven project showcased below as a successful and operational example:
