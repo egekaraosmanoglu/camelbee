@@ -12,7 +12,7 @@ To manually install the core library, follow the steps below:
 
 ### Maven Installation
 
-`mvn clean install`
+run `mvn clean install` command in the topmost parent folder "./camelbee"
 
 Once the Maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
 
@@ -30,7 +30,7 @@ If you prefer not to use `camelbee-quarkus-starter` as the parent project, you c
 
 1. Build the core library with the custom POM file:
 
-`mvn -f pom-custom.xml clean install` in the "./camelbee/core/quarkus-core" folder
+run `mvn -f pom-custom.xml clean install` command in the "./camelbee/core/quarkus-core" folder
 
 Once the custom maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
    
