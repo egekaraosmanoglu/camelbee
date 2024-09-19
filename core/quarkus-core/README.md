@@ -26,7 +26,7 @@ Once the maven artifact is created, you can include it in your project by adding
 
 ### Maven Installation Custom Without CamelBee Starter Project as parent but directly adding the core library
 
-If you prefer not to use `camelbee-quarkus-starter` as the parent project, you can build `camelbee-quarkus-core` separately for your project using the provided `pom-custom.xml`. Follow these steps:
+If you prefer not to use `camelbee-quarkus-starter` as the parent project, you can build `camelbee-quarkus-core-custom` separately for your project using the provided `pom-custom.xml`. Follow these steps:
 
 1. Build the core library with the custom POM file:
 
