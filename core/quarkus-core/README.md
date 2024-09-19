@@ -14,17 +14,17 @@ To manually install the core library, follow the steps below:
 
 run `mvn clean install` command in the topmost parent folder "./camelbee"
 
-Once the Maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
+Once the maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml as the parent project:
 
 ```xml
-<dependency>
+<parent>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-starter</artifactId>
   <version>2.0.0</version>
-</dependency>
+</parent>
 ```
 
-### Maven Installation Custom Without CamelBee Starter project directly adding core library
+### Maven Installation Custom Without CamelBee Starter Project as parent but directly adding the core library
 
 If you prefer not to use `camelbee-quarkus-starter` as the parent project, you can build `camelbee-quarkus-core` separately for your project using the provided `pom-custom.xml`. Follow these steps:
 
@@ -35,18 +35,18 @@ run `mvn -f pom-custom.xml clean install` command in the "./camelbee/core/quarku
 Once the custom maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
    
 ```xml
-  <parent>
+  <dependency>
     <groupId>io.camelbee</groupId>
     <artifactId>camelbee-quarkus-core-custom</artifactId>
     <version>2.0.0</version>
-  </parent>
+  </dependency>
 ```
 
 ## Configuration
 
 ### Configure your each Camel Route with org.camelbee.config.CamelBeeRouteConfigurer
 
-To enable the interceptors of the CamelBee library configure your camel routes like below:
+To enable the stream caching in your camel routes like below:
 
 ```
 /**
