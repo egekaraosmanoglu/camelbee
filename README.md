@@ -80,14 +80,13 @@ camelbee/
 
 Each subproject have its own README file for detailed information specific to that project.
 
-
 ## Getting Started For Quarkus Projects:
 
-For more details, please refer to the [CamelBee SpringBoot Core README](https://github.com/egekaraosmanoglu/camelbee/blob/main/core/springboot-core/README.md).
+For more details, please refer to the [CamelBee Quarkus Core README](https://github.com/egekaraosmanoglu/camelbee/blob/main/core/quarkus-core/README.md).
 
 ## Getting Started For SpringBoot Projects:
 
-For more details, please refer to the [CamelBee Quarkus Core README](https://github.com/egekaraosmanoglu/camelbee/blob/main/core/quarkus-core/README.md).
+For more details, please refer to the [CamelBee SpringBoot Core README](https://github.com/egekaraosmanoglu/camelbee/blob/main/core/springboot-core/README.md).
 
 
 ## License
