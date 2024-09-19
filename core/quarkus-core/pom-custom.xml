@@ -1,7 +1,7 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.camelbee</groupId>
-	<artifactId>camelbee-quarkus-core</artifactId>
+	<artifactId>camelbee-quarkus-core-custom</artifactId>
 	<packaging>jar</packaging>
 	<version>2.0.0</version>
 	<properties>
