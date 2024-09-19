@@ -33,22 +33,16 @@ public class CamelBeeEventNotifier extends EventNotifierSupport {
   @Override
   public void notify(CamelEvent event) throws Exception {
 
-    switch (event) {
-      case ExchangeCreatedEvent exchangeCreatedEvent:
-        tracerService.traceExchangeCreateEvent(exchangeCreatedEvent);
-        break;
-      case ExchangeSendingEvent exchangeSendingEvent:
-        tracerService.traceExchangeSendingEvent(exchangeSendingEvent);
-        break;
-      case ExchangeSentEvent exchangeSentEvent:
-        tracerService.traceExchangeSentEvent(exchangeSentEvent);
-        break;
-      case ExchangeCompletedEvent exchangeCompletedEvent:
-        tracerService.traceExchangeCompletedEvent(exchangeCompletedEvent);
-        break;
-      default:
-        LOGGER.trace("Event type not traced: {}", event.getClass().getName());
-        break;
+    if (event instanceof ExchangeCreatedEvent exchangeCreatedEvent) {
+      tracerService.traceExchangeCreateEvent(exchangeCreatedEvent);
+    } else if (event instanceof ExchangeSendingEvent exchangeSendingEvent) {
+      tracerService.traceExchangeSendingEvent(exchangeSendingEvent);
+    } else if (event instanceof ExchangeSentEvent exchangeSentEvent) {
+      tracerService.traceExchangeSentEvent(exchangeSentEvent);
+    } else if (event instanceof ExchangeCompletedEvent exchangeCompletedEvent) {
+      tracerService.traceExchangeCompletedEvent(exchangeCompletedEvent);
+    } else {
+      LOGGER.trace("Event type not traced: {}", event.getClass().getName());
     }
 
   }
