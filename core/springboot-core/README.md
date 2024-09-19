@@ -12,23 +12,41 @@ To manually install the core library, follow the steps below:
 
 ### Maven Installation
 
-`mvn clean install`
+run `mvn clean install` command in the topmost parent folder "./camelbee"
 
-Once the Maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
+Once the maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml as the parent project:
 
 ```xml
-<dependency>
-  <groupId>io.camelbee</groupId>
-  <artifactId>camelbee-spring-core</artifactId>
-  <version>latest-version</version>
-</dependency>
+  <parent>
+    <groupId>io.camelbee</groupId>
+    <artifactId>camelbee-springboot-starter</artifactId>
+    <version>2.0.0</version>
+  </parent>
+```
+
+### Maven Installation Custom Without CamelBee Starter Project as parent but directly adding the core library
+
+If you prefer not to use `camelbee-springboot-starter` as the parent project, you can build `camelbee-springboot-core-custom` separately for your project using the provided `pom-custom.xml`. Follow these steps:
+
+1. Build the core library with the custom POM file:
+
+run `mvn -f pom-custom.xml clean install` command in the "./camelbee/core/springboot-core" folder
+
+Once the custom maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
+   
+```xml
+  <dependency>
+    <groupId>io.camelbee</groupId>
+    <artifactId>camelbee-springboot-core-custom</artifactId>
+    <version>2.0.0</version>
+  </dependency>
 ```
 
 ## Configuration
 
 ### Configure your each Camel Route with org.camelbee.config.CamelBeeRouteConfigurer
 
-To enable the interceptors of the CamelBee library configure your camel routes like below:
+To enable the stream caching in your camel routes like below:
 
 ```
 /**
@@ -90,24 +108,45 @@ management:
         prometheus: metrics
         metrics: metrics-default
       cors:
-        allowed-origins: "https://www.camelbee.io" # Comma-separated list of origins you want to allow
+        allowed-origins: "https://www.camelbee.io,http://localhost:8083" # Comma-separated list of origins you want to allow
         allowed-methods: GET  # Allowed HTTP methods. Default to GET.
         allowed-headers: "*"  # Allowed HTTP headers. Default to "*".
         allow-credentials: true  # Set to true if you want to allow cookies, authorization headers, etc.
         max-age: 1800  # Maximum age (in seconds) of the cache duration for CORS preflight responses.
 ```
 
+### Enable CamelBee Spring Beans
 
+Add "org.camelbee" package to your ComponentScan folder of Spring like in the example project below:
+```
+/**
+ * CamelBee Rest microservice example.
+ */
+@SpringBootApplication
+@EnableAutoConfiguration
+@ComponentScan(
+    basePackages = {"org.camelbee", "io.camelbee.springboot.example"})
+public class CamelBeeApplication {
+
+  /**
+   * A main method to start this application.
+   */
+  public static void main(String[] args) {
+    SpringApplication.run(CamelBeeApplication.class, args);
+  }
+
+}
+```
 ## Example Implementation
 
 Discover a practical and functional application of this core library within the 'allcomponent-springboot-sample' Maven project showcased below as a successful and operational example:
 
 ```shell
 camelbee/
-|-- camelbee-core/
-| |-- camelbee-springboot-core/
+|-- core/
+| |-- springboot-core/
 | | |-- ...
-|-- camelbee-examples/
+|-- examples/
 | |-- allcomponent-springboot-sample/
 | | |-- ...
 ```
