@@ -2,9 +2,9 @@
 
 ## Introduction
 
-The camelbee-quarkus-core library is an essential component for integrating a Camel Quarkus Microservice with the CamelBee WebGL application (https://www.camelbee.io). 
+The camelbee-quarkus-core library is an essential component for integrating a Camel SpringBoot Microservice with the CamelBee WebGL application (https://www.camelbee.io). 
 This library provides the necessary functionalities to configure Camel routes with interceptors, allowing comprehensive tracing of messages exchanged between the routes. 
-Additionally, it includes rest resources for seamless interaction with the CamelBee WebGL application.
+Additionally, it includes rest controllers for seamless interaction with the CamelBee WebGL application.
 
 ## Manual Installation
 
@@ -19,9 +19,27 @@ Once the Maven artifact is created, you can include it in your project by adding
 ```xml
 <dependency>
   <groupId>io.camelbee</groupId>
-  <artifactId>camelbee-quarkus-core</artifactId>
-  <version>latest-version</version>
+  <artifactId>camelbee-quarkus-starter</artifactId>
+  <version>2.0.0</version>
 </dependency>
+```
+
+### Maven Installation Custom Without CamelBee Starter project directly adding core library
+
+If you prefer not to use `camelbee-quarkus-starter` as the parent project, you can build `camelbee-quarkus-core` separately for your project using the provided `pom-custom.xml`. Follow these steps:
+
+1. Build the core library with the custom POM file:
+
+`mvn -f pom-custom.xml clean install` in the "./camelbee/core/quarkus-core" folder
+
+Once the custom maven artifact is created, you can include it in your project by adding the following dependency to your pom.xml:
+   
+```xml
+  <parent>
+    <groupId>io.camelbee</groupId>
+    <artifactId>camelbee-quarkus-starter</artifactId>
+    <version>2.0.0</version>
+  </parent>
 ```
 
 ## Configuration
@@ -87,6 +105,17 @@ quarkus:
       access-control-max-age: 24H
 ```
 
+### Enable CamelBee Quarkus Beans
+
+Add "camelbee-quarkus-core" dependency to your application.yaml of your Quarkus project, so they will be available.
+
+```
+quarkus:
+  index-dependency:
+    camelbeecore:
+      group-id: io.camelbee
+      artifact-id: camelbee-quarkus-core
+```
 
 ## Example Implementation
 
@@ -94,10 +123,10 @@ Discover a practical and functional application of this core library within the 
 
 ```shell
 camelbee/
-|-- camelbee-core/
-| |-- camelbee-quarkus-core/
+|-- core/
+| |-- quarkus-core/
 | | |-- ...
-|-- camelbee-examples/
+|-- examples/
 | |-- allcomponent-quarkus-sample/
 | | |-- ...
 ```
