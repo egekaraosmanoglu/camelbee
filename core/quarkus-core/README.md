@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The camelbee-quarkus-core library is an essential component for integrating a Camel SpringBoot Microservice with the CamelBee WebGL application (https://www.camelbee.io). 
+The camelbee-quarkus-core library is an essential component for integrating a Camel Quarkus Microservice with the CamelBee WebGL application (https://www.camelbee.io). 
 This library provides the necessary functionalities to configure Camel routes with interceptors, allowing comprehensive tracing of messages exchanged between the routes. 
 Additionally, it includes rest controllers for seamless interaction with the CamelBee WebGL application.
 
