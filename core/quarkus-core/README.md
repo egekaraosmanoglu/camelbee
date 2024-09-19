@@ -37,7 +37,7 @@ Once the custom maven artifact is created, you can include it in your project by
 ```xml
   <parent>
     <groupId>io.camelbee</groupId>
-    <artifactId>camelbee-quarkus-starter</artifactId>
+    <artifactId>camelbee-quarkus-core-custom</artifactId>
     <version>2.0.0</version>
   </parent>
 ```

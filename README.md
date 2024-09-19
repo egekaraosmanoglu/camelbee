@@ -52,14 +52,14 @@ The project is structured as follows:
 
 ```shell
 camelbee/
-|-- camelbee-core/
-| |-- camelbee-quarkus-core/
+|-- core/
+| |-- quarkus-core/
 | | |-- README.md
 | | |-- ...
-| |-- camelbee-springboot-core/
+| |-- springboot-core/
 | | |-- README.md
 | | |-- ...
-|-- camelbee-examples/
+|-- examples/
 | |-- allcomponent-quarkus-sample/
 | | |-- README.md
 | | |-- ...
@@ -69,21 +69,25 @@ camelbee/
 |-- README.md
 ```
 
-
-- `camelbee-core`: Contains the core modules for CamelBee.to integrate with either the CamelBee WebGL application (https://www.camelbee.io) or through the local Docker version (accessed at http://localhost:8083 by executing 'docker run -d -p 8083:80 camelbee/webgl').
-  - `camelbee-quarkus-core`: Quarkus-specific core module.
-  - `camelbee-springboot-core`: Spring Boot-specific core module.
-
-- `camelbee-examples`: Contains example projects demonstrating the usage of CamelBee.
-  - `allcomponent-quarkus-sample`:  Quarkus example project which uses camelbee-quarkus-core library.
-  - `allcomponent-springboot-sample`: Spring Boot example project which uses camelbee-springboot-core library.
+- `camelbee`:
+  - `core`: Contains the core modules for CamelBee.to integrate with either the CamelBee WebGL application (https://www.camelbee.io) or through the local Docker version (accessed at http://localhost:8083 by executing 'docker run -d -p 8083:80 camelbee/webgl').
+    - `quarkus-core`: Quarkus-specific core module.
+    - `springboot-core`: Spring Boot-specific core module.
+    - 
+  - `examples`: Contains example projects demonstrating the usage of CamelBee.
+    - `allcomponent-quarkus-sample`:  Quarkus example project which uses camelbee-quarkus-starter library.
+    - `allcomponent-springboot-sample`: Spring Boot example project which uses camelbee-springboot-starter library.
 
 Each subproject have its own README file for detailed information specific to that project.
 
-## Getting Started
 
-To get started with any of the subprojects, follow the instructions in their respective README files located in their subdirectories. 
-These README files provide step-by-step instructions on how to build, configure, and run each project.
+## Getting Started For Quarkus Projects:
+
+For more details, please refer to the [CamelBee SpringBoot Core README](https://github.com/egekaraosmanoglu/camelbee/blob/main/core/springboot-core/README.md).
+
+## Getting Started For SpringBoot Projects:
+
+For more details, please refer to the [CamelBee Quarkus Core README](https://github.com/egekaraosmanoglu/camelbee/blob/main/core/quarkus-core/README.md).
 
 
 ## License

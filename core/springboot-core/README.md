@@ -37,7 +37,7 @@ Once the custom maven artifact is created, you can include it in your project by
 ```xml
   <parent>
     <groupId>io.camelbee</groupId>
-    <artifactId>camelbee-springboot-starter</artifactId>
+    <artifactId>camelbee-spring-core-custom</artifactId>
     <version>2.0.0</version>
   </parent>
 ```
