@@ -88,6 +88,11 @@ For more details, please refer to the [CamelBee Quarkus Core README](https://git
 
 For more details, please refer to the [CamelBee SpringBoot Core README](https://github.com/egekaraosmanoglu/camelbee/blob/main/core/springboot-core/README.md).
 
+## Getting Started Using CamelBee WebGL Application:
+
+For more details, please refer to the user guid [CamelBee WebGL Application User Guide](https://github.com/egekaraosmanoglu/camelbee/blob/main/docs/camelbee_userguide.pdf).
+
+
 
 ## License
 
