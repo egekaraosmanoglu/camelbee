@@ -3,7 +3,7 @@
 ## Introduction
 
 The camelbee-quarkus-core library is an essential component for integrating a Camel Quarkus Microservice with the CamelBee WebGL application (https://www.camelbee.io) or the local Docker version (accessed at http://localhost:8083 by executing 'docker run -d -p 8083:80 camelbee/webgl'). 
-This library provides the necessary functionalities to configure Camel routes with interceptors, allowing comprehensive tracing of messages exchanged between the routes. 
+This library provides the necessary functionalities to configure Camel routes with event notifiers, allowing comprehensive tracing of messages exchanged between the routes. 
 Additionally, it includes rest controllers for seamless interaction with the CamelBee WebGL application.
 
 ## Manual Installation
