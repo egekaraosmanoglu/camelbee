@@ -16,12 +16,11 @@
 
 package org.camelbee.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import org.apache.camel.Exchange;
 import org.apache.camel.StreamCache;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,16 +70,21 @@ public class ExchangeUtils {
 
       if (exchange.getIn().getBody() instanceof StreamCache streamCache) {
 
-        InputStream inputStream = exchange.getContext().getTypeConverter().convertTo(InputStream.class, streamCache);
-
         if (resetBefore) {
           streamCache.reset();
         }
 
-        response = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        streamCache.writeTo(byteArrayOutputStream);
+
+        response = byteArrayOutputStream.toString("UTF-8");
 
         streamCache.reset();
 
+      } else if (exchange.getIn().getBody() instanceof ArrayList arrayList) {
+        //espacially for cxf MessageContentsList
+        response = arrayList.toString();
       } else if (exchange.getIn().getBody() != null) {
         response = exchange.getIn().getBody(String.class);
       }
@@ -88,7 +92,7 @@ public class ExchangeUtils {
       return response;
 
     } catch (Exception e) {
-      LOGGER.error("Could not Exchange body: {} with exception: {}", exchange, e);
+      LOGGER.warn("Could not Exchange body: {} with exception: {}", exchange, e);
       return StringUtils.EMPTY;
     }
   }

@@ -260,8 +260,8 @@ The following files have been resolved:
    org.mockito:mockito-junit-jupiter:jar:5.11.0:test[36m -- module org.mockito.junit.jupiter[0;1m [auto][m
    org.mongodb:bson-record-codec:jar:5.0.1:runtime[36m -- module org.mongodb.bson.record.codec[0;1m [auto][m
    org.mongodb:bson:jar:5.0.1:compile[36m -- module org.mongodb.bson[0;1m [auto][m
-   org.mongodb:mongodb-driver-core:jar:4.11.4:compile[36m -- module org.mongodb.driver.core[0;1m [auto][m
-   org.mongodb:mongodb-driver-sync:jar:4.11.4:compile[36m -- module org.mongodb.driver.sync.client[0;1m [auto][m
+   org.mongodb:mongodb-driver-core:jar:5.0.1:compile[36m -- module org.mongodb.driver.core[0;1m [auto][m
+   org.mongodb:mongodb-driver-sync:jar:5.0.1:compile[36m -- module org.mongodb.driver.sync.client[0;1m [auto][m
    org.objenesis:objenesis:jar:3.3:runtime[36m -- module org.objenesis[0;1m [auto][m
    org.openapitools:jackson-databind-nullable:jar:0.2.6:compile[36m -- module org.openapitools.jackson.nullable[0;1m [auto][m
    org.opentest4j:opentest4j:jar:1.3.0:compile[36m -- module org.opentest4j[m
