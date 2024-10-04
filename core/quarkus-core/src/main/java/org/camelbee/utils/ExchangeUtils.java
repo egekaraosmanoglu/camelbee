@@ -16,12 +16,12 @@
 
 package org.camelbee.utils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import org.apache.camel.Exchange;
 import org.apache.camel.StreamCache;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,32 +63,38 @@ public class ExchangeUtils {
    * @return String body.
    * @throws IOException The exception.
    */
+  @SuppressWarnings("java:S3740")
   public static String readBodyAsString(Exchange exchange, boolean resetBefore) throws IOException {
 
     try {
 
-      String response = null;
+      String body = null;
 
       if (exchange.getIn().getBody() instanceof StreamCache streamCache) {
-
-        InputStream inputStream = exchange.getContext().getTypeConverter().convertTo(InputStream.class, streamCache);
 
         if (resetBefore) {
           streamCache.reset();
         }
 
-        response = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+
+        streamCache.writeTo(byteArrayOutputStream);
+
+        body = byteArrayOutputStream.toString(StandardCharsets.UTF_8);
 
         streamCache.reset();
 
+      } else if (exchange.getIn().getBody() instanceof ArrayList arrayList) {
+        //specifically for cxf MessageContentsList
+        body = arrayList.toString();
       } else if (exchange.getIn().getBody() != null) {
-        response = exchange.getIn().getBody(String.class);
+        body = exchange.getIn().getBody(String.class);
       }
 
-      return response;
+      return body;
 
     } catch (Exception e) {
-      LOGGER.error("Could not Exchange body: {} with exception: {}", exchange, e);
+      LOGGER.warn("Could not Exchange body: {} with exception: {}", exchange, e);
       return StringUtils.EMPTY;
     }
   }
