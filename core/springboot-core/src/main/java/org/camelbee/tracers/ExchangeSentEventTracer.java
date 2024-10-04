@@ -79,7 +79,7 @@ public class ExchangeSentEventTracer {
       addSentMessage(exchange, responseSentBody, requestHeaders);
 
     } catch (Exception e) {
-      LOGGER.error("Could not trace ExchangeSentEvent: {} with exception: {}", exchange, e);
+      LOGGER.warn("Could not trace ExchangeSentEvent: {} with exception: {}", exchange, e);
     }
 
   }

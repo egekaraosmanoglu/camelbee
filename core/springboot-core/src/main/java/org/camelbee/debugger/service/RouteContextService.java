@@ -182,7 +182,7 @@ public class RouteContextService {
       } else if (openApiPath.endsWith(".yml") || openApiPath.endsWith(".yaml")) {
         operationIds = readOperationIdsFromYaml(openApiPath);
       } else {
-        LOGGER.error("Unknown file type for the OpenAPI spec: {}", openApiPath);
+        LOGGER.warn("Unknown file type for the OpenAPI spec: {}", openApiPath);
         return false;
       }
 
@@ -216,7 +216,7 @@ public class RouteContextService {
       }
 
     } catch (Exception e) {
-      LOGGER.error("Could not read the OpenApi spec: {} with exception: {}", openApiPath, e);
+      LOGGER.warn("Could not read the OpenApi spec: {} with exception: {}", openApiPath, e);
     }
 
     return operationIds;
@@ -246,7 +246,7 @@ public class RouteContextService {
       }
 
     } catch (IOException e) {
-      LOGGER.error("Could not read the OpenApi spec: {} with exception: {}", openApiPath, e);
+      LOGGER.warn("Could not read the OpenApi spec: {} with exception: {}", openApiPath, e);
     }
 
     return operationIds;

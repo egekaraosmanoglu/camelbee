@@ -85,7 +85,7 @@ public class ExchangeCreatedEventTracer {
       addCreatedMessage(exchange, directRequestBody, requestHeaders);
 
     } catch (Exception e) {
-      LOGGER.error("Could not trace ExchangeCreatedEvent: {} with exception: {}", exchange, e);
+      LOGGER.warn("Could not trace ExchangeCreatedEvent: {} with exception: {}", exchange, e);
     }
 
   }

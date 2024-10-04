@@ -82,7 +82,7 @@ public class ExchangeCompletedEventTracer {
       addCompletedMessage(exchange, responseCompletedBody, responseHeaders);
 
     } catch (Exception e) {
-      LOGGER.error("Could not trace ExchangeCompletedEvent: {} with exception: {}", exchange, e);
+      LOGGER.warn("Could not trace ExchangeCompletedEvent: {} with exception: {}", exchange, e);
     }
 
   }

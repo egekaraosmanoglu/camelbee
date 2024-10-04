@@ -91,7 +91,7 @@ public class ExchangeSendingEventTracer {
       addSendingMessage(exchange, endpointUri, requestBody, requestHeaders);
 
     } catch (Exception e) {
-      LOGGER.error("Could not trace ExchangeSendingEvent Exchange: {} with exception: {}", exchange, e);
+      LOGGER.warn("Could not trace ExchangeSendingEvent Exchange: {} with exception: {}", exchange, e);
     }
 
   }
