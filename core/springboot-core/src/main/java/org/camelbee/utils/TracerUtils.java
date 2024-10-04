@@ -53,7 +53,7 @@ public class TracerUtils {
    */
   public static String handleError(Exchange exchange) {
 
-    Exception cause = exchange.getException();
+    Exception cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
     String errorMessage = null;
 
     if (cause != null) {
