@@ -15,7 +15,7 @@
 
     <properties>
         <spring-boot-dependencies.version>3.4.0</spring-boot-dependencies.version>
-        <spring-cloud-dependencies.version>2023.0.4</spring-cloud-dependencies.version>
+        <spring-cloud-dependencies.version>2024.0.0</spring-cloud-dependencies.version>
         <camel-spring-boot-bom.version>4.9.0</camel-spring-boot-bom.version>
         <jakarta-inject.version>2.0.1.MR</jakarta-inject.version>
         <saaj-impl.version>3.0.3</saaj-impl.version>
