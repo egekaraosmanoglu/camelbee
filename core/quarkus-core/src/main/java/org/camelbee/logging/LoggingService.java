@@ -46,7 +46,9 @@ public class LoggingService {
    */
   public void logMessage(Message message, String logMessage, boolean clearMdc) {
 
-    validateMessage(message);
+    if (message == null) {
+      return;
+    }
 
     try {
       setMdcContext(message);
@@ -57,12 +59,6 @@ public class LoggingService {
       if (clearMdc) {
         clearMdcContext();
       }
-    }
-  }
-
-  private void validateMessage(Message message) {
-    if (message == null) {
-      throw new IllegalArgumentException("Message cannot be null");
     }
   }
 

@@ -56,10 +56,17 @@ quarkus:
       prometheus:
         path: /metrics
   log:
+    handler:
+      gelf:
+        enabled: false
     category:
-      "org.apache.camel":
+      "io.quarkus":
         level: INFO
-    level: INFO
+  # This is important - tells Quarkus to use Logback
+  logging:
+    handler:
+      logback:
+        enabled: true
   artemis:
     url: tcp://localhost:61616
     username: artemis

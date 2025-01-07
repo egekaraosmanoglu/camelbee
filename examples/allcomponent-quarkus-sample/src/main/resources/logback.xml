@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+      <providers>
+        <timestamp>
+          <timeZone>UTC</timeZone>
+        </timestamp>
+        <logLevel/>
+        <loggerName/>
+        <pattern>
+          <pattern>
+            {
+            "requestId": "%X{requestId}",
+            "transactionId": "%X{transactionId}",
+            "exchangeId": "%X{exchangeId}",
+            "exchangeEventType": "%X{exchangeEventType}",
+            "messageBody": "%X{messageBody}",
+            "headers": "%X{headers}",
+            "routeId": "%X{routeId}",
+            "endpoint": "%X{endpoint}",
+            "endpointId": "%X{endpointId}",
+            "messageType": "%X{messageType}",
+            "exception": "%X{exception}",
+            "timeStamp": "%X{timeStamp}"
+            }
+          </pattern>
+        </pattern>
+      </providers>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>

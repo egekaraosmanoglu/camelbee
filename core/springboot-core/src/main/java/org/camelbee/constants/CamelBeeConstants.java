@@ -43,7 +43,7 @@ public final class CamelBeeConstants {
 
   public static final String CAMELBEE_PRODUCED_EXCHANGE = "camelbee-produced-exchange";
 
-  public static final String MDC_UNITOFWORK_EXECUTED = "camelbee-produced-exchange";
+  public static final String MDC_UNITOFWORK_EXECUTED = "camelbee-unitofwork-executed";
 
   public static final String DIRECT = "direct";
 
