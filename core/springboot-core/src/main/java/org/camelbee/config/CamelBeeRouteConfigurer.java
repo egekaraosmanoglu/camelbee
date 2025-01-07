@@ -17,6 +17,8 @@
 package org.camelbee.config;
 
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.spi.UnitOfWorkFactory;
+import org.camelbee.logging.CamelBeeUnitOfWork;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,7 +36,7 @@ public class CamelBeeRouteConfigurer {
 
     routeBuilder.getContext().setStreamCaching(true);
     routeBuilder.getContext().setUseMDCLogging(true);
-
+    routeBuilder.getContext().getCamelContextExtension().addContextPlugin(UnitOfWorkFactory.class, CamelBeeUnitOfWork::new);
   }
 
 }

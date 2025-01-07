@@ -24,6 +24,9 @@ import org.apache.camel.spi.CamelEvent.ExchangeCompletedEvent;
 import org.apache.camel.spi.CamelEvent.ExchangeCreatedEvent;
 import org.apache.camel.spi.CamelEvent.ExchangeSendingEvent;
 import org.apache.camel.spi.CamelEvent.ExchangeSentEvent;
+import org.camelbee.debugger.model.exchange.Message;
+import org.camelbee.debugger.service.MessageService;
+import org.camelbee.logging.LoggingService;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
@@ -38,6 +41,9 @@ public class TracerService {
   private final ExchangeSendingEventTracer exchangeSendingEventTracer;
   private final ExchangeSentEventTracer exchangeSentEventTracer;
   private final ExchangeCompletedEventTracer exchangeCompletedEventTracer;
+
+  private final MessageService messageService;
+  private final LoggingService loggingService;
 
   private AtomicBoolean tracingEnabled = new AtomicBoolean(false);
 
@@ -55,12 +61,15 @@ public class TracerService {
   public TracerService(@ConfigProperty(name = "camelbee.debugger-max-idle-time", defaultValue = "300000") long traceIdleTime,
       ExchangeCreatedEventTracer exchangeCreatedEventTracer,
       ExchangeSendingEventTracer exchangeSendingEventTracer, ExchangeSentEventTracer exchangeSentEventTracer,
-      ExchangeCompletedEventTracer exchangeCompletedEventTracer) {
+      ExchangeCompletedEventTracer exchangeCompletedEventTracer, MessageService messageService,
+      LoggingService loggingService) {
     this.traceIdleTime = traceIdleTime;
     this.exchangeCreatedEventTracer = exchangeCreatedEventTracer;
     this.exchangeSendingEventTracer = exchangeSendingEventTracer;
     this.exchangeSentEventTracer = exchangeSentEventTracer;
     this.exchangeCompletedEventTracer = exchangeCompletedEventTracer;
+    this.messageService = messageService;
+    this.loggingService = loggingService;
   }
 
   /**
@@ -69,8 +78,13 @@ public class TracerService {
    * @param exchangeCreatedEvent The exchange.
    */
   public void traceExchangeCreateEvent(ExchangeCreatedEvent exchangeCreatedEvent) {
+
+    Message message = exchangeCreatedEventTracer.traceEvent(exchangeCreatedEvent);
+
+    loggingService.logMessage(message, "Request received:", false);
+
     if (isTracingEnabled()) {
-      exchangeCreatedEventTracer.traceEvent(exchangeCreatedEvent);
+      messageService.addMessage(message);
     }
 
   }
@@ -81,8 +95,13 @@ public class TracerService {
    * @param exchangeSendingEvent The exchange.
    */
   public void traceExchangeSendingEvent(ExchangeSendingEvent exchangeSendingEvent) {
+
+    Message message = exchangeSendingEventTracer.traceEvent(exchangeSendingEvent);
+
+    loggingService.logMessage(message, "Request sent:", false);
+
     if (isTracingEnabled()) {
-      exchangeSendingEventTracer.traceEvent(exchangeSendingEvent);
+      messageService.addMessage(message);
     }
 
   }
@@ -93,9 +112,15 @@ public class TracerService {
    * @param exchangeSentEvent The exchange.
    */
   public void traceExchangeSentEvent(ExchangeSentEvent exchangeSentEvent) {
+
+    Message message = exchangeSentEventTracer.traceEvent(exchangeSentEvent);
+
+    loggingService.logMessage(message, "Response received:", false);
+
     if (isTracingEnabled()) {
-      exchangeSentEventTracer.traceEvent(exchangeSentEvent);
+      messageService.addMessage(message);
     }
+
   }
 
   /**
@@ -104,9 +129,15 @@ public class TracerService {
    * @param exchangeCompletedEvent The exchange.
    */
   public void traceExchangeCompletedEvent(ExchangeCompletedEvent exchangeCompletedEvent) {
+
+    Message message = exchangeCompletedEventTracer.traceEvent(exchangeCompletedEvent);
+
+    loggingService.logMessage(message, "Response sent:", false);
+
     if (isTracingEnabled()) {
-      exchangeCompletedEventTracer.traceEvent(exchangeCompletedEvent);
+      messageService.addMessage(message);
     }
+
   }
 
   /**

@@ -70,7 +70,7 @@ public class ExchangeSendingEventTracer {
    * @param event The ExchangeSendingEvent.
    * @return The Messages.
    */
-  public void traceEvent(ExchangeSendingEvent event) {
+  public Message traceEvent(ExchangeSendingEvent event) {
 
     Exchange exchange = event.getExchange();
 
@@ -79,7 +79,7 @@ public class ExchangeSendingEventTracer {
      which we should not put into the messages
      */
     if (exchange.getProperty(CAMELBEE_PRODUCED_EXCHANGE) != null) {
-      return;
+      return null;
     }
 
     try {
@@ -88,15 +88,16 @@ public class ExchangeSendingEventTracer {
       final String requestBody = ExchangeUtils.readBodyAsString(exchange, false);
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-      addSendingMessage(exchange, endpointUri, requestBody, requestHeaders);
+      return addSendingMessage(exchange, endpointUri, requestBody, requestHeaders);
 
     } catch (Exception e) {
       LOGGER.warn("Could not trace ExchangeSendingEvent Exchange: {} with exception: {}", exchange, e);
+      return null;
     }
 
   }
 
-  private void addSendingMessage(Exchange exchange, String endpointUri, String requestBody, String requestHeaders) {
+  private Message addSendingMessage(Exchange exchange, String endpointUri, String requestBody, String requestHeaders) {
 
     final String endpointId = ((DefaultExchange) exchange).getExchangeExtension().getHistoryNodeId();
 
@@ -139,8 +140,8 @@ public class ExchangeSendingEventTracer {
     // if custom error is thrown then we need to handle that one as well.
     String errorMessage = TracerUtils.handleError(exchange);
 
-    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.SENDING, requestBody, requestHeaders, routeId,
-        currentRoute, endpointId, MessageType.REQUEST, errorMessage));
+    return new Message(exchange.getExchangeId(), MessageEventType.SENDING, requestBody, requestHeaders, routeId,
+        currentRoute, endpointId, MessageType.REQUEST, errorMessage);
   }
 
   private Deque<String> adjustStack(Exchange exchange, Deque<String> routeStack) {

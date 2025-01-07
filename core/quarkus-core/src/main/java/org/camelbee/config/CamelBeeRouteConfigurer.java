@@ -18,6 +18,8 @@ package org.camelbee.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.spi.UnitOfWorkFactory;
+import org.camelbee.logging.CamelBeeUnitOfWork;
 
 /**
  * The route configurer which sets all listeners, interceptors and the MDCUnitOfWork.
@@ -34,6 +36,7 @@ public class CamelBeeRouteConfigurer {
 
     routeBuilder.getContext().setStreamCaching(true);
     routeBuilder.getContext().setUseMDCLogging(true);
+    routeBuilder.getContext().getCamelContextExtension().addContextPlugin(UnitOfWorkFactory.class, CamelBeeUnitOfWork::new);
   }
 
 }

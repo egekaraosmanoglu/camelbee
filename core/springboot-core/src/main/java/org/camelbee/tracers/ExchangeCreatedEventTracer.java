@@ -58,13 +58,13 @@ public class ExchangeCreatedEventTracer {
    * @param event The ExchangeCreatedEvent.
    * @return The Messages.
    */
-  public void traceEvent(ExchangeCreatedEvent event) {
+  public Message traceEvent(ExchangeCreatedEvent event) {
 
     Exchange exchange = event.getExchange();
 
     //  trace only the first created Exchange instance not the duplicates
     if (exchange.getProperty(INITIAL_EXCHANGE_ID) != null) {
-      return;
+      return null;
     }
     exchange.setProperty(INITIAL_EXCHANGE_ID, exchange.getExchangeId());
 
@@ -73,7 +73,7 @@ public class ExchangeCreatedEventTracer {
      which we should not put into the messages
      */
     if (exchange.getProperty(CAMELBEE_PRODUCED_EXCHANGE) != null) {
-      return;
+      return null;
     }
 
     try {
@@ -82,15 +82,16 @@ public class ExchangeCreatedEventTracer {
 
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-      addCreatedMessage(exchange, directRequestBody, requestHeaders);
+      return addCreatedMessage(exchange, directRequestBody, requestHeaders);
 
     } catch (Exception e) {
       LOGGER.warn("Could not trace ExchangeCreatedEvent: {} with exception: {}", exchange, e);
+      return null;
     }
 
   }
 
-  private void addCreatedMessage(Exchange exchange, String directRequestBody, String requestHeaders) {
+  private Message addCreatedMessage(Exchange exchange, String directRequestBody, String requestHeaders) {
 
     final String currentRouteName = (String) exchange.getProperty(Exchange.TO_ENDPOINT);
 
@@ -113,8 +114,8 @@ public class ExchangeCreatedEventTracer {
 
     final String endpointId = ((DefaultExchange) exchange).getExchangeExtension().getHistoryNodeId();
 
-    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.CREATED, directRequestBody, requestHeaders, initialRoute,
-        currentRouteName, endpointId, MessageType.REQUEST, null));
+    return new Message(exchange.getExchangeId(), MessageEventType.CREATED, directRequestBody, requestHeaders, initialRoute,
+        currentRouteName, endpointId, MessageType.REQUEST, null);
 
   }
 

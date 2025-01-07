@@ -60,7 +60,7 @@ public class ExchangeSentEventTracer {
    * @param event The ExchangeSentEvent.
    * @return The Messages.
    */
-  public void traceEvent(ExchangeSentEvent event) {
+  public Message traceEvent(ExchangeSentEvent event) {
 
     Exchange exchange = event.getExchange();
 
@@ -70,21 +70,22 @@ public class ExchangeSentEventTracer {
         which we should not put into the messages
       */
       if (exchange.getProperty(CAMELBEE_PRODUCED_EXCHANGE) != null) {
-        return;
+        return null;
       }
 
       final String responseSentBody = ExchangeUtils.readBodyAsString(exchange, true);
       final var requestHeaders = ExchangeUtils.getHeaders(exchange);
 
-      addSentMessage(exchange, responseSentBody, requestHeaders);
+      return processSentMessage(exchange, responseSentBody, requestHeaders);
 
     } catch (Exception e) {
       LOGGER.warn("Could not trace ExchangeSentEvent: {} with exception: {}", exchange, e);
     }
 
+    return null;
   }
 
-  private void addSentMessage(Exchange exchange, String responseSentBody, String requestHeaders) {
+  private Message processSentMessage(Exchange exchange, String responseSentBody, String requestHeaders) {
 
     Deque<String> routeStack = (Deque<String>) exchange.getProperty(CURRENT_ROUTE_TRACE_STACK);
 
@@ -118,8 +119,8 @@ public class ExchangeSentEventTracer {
       callerRoute = exchange.getProperty(LAST_DIRECT_ROUTE, String.class);
     }
 
-    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.SENT, responseSentBody, requestHeaders, callerRoute,
-        currentRoute, endpointId, messageType, errorMessage));
+    return new Message(exchange.getExchangeId(), MessageEventType.SENT, responseSentBody, requestHeaders, callerRoute,
+        currentRoute, endpointId, messageType, errorMessage);
   }
 
 }

@@ -57,7 +57,7 @@ public class ExchangeCompletedEventTracer {
    * @param event The ExchangeCompletedEvent.
    * @return The Messages.
    */
-  public void traceEvent(ExchangeCompletedEvent event) {
+  public Message traceEvent(ExchangeCompletedEvent event) {
 
     Exchange exchange = event.getExchange();
 
@@ -67,27 +67,27 @@ public class ExchangeCompletedEventTracer {
         which we should not put into the messages
       */
       if (exchange.getProperty(CAMELBEE_PRODUCED_EXCHANGE) != null) {
-        return;
+        return null;
       }
 
       //  trace completed event only for the first created Exchange instance
       if (exchange.getProperty(INITIAL_EXCHANGE_ID) == null
           || !exchange.getProperty(INITIAL_EXCHANGE_ID, String.class).equals(exchange.getExchangeId())) {
-        return;
+        return null;
       }
 
       final String responseCompletedBody = ExchangeUtils.readBodyAsString(exchange, true);
       final var responseHeaders = ExchangeUtils.getHeaders(exchange);
 
-      addCompletedMessage(exchange, responseCompletedBody, responseHeaders);
+      return processCompletedMessage(exchange, responseCompletedBody, responseHeaders);
 
     } catch (Exception e) {
       LOGGER.warn("Could not trace ExchangeCompletedEvent: {} with exception: {}", exchange, e);
     }
-
+    return null;
   }
 
-  private void addCompletedMessage(Exchange exchange, String responseCompletedBody, String requestHeaders) {
+  private Message processCompletedMessage(Exchange exchange, String responseCompletedBody, String requestHeaders) {
 
     Deque<String> routeStack = (Deque<String>) exchange.getProperty(CURRENT_ROUTE_TRACE_STACK);
 
@@ -109,8 +109,9 @@ public class ExchangeCompletedEventTracer {
      */
     final String endpointId = ((DefaultExchange) exchange).getExchangeExtension().getHistoryNodeId();
 
-    messageService.addMessage(new Message(exchange.getExchangeId(), MessageEventType.SENT, responseCompletedBody, requestHeaders, callerRoute,
-        currentRoute, endpointId, messageType, errorMessage));
+    return new Message(exchange.getExchangeId(), MessageEventType.SENT, responseCompletedBody, requestHeaders, callerRoute,
+        currentRoute, endpointId, messageType, errorMessage);
+
   }
 
 }
