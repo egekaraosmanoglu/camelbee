@@ -1,6 +1,7 @@
 package org.camelbee.security.routes.cache;
 
 import com.nimbusds.jose.jwk.JWKSet;
+import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -11,6 +12,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
  * methods to manage and query the JWKS cache state.
  */
 @ApplicationScoped
+@IfBuildProperty(name = "camelbee.security.enabled", stringValue = "true")
 public class JwksCache {
 
   /** Cache to store JWKSet with their identifiers. */

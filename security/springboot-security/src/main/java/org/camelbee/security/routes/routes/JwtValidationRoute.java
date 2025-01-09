@@ -8,25 +8,29 @@ import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import io.quarkus.arc.properties.IfBuildProperty;
-import jakarta.enterprise.context.ApplicationScoped;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.security.routes.exception.InvalidRequestException;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Component;
 
 /**
  * Camel route for JWT validation.
  * This route handles the validation of JWT tokens using JWKS (JSON Web Key Sets).
  * It performs various validation steps including signature verification, issuer and audience validation.
  */
-@ApplicationScoped
-@IfBuildProperty(name = "camelbee.security.enabled", stringValue = "true")
+@Component
+@RequiredArgsConstructor
+@Slf4j
+@ConditionalOnProperty(value = "camelbee.security.enabled", havingValue = "true")
 public class JwtValidationRoute extends RouteBuilder {
 
-  @ConfigProperty(name = "camelbee.security.issuer", defaultValue = "test-issuer")
+  @Value("${camelbee.security.issuer:test-issuer}")
   String jwkIssuer;
 
-  @ConfigProperty(name = "camelbee.security.audience", defaultValue = "test-audience")
+  @Value("${camelbee.security.audience:test-audience}")
   String jwkAudience;
 
   /**

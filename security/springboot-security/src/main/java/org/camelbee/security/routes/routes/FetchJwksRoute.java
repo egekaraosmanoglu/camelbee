@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.camelbee.security.routes.cache.JwksCache;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(value = "camelbee.security.enabled", havingValue = "true")
 public class FetchJwksRoute extends RouteBuilder {
 
   /**
@@ -37,7 +39,7 @@ public class FetchJwksRoute extends RouteBuilder {
         .errorHandler(noErrorHandler())
         .choice()
         .when(this::shouldRefreshJwks)
-        .to("http://{{camelbee.security.jwksUrl}}?bridgeEndpoint=true").id("invokeJwksUrlEnpoint")
+        .to("http://{{camelbee.security.jwksUrl:http://test-auth-server/.well-known/jwks.json}}?bridgeEndpoint=true").id("invokeJwksUrlEnpoint")
         .process(exchange -> {
           String jwksJson = exchange.getIn().getBody(String.class);
           JWKSet jwkSet = JWKSet.parse(jwksJson);

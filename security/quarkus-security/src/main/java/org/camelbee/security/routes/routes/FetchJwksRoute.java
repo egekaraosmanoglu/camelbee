@@ -1,6 +1,7 @@
 package org.camelbee.security.routes.routes;
 
 import com.nimbusds.jose.jwk.JWKSet;
+import io.quarkus.arc.properties.IfBuildProperty;
 import jakarta.enterprise.context.ApplicationScoped;
 import lombok.RequiredArgsConstructor;
 import org.apache.camel.Exchange;
@@ -14,6 +15,7 @@ import org.camelbee.security.routes.cache.JwksCache;
  */
 @ApplicationScoped
 @RequiredArgsConstructor
+@IfBuildProperty(name = "camelbee.security.enabled", stringValue = "true")
 public class FetchJwksRoute extends RouteBuilder {
 
   /**
@@ -35,7 +37,7 @@ public class FetchJwksRoute extends RouteBuilder {
         .errorHandler(noErrorHandler())
         .choice()
         .when(this::shouldRefreshJwks)
-        .to("http://{{camelbee.security.jwksUrl}}?bridgeEndpoint=true").id("invokeJwksUrlEnpoint")
+        .to("http://{{camelbee.security.jwksUrl:http://test-auth-server/.well-known/jwks.json}}?bridgeEndpoint=true").id("invokeJwksUrlEnpoint")
         .process(exchange -> {
           String jwksJson = exchange.getIn().getBody(String.class);
           JWKSet jwkSet = JWKSet.parse(jwksJson);

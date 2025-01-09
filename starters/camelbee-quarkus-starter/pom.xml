@@ -38,6 +38,11 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.camelbee</groupId>
+			<artifactId>camelbee-quarkus-security</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.apache.camel.quarkus</groupId>
 			<artifactId>camel-quarkus-jackson</artifactId>
 		</dependency>

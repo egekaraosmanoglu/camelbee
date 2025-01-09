@@ -3,6 +3,7 @@ package org.camelbee.security.routes.cache;
 import com.nimbusds.jose.jwk.JWKSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
  * methods to manage and query the JWKS cache state.
  */
 @Component
+@ConditionalOnProperty(value = "camelbee.security.enabled", havingValue = "true")
 public class JwksCache {
 
   /** Cache to store JWKSet with their identifiers. */
