@@ -36,7 +36,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @RegisterForReflection(fields = false)
 public class TracerService {
 
-  private final long traceIdleTime;
+  private boolean loggingEnabled;
+  private boolean tracerEnabled;
+  private final long tracerIdleTime;
   private final ExchangeCreatedEventTracer exchangeCreatedEventTracer;
   private final ExchangeSendingEventTracer exchangeSendingEventTracer;
   private final ExchangeSentEventTracer exchangeSentEventTracer;
@@ -45,25 +47,31 @@ public class TracerService {
   private final MessageService messageService;
   private final LoggingService loggingService;
 
-  private AtomicBoolean tracingEnabled = new AtomicBoolean(false);
+  private AtomicBoolean tracingActivated = new AtomicBoolean(false);
 
   private AtomicLong lastTracingActivatedTime = new AtomicLong(System.currentTimeMillis());
 
   /**
    * Constructor.
    *
-   * @param traceIdleTime                The traceIdleTime.
+   * @param loggingEnabled               The loggingEnabled.
+   * @param tracerEnabled                The tracerEnabled.
+   * @param tracerIdleTime               The tracerIdleTime.
    * @param exchangeCreatedEventTracer   The exchangeCreatedEventTracer.
    * @param exchangeSendingEventTracer   The exchangeSendingEventTracer.
    * @param exchangeSentEventTracer      The exchangeSentEventTracer.
    * @param exchangeCompletedEventTracer The exchangeCompletedEventTracer.
    */
-  public TracerService(@ConfigProperty(name = "camelbee.debugger-max-idle-time", defaultValue = "300000") long traceIdleTime,
+  public TracerService(@ConfigProperty(name = "camelbee.logging-enabled", defaultValue = "false") boolean loggingEnabled,
+      @ConfigProperty(name = "camelbee.tracer-enabled", defaultValue = "false") boolean tracerEnabled,
+      @ConfigProperty(name = "camelbee.tracer-max-idle-time", defaultValue = "300000") long tracerIdleTime,
       ExchangeCreatedEventTracer exchangeCreatedEventTracer,
       ExchangeSendingEventTracer exchangeSendingEventTracer, ExchangeSentEventTracer exchangeSentEventTracer,
       ExchangeCompletedEventTracer exchangeCompletedEventTracer, MessageService messageService,
       LoggingService loggingService) {
-    this.traceIdleTime = traceIdleTime;
+    this.loggingEnabled = loggingEnabled;
+    this.tracerEnabled = tracerEnabled;
+    this.tracerIdleTime = tracerIdleTime;
     this.exchangeCreatedEventTracer = exchangeCreatedEventTracer;
     this.exchangeSendingEventTracer = exchangeSendingEventTracer;
     this.exchangeSentEventTracer = exchangeSentEventTracer;
@@ -81,9 +89,11 @@ public class TracerService {
 
     Message message = exchangeCreatedEventTracer.traceEvent(exchangeCreatedEvent);
 
-    loggingService.logMessage(message, "Request received:", false);
+    if (loggingEnabled) {
+      loggingService.logMessage(message, "Request received:", false);
+    }
 
-    if (isTracingEnabled()) {
+    if (tracerEnabled && isTracingActivated()) {
       messageService.addMessage(message);
     }
 
@@ -98,9 +108,11 @@ public class TracerService {
 
     Message message = exchangeSendingEventTracer.traceEvent(exchangeSendingEvent);
 
-    loggingService.logMessage(message, "Request sent:", false);
+    if (loggingEnabled) {
+      loggingService.logMessage(message, "Request sent:", false);
+    }
 
-    if (isTracingEnabled()) {
+    if (tracerEnabled && isTracingActivated()) {
       messageService.addMessage(message);
     }
 
@@ -115,9 +127,11 @@ public class TracerService {
 
     Message message = exchangeSentEventTracer.traceEvent(exchangeSentEvent);
 
-    loggingService.logMessage(message, "Response received:", false);
+    if (loggingEnabled) {
+      loggingService.logMessage(message, "Response received:", false);
+    }
 
-    if (isTracingEnabled()) {
+    if (tracerEnabled && isTracingActivated()) {
       messageService.addMessage(message);
     }
 
@@ -132,35 +146,38 @@ public class TracerService {
 
     Message message = exchangeCompletedEventTracer.traceEvent(exchangeCompletedEvent);
 
-    loggingService.logMessage(message, "Response sent:", false);
+    if (loggingEnabled) {
+      loggingService.logMessage(message, "Response completed:", false);
+    }
 
-    if (isTracingEnabled()) {
+    if (tracerEnabled && isTracingActivated()) {
       messageService.addMessage(message);
     }
 
   }
 
   /**
-   * isTracingEnabled.
+   * isTracingActivated.
    *
    * @return boolean The tracing status.
    */
-  public boolean isTracingEnabled() {
+  public boolean isTracingActivated() {
+
     // if CamelBee WebGL application is not active anymore and not calling the keepTracingActive api
-    if (tracingEnabled.get() && System.currentTimeMillis() - lastTracingActivatedTime.get() > traceIdleTime) {
-      tracingEnabled.set(true);
+    if (tracingActivated.get() && System.currentTimeMillis() - lastTracingActivatedTime.get() > tracerIdleTime) {
+      tracingActivated.set(false);
     }
 
-    return tracingEnabled.get();
+    return tracingActivated.get();
   }
 
   /**
    * setTracingEnabled.
    *
-   * @param tracingEnabled The tracins status.
+   * @param activated The tracing status.
    */
-  public void setTracingEnabled(boolean tracingEnabled) {
-    this.tracingEnabled.set(tracingEnabled);
+  public void activateTracing(boolean activated) {
+    this.tracingActivated.set(activated);
   }
 
   /**

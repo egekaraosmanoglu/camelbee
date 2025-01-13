@@ -72,7 +72,7 @@ public class ProducerController {
   public ResponseEntity<String> produceDirect(@Valid @RequestBody(required = true) ProduceMessage produceMessage) {
 
     // first set the tracing status
-    tracerService.setTracingEnabled(Boolean.TRUE.equals(produceMessage.getTraceEnabled()));
+    tracerService.activateTracing(Boolean.TRUE.equals(produceMessage.getTraceEnabled()));
 
     Exchange exchange = ExchangeBuilder.anExchange(camelContext).build();
 

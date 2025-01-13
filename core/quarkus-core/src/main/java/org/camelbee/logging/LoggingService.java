@@ -8,6 +8,7 @@ import static org.camelbee.logging.LoggingAttribute.HEADERS;
 import static org.camelbee.logging.LoggingAttribute.MESSAGE_BODY;
 import static org.camelbee.logging.LoggingAttribute.MESSAGE_TYPE;
 import static org.camelbee.logging.LoggingAttribute.ROUTE_ID;
+import static org.camelbee.logging.LoggingAttribute.SIZE;
 import static org.camelbee.logging.LoggingAttribute.TIMESTAMP;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -33,7 +34,8 @@ public class LoggingService {
       ENDPOINT,
       MESSAGE_TYPE,
       EXCEPTION,
-      TIMESTAMP
+      TIMESTAMP,
+      SIZE
   };
 
   /**
@@ -46,7 +48,7 @@ public class LoggingService {
    */
   public void logMessage(Message message, String logMessage, boolean clearMdc) {
 
-    if (message == null) {
+    if (message == null || message.getEndpoint() == null || message.getEndpoint().startsWith("direct:")) {
       return;
     }
 
@@ -65,8 +67,13 @@ public class LoggingService {
   private void setMdcContext(Message message) {
     MdcContext.set(EXCHANGE_ID, message.getExchangeId());
     MdcContext.set(EXCHANGE_EVENT_TYPE, message.getExchangeEventType());
-    MdcContext.set(MESSAGE_BODY, message.getMessageBody());
-    MdcContext.set(HEADERS, message.getHeaders());
+    if (logger.isDebugEnabled()) {
+      MdcContext.set(MESSAGE_BODY, message.getMessageBody());
+      MdcContext.set(HEADERS, message.getHeaders());
+      if (message.getMessageBody() != null) {
+        MdcContext.set(SIZE, message.getMessageBody().length());
+      }
+    }
     MdcContext.set(ROUTE_ID, message.getRouteId());
     MdcContext.set(ENDPOINT, message.getEndpoint());
     MdcContext.set(MESSAGE_TYPE, message.getMessageType().toString());

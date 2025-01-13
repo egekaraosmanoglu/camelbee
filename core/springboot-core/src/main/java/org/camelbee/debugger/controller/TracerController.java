@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @CrossOrigin(origins = {"https://www.camelbee.io", "http://localhost:8083"})
-@ConditionalOnExpression("'${camelbee.context-enabled:false}' && '${camelbee.debugger-enabled:false}'")
+@ConditionalOnExpression("'${camelbee.context-enabled:false}' && '${camelbee.tracer-enabled:false}'")
 public class TracerController {
 
   private enum TraceStatus {
@@ -51,10 +51,10 @@ public class TracerController {
   public ResponseEntity<String> updateTraceStatus(@Valid @RequestBody(required = true) TraceStatus traceStatus) {
 
     if (traceStatus == TraceStatus.ACTIVE) {
-      tracerService.setTracingEnabled(true);
+      tracerService.activateTracing(true);
       tracerService.keepTracingActive();
     } else if (traceStatus == TraceStatus.DEACTIVE) {
-      tracerService.setTracingEnabled(false);
+      tracerService.activateTracing(false);
     }
 
     return ResponseEntity.ok("tracing status updated as:" + traceStatus.toString());

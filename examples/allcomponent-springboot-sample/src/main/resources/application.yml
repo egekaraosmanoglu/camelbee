@@ -19,11 +19,15 @@ camelbee:
   context-enabled: true
   # when enabled it allows the CamelBe WebGL application to trigger the consumer routes.
   producer-enabled: true
-  # debugger-enabled SHOULD BE ONLY ENABLED FOR DEVELOPMENT PURPOSES, NOT FOR PRODUCTION.
+  # tracer-enabled SHOULD BE ONLY ENABLED FOR DEVELOPMENT PURPOSES, NOT FOR PRODUCTION.
   # when enabled intercepts/traces request and responses of all camel components and caches messages.
-  debugger-enabled: true
+  tracer-enabled: true
   # maximum time the tracer can remain idle before deactivation tracing of messages.
-  debugger-max-idle-time: 60000
+  tracer-max-idle-time: 60000
+  # maximum collected trace messages
+  tracer-max-messages-count: 10000
+  # when enabled it logs the messages exchanged between endpoints
+  logging-enabled: true
 
 spring:
   main:

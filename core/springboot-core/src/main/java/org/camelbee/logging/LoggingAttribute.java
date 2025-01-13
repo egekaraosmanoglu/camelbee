@@ -12,7 +12,7 @@ public enum LoggingAttribute {
   // Exchange Information
   REQUEST_ID("requestId"), TRANSACTION_ID("transactionId"), EXCHANGE_ID("exchangeId"), EXCHANGE_EVENT_TYPE("exchangeEventType"), MESSAGE_BODY(
       "messageBody"), HEADERS("headers"), ROUTE_ID("routeId"), ENDPOINT("endpoint"), ENDPOINT_ID("endpointId"), MESSAGE_TYPE("messageType"), EXCEPTION(
-          "exception"), TIMESTAMP("timeStamp");
+          "exception"), TIMESTAMP("timeStamp"), SIZE("size");
 
   private final String attributeName;
 

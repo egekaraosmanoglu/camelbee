@@ -110,7 +110,7 @@ public class ExchangeCompletedEventTracer {
      */
     final String endpointId = ((DefaultExchange) exchange).getExchangeExtension().getHistoryNodeId();
 
-    return new Message(exchange.getExchangeId(), MessageEventType.SENT, responseCompletedBody, requestHeaders, callerRoute,
+    return new Message(exchange.getExchangeId(), MessageEventType.COMPLETED, responseCompletedBody, requestHeaders, callerRoute,
         currentRoute, endpointId, messageType, errorMessage);
   }
 

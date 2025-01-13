@@ -7,19 +7,21 @@
           <timeZone>UTC</timeZone>
         </timestamp>
         <logLevel/>
+        <message/>
         <loggerName/>
         <pattern>
           <pattern>
             {
+            "routeId": "%X{routeId}",
+            "endpoint": "%X{endpoint}",
+            "endpointId": "%X{endpointId}",
             "requestId": "%X{requestId}",
             "transactionId": "%X{transactionId}",
             "exchangeId": "%X{exchangeId}",
             "exchangeEventType": "%X{exchangeEventType}",
             "messageBody": "%X{messageBody}",
+            "size": "%X{size}",
             "headers": "%X{headers}",
-            "routeId": "%X{routeId}",
-            "endpoint": "%X{endpoint}",
-            "endpointId": "%X{endpointId}",
             "messageType": "%X{messageType}",
             "exception": "%X{exception}",
             "timeStamp": "%X{timeStamp}"
@@ -29,6 +31,8 @@
       </providers>
     </encoder>
   </appender>
+
+  <logger name="org.camelbee.logging.LoggingService" level="DEBUG"/>
 
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>

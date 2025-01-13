@@ -20,6 +20,10 @@
         <jakarta-inject.version>2.0.1.MR</jakarta-inject.version>
         <saaj-impl.version>3.0.3</saaj-impl.version>
         <cxf-rt-transports-http-jetty.version>4.1.0</cxf-rt-transports-http-jetty.version>
+        <logstash-logback-encoder.version>7.4</logstash-logback-encoder.version>
+
+
+
     </properties>
 
     <dependencyManagement>
@@ -75,6 +79,11 @@
                 <version>${cxf-rt-transports-http-jetty.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash-logback-encoder.version}</version>
+            </dependency>
 
         </dependencies>
     </dependencyManagement>

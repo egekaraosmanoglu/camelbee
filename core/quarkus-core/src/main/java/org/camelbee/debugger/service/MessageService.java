@@ -20,6 +20,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.camelbee.debugger.model.exchange.Message;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * MessageService.
@@ -27,10 +28,21 @@ import org.camelbee.debugger.model.exchange.Message;
 @ApplicationScoped
 public class MessageService {
 
+  private final long maxTracedMessageCount;
+
   private List<Message> messageList = new CopyOnWriteArrayList<>();
 
   public List<Message> getMessageList() {
     return messageList;
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param maxTracedMessageCount The maxTracedMessageCount.
+   */
+  public MessageService(@ConfigProperty(name = "camelbee.tracer-max-messages-count", defaultValue = "1000") long maxTracedMessageCount) {
+    this.maxTracedMessageCount = maxTracedMessageCount;
   }
 
   /**
@@ -40,7 +52,7 @@ public class MessageService {
    * @param message The message.
    */
   public void addMessage(Message message) {
-    if (message != null) {
+    if (message != null && maxTracedMessageCount > messageList.size()) {
       messageList.add(message);
     }
   }

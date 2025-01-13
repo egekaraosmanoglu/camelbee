@@ -17,11 +17,15 @@ camelbee:
   context-enabled: true
   # when enabled it allows the CamelBe WebGL application to trigger the consumer routes.
   producer-enabled: true
-  # debugger-enabled SHOULD BE ONLY ENABLED FOR DEVELOPMENT PURPOSES, NOT FOR PRODUCTION.
+  # tracer-enabled SHOULD BE ONLY ENABLED FOR DEVELOPMENT PURPOSES, NOT FOR PRODUCTION.
   # when enabled intercepts/traces request and responses of all camel components and caches messages.
-  debugger-enabled: true
+  tracer-enabled: true
   # maximum time the tracer can remain idle before deactivation tracing of messages.
-  debugger-max-idle-time: 60000
+  tracer-max-idle-time: 60000
+  # maximum collected trace messages
+  tracer-max-messages-count: 10000
+  # when enabled it logs the messages exchanged between endpoints
+  logging-enabled: true
 
 quarkus:
   http:
@@ -56,17 +60,35 @@ quarkus:
       prometheus:
         path: /metrics
   log:
+    console:
+      json: true
     handler:
-      gelf:
-        enabled: false
+      json:
+        # Disable the default MDC object
+        record-mdc: false
+        # Add MDC fields at root level
+        additional-field:
+          routeId: "%X{routeId}"
+          endpoint: "%X{endpoint}"
+          endpointId: "%X{endpointId}"
+          messageType: "%X{messageType}"
+          requestId: "%X{requestId}"
+          transactionId: "%X{transactionId}"
+          exchangeId: "%X{exchangeId}"
+          exchangeEventType: "%X{exchangeEventType}"
+          messageBody: "%X{messageBody}"
+          headers: "%X{headers}"
+          exception: "%X{exception}"
+          timeStamp: "%X{timeStamp}"
+        # Other settings
+        date-format: "yyyy-MM-dd HH:mm:ss"
+        pretty-print: true
+        exception-output-type: detailed-and-formatted
+        print-details: true
     category:
-      "io.quarkus":
-        level: INFO
-  # This is important - tells Quarkus to use Logback
-  logging:
-    handler:
-      logback:
-        enabled: true
+      "org.camelbee.logging.LoggingService":
+        level: DEBUG
+
   artemis:
     url: tcp://localhost:61616
     username: artemis

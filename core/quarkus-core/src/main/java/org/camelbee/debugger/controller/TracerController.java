@@ -32,7 +32,7 @@ import org.camelbee.tracers.TracerService;
 
 @Path("/")
 @IfBuildProperty(name = "camelbee.context-enabled", stringValue = "true")
-@IfBuildProperty(name = "camelbee.debugger-enabled", stringValue = "true")
+@IfBuildProperty(name = "camelbee.tracer-enabled", stringValue = "true")
 public class TracerController {
 
   private enum TraceStatus {
@@ -55,10 +55,10 @@ public class TracerController {
   public Response updateTraceStatus(@Valid TraceStatus traceStatus) {
 
     if (traceStatus == TraceStatus.ACTIVE) {
-      tracerService.setTracingEnabled(true);
+      tracerService.activateTracing(true);
       tracerService.keepTracingActive();
     } else if (traceStatus == TraceStatus.DEACTIVE) {
-      tracerService.setTracingEnabled(false);
+      tracerService.activateTracing(false);
     }
 
     return Response.ok("tracing status updated as:" + traceStatus.toString()).build();
