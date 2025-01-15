@@ -83,7 +83,7 @@
         <snakeyaml.version>2.3</snakeyaml.version>
         <wiremock.version>3.10.0</wiremock.version>
         <nimbus-jose-jwt.version>10.0.1</nimbus-jose-jwt.version>
-        <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
+        <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
         <cxf-xjc-runtime.version>4.1.0</cxf-xjc-runtime.version>
         <cxf-xjc-ts.version>4.1.0</cxf-xjc-ts.version>
         <avro-maven-plugin.version>1.12.0</avro-maven-plugin.version>
