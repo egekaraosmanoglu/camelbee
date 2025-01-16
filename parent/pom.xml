@@ -77,7 +77,7 @@
         <sonar.projectKey>camelbee.${project.name}</sonar.projectKey>
         <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
         <spotbugs-annotations.version>4.9.0</spotbugs-annotations.version>
-        <spotbugs-maven-plugin.version>4.8.6.6</spotbugs-maven-plugin.version>
+        <spotbugs-maven-plugin.version>4.9.0</spotbugs-maven-plugin.version>
         <spotbugs.version>4.9.0</spotbugs.version>
         <testcontainers-bom.version>1.20.4</testcontainers-bom.version>
         <snakeyaml.version>2.3</snakeyaml.version>
