@@ -76,7 +76,7 @@
         <sonar.coverage.exclusions>**/*Test*.*, **/*Config*.*</sonar.coverage.exclusions>
         <sonar.projectKey>camelbee.${project.name}</sonar.projectKey>
         <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
-        <spotbugs-annotations.version>4.9.0</spotbugs-annotations.version>
+        <spotbugs-annotations.version>4.9.2</spotbugs-annotations.version>
         <spotbugs-maven-plugin.version>4.9.0</spotbugs-maven-plugin.version>
         <spotbugs.version>4.9.0</spotbugs.version>
         <testcontainers-bom.version>1.20.4</testcontainers-bom.version>
