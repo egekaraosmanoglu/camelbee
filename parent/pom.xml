@@ -34,7 +34,7 @@
     <properties>
         <argLine>-Duser.language=en</argLine>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
-        <camel-maven-plugin.version>4.10.1</camel-maven-plugin.version>
+        <camel-maven-plugin.version>4.11.0</camel-maven-plugin.version>
         <checkstyle.version>10.21.4</checkstyle.version>
         <commons-io.version>2.18.0</commons-io.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
