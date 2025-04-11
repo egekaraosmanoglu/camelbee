@@ -19,7 +19,7 @@
         <camel-spring-boot-bom.version>4.10.1</camel-spring-boot-bom.version>
         <jakarta-inject.version>2.0.1.MR</jakarta-inject.version>
         <saaj-impl.version>3.0.3</saaj-impl.version>
-        <cxf-rt-transports-http-jetty.version>4.1.0</cxf-rt-transports-http-jetty.version>
+        <cxf-rt-transports-http-jetty.version>4.1.1</cxf-rt-transports-http-jetty.version>
         <logstash-logback-encoder.version>8.0</logstash-logback-encoder.version>
 
 
