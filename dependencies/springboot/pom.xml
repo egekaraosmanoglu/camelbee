@@ -18,12 +18,8 @@
         <spring-cloud-dependencies.version>2024.0.1</spring-cloud-dependencies.version>
         <camel-spring-boot-bom.version>4.11.0</camel-spring-boot-bom.version>
         <jakarta-inject.version>2.0.1.MR</jakarta-inject.version>
-        <saaj-impl.version>3.0.3</saaj-impl.version>
         <cxf-rt-transports-http-jetty.version>4.1.1</cxf-rt-transports-http-jetty.version>
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
-
-
-
     </properties>
 
     <dependencyManagement>
@@ -51,26 +47,6 @@
                 <version>${camel-spring-boot-bom.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>com.oracle.database.jdbc</groupId>
-                <artifactId>ojdbc11</artifactId>
-                <version>${ojdbc11.version}</version>
-            </dependency>
-
-            <!-- this can be moved to parent -->
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql-connector-java.version}</version>
-            </dependency>
-
-            <!-- mariadb for database -->
-            <dependency>
-                <groupId>org.mariadb.jdbc</groupId>
-                <artifactId>mariadb-java-client</artifactId>
-                <version>${mariadb-java-client.version}</version>
             </dependency>
 
             <dependency>

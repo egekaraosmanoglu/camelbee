@@ -64,39 +64,50 @@ public class ExchangeUtils {
    * @throws IOException The exception.
    */
   @SuppressWarnings("java:S3740")
-  public static String readBodyAsString(Exchange exchange, boolean resetBefore) throws IOException {
-
+  public static String readBodyAsString(Exchange exchange, boolean resetBefore) {
     try {
+      // Determine whether to use getMessage() or getIn()
+      boolean useMessage = exchange.getMessage() != null && exchange.getMessage().getBody() != null;
 
-      String body = null;
+      // Extract body object using the determined approach
+      Object bodyObject = useMessage
+          ? exchange.getMessage().getBody()
+          : exchange.getIn().getBody();
 
-      if (exchange.getIn().getBody() instanceof StreamCache streamCache) {
-
-        if (resetBefore) {
-          streamCache.reset();
-        }
-
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-
-        streamCache.writeTo(byteArrayOutputStream);
-
-        body = byteArrayOutputStream.toString(StandardCharsets.UTF_8);
-
-        streamCache.reset();
-
-      } else if (exchange.getIn().getBody() instanceof ArrayList arrayList) {
-        //specifically for cxf MessageContentsList
-        body = arrayList.toString();
-      } else if (exchange.getIn().getBody() != null) {
-        body = exchange.getIn().getBody(String.class);
+      // Return null if body is null
+      if (bodyObject == null) {
+        return null;
       }
 
-      return body;
-
+      // Handle different body types
+      if (bodyObject instanceof StreamCache streamCache) {
+        return processStreamCache(streamCache, resetBefore);
+      } else if (bodyObject instanceof ArrayList) {
+        // Specifically for cxf MessageContentsList
+        return bodyObject.toString();
+      } else {
+        // Use the same message source as we determined earlier
+        return useMessage
+            ? exchange.getMessage().getBody(String.class)
+            : exchange.getIn().getBody(String.class);
+      }
     } catch (Exception e) {
-      LOGGER.warn("Could not Exchange body: {} with exception: {}", exchange, e);
+      LOGGER.warn("Could not read Exchange body: {} with exception: {}", exchange, e);
       return StringUtils.EMPTY;
     }
+  }
+
+  private static String processStreamCache(StreamCache streamCache, boolean resetBefore) throws IOException {
+    if (resetBefore) {
+      streamCache.reset();
+    }
+
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    streamCache.writeTo(byteArrayOutputStream);
+    String body = byteArrayOutputStream.toString(StandardCharsets.UTF_8);
+    streamCache.reset();
+
+    return body;
   }
 
 }

@@ -42,6 +42,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <camel-quarkus.platform.group-id>${quarkus.platform.group-id}</camel-quarkus.platform.group-id>
         <camel-quarkus.platform.artifact-id>quarkus-camel-bom</camel-quarkus.platform.artifact-id>
+        <org.awaitility.awaitility>4.2.2</org.awaitility.awaitility>
 
     </properties>
 
@@ -73,13 +74,11 @@
                 <version>${camel-quarkus-rabbitmq.version}</version>
             </dependency>
 
-            <!-- this can be moved to parent-->
             <dependency>
-                <groupId>org.mariadb.jdbc</groupId>
-                <artifactId>mariadb-java-client</artifactId>
-                <version>${mariadb-java-client.version}</version>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${org.awaitility.awaitility}</version>
             </dependency>
-
 
         </dependencies>
     </dependencyManagement>
