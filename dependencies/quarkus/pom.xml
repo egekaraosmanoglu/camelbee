@@ -42,7 +42,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <camel-quarkus.platform.group-id>${quarkus.platform.group-id}</camel-quarkus.platform.group-id>
         <camel-quarkus.platform.artifact-id>quarkus-camel-bom</camel-quarkus.platform.artifact-id>
-        <org.awaitility.awaitility>4.2.2</org.awaitility.awaitility>
+        <org.awaitility.awaitility>4.3.0</org.awaitility.awaitility>
 
     </properties>
 
