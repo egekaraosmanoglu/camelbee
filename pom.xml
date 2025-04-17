@@ -9,31 +9,6 @@
   <version>2.0.1</version>
 
   <name>CamelBee</name>
-  <description>CamelBee Root Pom</description>
-  <url>https://github.com/egekaraosmanoglu/camelbee</url>
-
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-
-  <developers>
-    <developer>
-      <id>egekaraosmanoglu</id>
-      <name>Rahmi Ege Karaosmanoglu</name>
-      <email>egekaraosmanoglu@gmail.com</email>
-    </developer>
-  </developers>
-
-  <scm>
-    <url>https://github.com/egekaraosmanoglu/camelbee</url>
-    <connection>scm:git:https://github.com/egekaraosmanoglu/camelbee.git</connection>
-    <developerConnection>scm:git:git@github.com:egekaraosmanoglu/camelbee.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
 
   <modules>
     <module>common</module>
@@ -45,31 +20,5 @@
     <module>examples</module>
   </modules>
 
-  <distributionManagement>
-    <repository>
-      <id>central</id>
-      <name>Maven Central Repository</name>
-      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-    <snapshotRepository>
-      <id>central</id>
-      <name>Maven Central Snapshot Repository</name>
-      <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
-  </distributionManagement>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.sonatype.central</groupId>
-        <artifactId>central-publishing-maven-plugin</artifactId>
-        <version>0.7.0</version>
-        <extensions>true</extensions>
-        <configuration>
-          <publishingServerId>central</publishingServerId>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
 </project>
