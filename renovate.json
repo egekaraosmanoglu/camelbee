@@ -5,6 +5,6 @@
   ],
   "branchPrefix": "renovate/",
   "baseBranches": [
-    "main"
+    "dev"
   ]
 }
