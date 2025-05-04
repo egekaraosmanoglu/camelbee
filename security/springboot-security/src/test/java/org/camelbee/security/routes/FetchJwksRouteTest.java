@@ -32,11 +32,14 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
 @SpringBootTest(
     properties = {
-        "camelbee.security.enabled:true",
+        "camelbee.security.enabled=true",
         "camelbee.security.jwksUrl=http://test-auth-server/.well-known/jwks.json",
         "camelbee.security.issuer=test-issuer",
         "camelbee.security.audience=test-audience",
-        "camelbee.security.jwks.cache-duration:2000"
+        "camelbee.security.jwks.cache-duration=2000",
+        "camelbee.security.role-claims=roles,resource_access.account.roles",
+        "camelbee.security.scope-claims=scope,scp,scopes",
+        "camelbee.security.clock-skew=30"
     },
     classes = {
         JwksCache.class,

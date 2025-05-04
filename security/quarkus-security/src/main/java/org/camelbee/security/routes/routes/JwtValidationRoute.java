@@ -51,6 +51,9 @@ public class JwtValidationRoute extends RouteBuilder {
   @ConfigProperty(name = "camelbee.security.algorithm", defaultValue = "RS256")
   String algorithm;
 
+  @ConfigProperty(name = "camelbee.security.clock-skew", defaultValue = "30")
+  private int clockSkewSeconds;
+
   /**
    * Configures the JWT validation route.
    * This route expects a JWT token in the Authorization header and validates it against
@@ -117,6 +120,9 @@ public class JwtValidationRoute extends RouteBuilder {
   }
 
   private void validateClaims(JWTClaimsSet claims) {
+    long now = System.currentTimeMillis();
+    long skewMillis = clockSkewSeconds * 1000L;
+
     // Validate issuer
     if (!jwkIssuer.equals(claims.getIssuer())) {
       throw new InvalidRequestException("ERROR-AUTH003", "Invalid token issuer");
@@ -124,19 +130,19 @@ public class JwtValidationRoute extends RouteBuilder {
 
     // Validate audience
     List<String> audience = claims.getAudience();
-    if (audience == null || audience.isEmpty() || !jwkAudience.equals(audience.get(0))) {
+    if (audience == null || audience.isEmpty() || !jwkAudience.equals(audience.getFirst())) {
       throw new InvalidRequestException("ERROR-AUTH004", "Invalid token audience");
     }
 
-    // Validate expiration
+    // Validate expiration with skew
     Date exp = claims.getExpirationTime();
-    if (exp != null && new Date().after(exp)) {
+    if (exp != null && now > (exp.getTime() + skewMillis)) {
       throw new InvalidRequestException("ERROR-AUTH005", "Token has expired");
     }
 
-    // Validate not-before
+    // Validate not-before with skew
     Date nbf = claims.getNotBeforeTime();
-    if (nbf != null && new Date().before(nbf)) {
+    if (nbf != null && now < (nbf.getTime() - skewMillis)) {
       throw new InvalidRequestException("ERROR-AUTH006", "Token not yet valid");
     }
   }

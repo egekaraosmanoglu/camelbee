@@ -11,8 +11,10 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
@@ -28,7 +30,6 @@ import org.camelbee.security.routes.cache.JwksCache;
 import org.camelbee.security.routes.routes.FetchJwksRoute;
 import org.camelbee.security.routes.routes.JwtValidationRoute;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -45,11 +46,14 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class})
 @SpringBootTest(
     properties = {
-        "camelbee.security.enabled:true",
+        "camelbee.security.enabled=true",
         "camelbee.security.jwksUrl=http://test-auth-server/.well-known/jwks.json",
         "camelbee.security.issuer=test-issuer",
         "camelbee.security.audience=test-audience",
-        "camelbee.security.jwks.cache-duration:2000"
+        "camelbee.security.jwks.cache-duration=2000",
+        "camelbee.security.role-claims=roles,resource_access.account.roles",
+        "camelbee.security.scope-claims=scope,scp,scopes",
+        "camelbee.security.clock-skew=30"
     },
     classes = {
         JwksCache.class,
@@ -85,39 +89,20 @@ class JwtValidationRouteTest {
   private static final String TEST_AUDIENCE = "test-audience";
 
   @BeforeEach
-  public void setup() throws Exception {
-    // Generate RSA key pair for testing
-    rsaKey = new RSAKeyGenerator(2048)
-        .keyID("123")
-        .generate();
-
-    // Create JWKS and cache it
+  public void setUp() throws Exception {
+    rsaKey = new RSAKeyGenerator(2048).keyID("123").generate();
     jwkSet = new JWKSet(rsaKey.toPublicJWK());
     jwksCache.updateCache(jwkSet);
 
-    // Mock the JWKS fetch route
-    AdviceWith.adviceWith(camelContext, "jwt-validation",
-        advice -> {
-          advice.weaveById("fetchJWKSEndpoint")
-              .replace()
-              .to("mock:fetchJWKS");
-          advice.weaveAddLast().to("mock:result");
-        });
-
-    // Setup the mock JWKS response
-    mockFetchJWKS.whenAnyExchangeReceived(exchange -> {
-      exchange.setProperty("jwkSet", jwkSet);
-    });
-
-    // Create a valid JWT token
     JWSSigner signer = new RSASSASigner(rsaKey);
 
     JWTClaimsSet claims = new JWTClaimsSet.Builder()
         .subject("user123")
         .issuer(TEST_ISSUER)
         .audience(TEST_AUDIENCE)
-        .expirationTime(new Date(new Date().getTime() + 60 * 1000)) // 1 minute expiry
+        .expirationTime(new Date(System.currentTimeMillis() + 60000))
         .claim("scope", "read write")
+        .claim("roles", List.of("admin", "editor"))
         .build();
 
     SignedJWT signedJWT = new SignedJWT(
@@ -128,199 +113,231 @@ class JwtValidationRouteTest {
     signedJWT.sign(signer);
     validToken = signedJWT.serialize();
 
-    // Setup exchange and headers
+    AdviceWith.adviceWith(camelContext, "jwt-validation", advice -> {
+      advice.weaveAddLast().to("mock:result");
+      advice.weaveById("fetchJWKSEndpoint").replace().to("mock:fetchJWKS");
+    });
+
+    camelContext.start();
+  }
+
+  private void resetMockedEndpoints() {
     headers = new HashMap<>();
     headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + validToken);
 
     exchange = ExchangeBuilder.anExchange(camelContext).build();
     exchange.getIn().setHeaders(headers);
 
-    // Setup result endpoint
+    mockFetchJWKS.reset();
     resultEndpoint.reset();
 
-    camelContext.start();
-
+    mockFetchJWKS.whenAnyExchangeReceived(e -> e.setProperty("jwkSet", jwkSet));
   }
 
   @Test
-  @Order(1)
   void testValidJwtToken() throws Exception {
-    // Setup expectations
+    resetMockedEndpoints();
+
     resultEndpoint.expectedMessageCount(1);
-    resultEndpoint.expectedHeaderReceived("jwt.validated", true);
     mockFetchJWKS.expectedMessageCount(1);
 
-    // Send exchange
     producerTemplate.send(exchange);
 
-    // Verify results
     mockFetchJWKS.assertIsSatisfied();
     resultEndpoint.assertIsSatisfied();
 
-    // Verify JWT claims are correctly extracted
-    String subject = exchange.getIn().getHeader("jwt.sub", String.class);
-    String scope = exchange.getIn().getHeader("jwt.scope", String.class);
-    assertThat(subject).isEqualTo("user123");
-    assertThat(scope).isEqualTo("read write");
+    assertThat(exchange.getProperty("jwt.validated", Boolean.class)).isTrue();
+    assertThat(exchange.getProperty("jwt.sub", String.class)).isEqualTo("user123");
+
+    List<String> scopes = exchange.getProperty("jwt.scopes", List.class);
+    List<String> roles = exchange.getProperty("jwt.roles", List.class);
+    assertThat(scopes).contains("read", "write");
+    assertThat(roles).contains("admin", "editor");
   }
 
   @Test
-  @Order(2)
   void testInvalidJwtToken() throws Exception {
-    // Setup invalid token
+    resetMockedEndpoints();
     headers.put(HttpHeaders.AUTHORIZATION, "Bearer invalid.token.here");
     exchange.getIn().setHeaders(headers);
-
-    // Setup expectations
     mockFetchJWKS.expectedMessageCount(1);
 
     Exchange response = producerTemplate.send(exchange);
 
-    // Verify the exception
-    assertThat(response.getException()).hasMessageContaining("Invalid unsecured/JWS/JWE header: Invalid JSON object");
-
+    assertThat(response.getException()).hasMessageContaining("Invalid unsecured/JWS/JWE header");
     mockFetchJWKS.assertIsSatisfied();
   }
 
   @Test
-  @Order(3)
   void testMissingAuthorizationHeader() throws Exception {
-    // Remove authorization header
+    resetMockedEndpoints();
     headers.remove(HttpHeaders.AUTHORIZATION);
     exchange.getIn().setHeaders(headers);
-
-    // Setup expectations
     mockFetchJWKS.expectedMessageCount(1);
 
     Exchange response = producerTemplate.send(exchange);
 
-    // Verify the exception
     assertThat(response.getException()).hasMessageContaining("Authorization header is missing");
-
     mockFetchJWKS.assertIsSatisfied();
   }
 
   @Test
-  @Order(4)
   void testExpiredToken() throws Exception {
-    // Create expired token
-    JWSSigner signer = new RSASSASigner(rsaKey);
+    resetMockedEndpoints();
 
+    JWSSigner signer = new RSASSASigner(rsaKey);
     JWTClaimsSet claims = new JWTClaimsSet.Builder()
         .subject("user123")
         .issuer(TEST_ISSUER)
         .audience(TEST_AUDIENCE)
-        .expirationTime(new Date(new Date().getTime() - 60 * 1000)) // expired 1 minute ago
+        .expirationTime(new Date(System.currentTimeMillis() - 60000))
         .build();
 
-    SignedJWT signedJWT = new SignedJWT(
+    SignedJWT expiredJWT = new SignedJWT(
         new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(),
         claims
     );
+    expiredJWT.sign(signer);
 
-    signedJWT.sign(signer);
-    String expiredToken = signedJWT.serialize();
-
-    // Setup exchange with expired token
-    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + expiredToken);
+    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + expiredJWT.serialize());
     exchange.getIn().setHeaders(headers);
-
-    // Setup expectations
     mockFetchJWKS.expectedMessageCount(1);
 
     Exchange response = producerTemplate.send(exchange);
-    // Verify the exception
     assertThat(response.getException()).hasMessageContaining("Expired JWT");
     mockFetchJWKS.assertIsSatisfied();
   }
 
   @Test
-  @Order(5)
   void testInvalidIssuer() throws Exception {
-    // Create token with invalid issuer
-    JWSSigner signer = new RSASSASigner(rsaKey);
+    resetMockedEndpoints();
 
+    JWSSigner signer = new RSASSASigner(rsaKey);
     JWTClaimsSet claims = new JWTClaimsSet.Builder()
         .subject("user123")
         .issuer("wrong-issuer")
         .audience(TEST_AUDIENCE)
-        .expirationTime(new Date(new Date().getTime() + 60 * 1000))
+        .expirationTime(new Date(System.currentTimeMillis() + 60000))
         .build();
 
-    SignedJWT signedJWT = new SignedJWT(
+    SignedJWT jwt = new SignedJWT(
         new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(),
         claims
     );
+    jwt.sign(signer);
 
-    signedJWT.sign(signer);
-    String tokenWithInvalidIssuer = signedJWT.serialize();
-
-    // Setup exchange with invalid issuer token
-    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + tokenWithInvalidIssuer);
+    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.serialize());
     exchange.getIn().setHeaders(headers);
-
-    // Setup expectations
     mockFetchJWKS.expectedMessageCount(1);
 
     Exchange response = producerTemplate.send(exchange);
-
-    // Verify the exception
     assertThat(response.getException()).hasMessageContaining("Invalid token issuer");
-
     mockFetchJWKS.assertIsSatisfied();
   }
 
   @Test
-  @Order(6)
   void testInvalidAudience() throws Exception {
-    // Create token with invalid audience
-    JWSSigner signer = new RSASSASigner(rsaKey);
+    resetMockedEndpoints();
 
+    JWSSigner signer = new RSASSASigner(rsaKey);
     JWTClaimsSet claims = new JWTClaimsSet.Builder()
         .subject("user123")
         .issuer(TEST_ISSUER)
         .audience("wrong-audience")
-        .expirationTime(new Date(new Date().getTime() + 60 * 1000))
+        .expirationTime(new Date(System.currentTimeMillis() + 60000))
         .build();
 
-    SignedJWT signedJWT = new SignedJWT(
+    SignedJWT jwt = new SignedJWT(
         new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(),
         claims
     );
+    jwt.sign(signer);
 
-    signedJWT.sign(signer);
-    String tokenWithInvalidAudience = signedJWT.serialize();
-
-    // Setup exchange with invalid audience token
-    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + tokenWithInvalidAudience);
+    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.serialize());
     exchange.getIn().setHeaders(headers);
-
-    // Setup expectations
     mockFetchJWKS.expectedMessageCount(1);
 
     Exchange response = producerTemplate.send(exchange);
-    // Verify the exception
     assertThat(response.getException()).hasMessageContaining("Invalid token audience");
-
     mockFetchJWKS.assertIsSatisfied();
   }
 
   @Test
-  @Order(7)
   void testMissingJwks() throws Exception {
-    // Setup mock to return null JWKS
-    mockFetchJWKS.whenAnyExchangeReceived(exchange -> {
-      exchange.setProperty("jwkSet", null);
-    });
+    resetMockedEndpoints();
 
-    // Setup expectations
+    mockFetchJWKS.whenAnyExchangeReceived(e -> e.setProperty("jwkSet", null));
     mockFetchJWKS.expectedMessageCount(1);
 
     Exchange response = producerTemplate.send(exchange);
-
-    // Verify the exception
     assertThat(response.getException()).hasMessageContaining("JWKS not available");
-
     mockFetchJWKS.assertIsSatisfied();
+  }
+
+  @Test
+  void testTokenNotYetValid() throws Exception {
+    resetMockedEndpoints();
+
+    JWSSigner signer = new RSASSASigner(rsaKey);
+    JWTClaimsSet claims = new JWTClaimsSet.Builder()
+        .subject("user123")
+        .issuer(TEST_ISSUER)
+        .audience(TEST_AUDIENCE)
+        .expirationTime(new Date(System.currentTimeMillis() + 60000))
+        .notBeforeTime(new Date(System.currentTimeMillis() + 60000))
+        .build();
+
+    SignedJWT jwt = new SignedJWT(
+        new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(),
+        claims
+    );
+    jwt.sign(signer);
+
+    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.serialize());
+    exchange.getIn().setHeaders(headers);
+    mockFetchJWKS.expectedMessageCount(1);
+
+    Exchange response = producerTemplate.send(exchange);
+    assertThat(response.getException()).hasMessageContaining("Token not yet valid");
+    mockFetchJWKS.assertIsSatisfied();
+  }
+
+  @Test
+  void testNestedRolesClaim() throws Exception {
+    resetMockedEndpoints();
+
+    JWSSigner signer = new RSASSASigner(rsaKey);
+
+    // Create the structure that matches your configuration
+    Map<String, Object> accountRoles = new HashMap<>();
+    accountRoles.put("roles", Arrays.asList("viewer", "uploader"));
+
+    Map<String, Object> resourceAccess = new HashMap<>();
+    resourceAccess.put("account", accountRoles);
+
+    JWTClaimsSet claims = new JWTClaimsSet.Builder()
+        .subject("nesteduser")
+        .issuer(TEST_ISSUER)
+        .audience(TEST_AUDIENCE)
+        .expirationTime(new Date(System.currentTimeMillis() + 60000))
+        .claim("resource_access", resourceAccess)  // Changed from realm_access to resource_access
+        .build();
+
+    SignedJWT jwt = new SignedJWT(
+        new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(),
+        claims
+    );
+    jwt.sign(signer);
+
+    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.serialize());
+    exchange.getIn().setHeaders(headers);
+    mockFetchJWKS.expectedMessageCount(1);
+
+    Exchange response = producerTemplate.send(exchange);
+    mockFetchJWKS.assertIsSatisfied();
+
+    assertThat(response.getProperty("jwt.validated", Boolean.class)).isTrue();
+    List<String> roles = response.getProperty("jwt.roles", List.class);
+    assertThat(roles).containsExactlyInAnyOrder("viewer", "uploader");
   }
 }

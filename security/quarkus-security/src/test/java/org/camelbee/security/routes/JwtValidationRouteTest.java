@@ -246,6 +246,73 @@ public class JwtValidationRouteTest extends CamelQuarkusTestSupport {
     mockFetchJWKS.assertIsSatisfied();
   }
 
+  @Test
+  void testTokenNotYetValid() throws Exception {
+    resetMockedEndpoints();
+
+    JWSSigner signer = new RSASSASigner(rsaKey);
+    JWTClaimsSet claims = new JWTClaimsSet.Builder()
+        .subject("user123")
+        .issuer(TEST_ISSUER)
+        .audience(TEST_AUDIENCE)
+        .expirationTime(new Date(System.currentTimeMillis() + 60000))
+        .notBeforeTime(new Date(System.currentTimeMillis() + 60000))
+        .build();
+
+    SignedJWT jwt = new SignedJWT(
+        new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(),
+        claims
+    );
+    jwt.sign(signer);
+
+    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.serialize());
+    exchange.getIn().setHeaders(headers);
+    mockFetchJWKS.expectedMessageCount(1);
+
+    Exchange response = producerTemplate.send(exchange);
+    assertThat(response.getException()).hasMessageContaining("Token not yet valid");
+    mockFetchJWKS.assertIsSatisfied();
+  }
+
+  @Test
+  void testNestedRolesClaim() throws Exception {
+    resetMockedEndpoints();
+
+    JWSSigner signer = new RSASSASigner(rsaKey);
+
+    // Create the structure that matches your configuration
+    Map<String, Object> accountRoles = new HashMap<>();
+    accountRoles.put("roles", Arrays.asList("viewer", "uploader"));
+
+    Map<String, Object> resourceAccess = new HashMap<>();
+    resourceAccess.put("account", accountRoles);
+
+    JWTClaimsSet claims = new JWTClaimsSet.Builder()
+        .subject("nesteduser")
+        .issuer(TEST_ISSUER)
+        .audience(TEST_AUDIENCE)
+        .expirationTime(new Date(System.currentTimeMillis() + 60000))
+        .claim("resource_access", resourceAccess)  // Changed from realm_access to resource_access
+        .build();
+
+    SignedJWT jwt = new SignedJWT(
+        new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(rsaKey.getKeyID()).build(),
+        claims
+    );
+    jwt.sign(signer);
+
+    headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + jwt.serialize());
+    exchange.getIn().setHeaders(headers);
+    mockFetchJWKS.expectedMessageCount(1);
+
+    Exchange response = producerTemplate.send(exchange);
+    mockFetchJWKS.assertIsSatisfied();
+
+    assertThat(response.getProperty("jwt.validated", Boolean.class)).isTrue();
+    List<String> roles = response.getProperty("jwt.roles", List.class);
+    assertThat(roles).containsExactlyInAnyOrder("viewer", "uploader");
+  }
+
   @Override
   public String getConfigProfile() {
     return "test";
