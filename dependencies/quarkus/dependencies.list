@@ -1,8 +1,8 @@
 
 The following files have been resolved:
-   com.fasterxml.jackson.core:jackson-annotations:jar:2.18.2:compile[36m -- module com.fasterxml.jackson.annotation[m
-   com.fasterxml.jackson.core:jackson-core:jar:2.18.2:compile[36m -- module com.fasterxml.jackson.core[m
-   com.fasterxml.jackson.core:jackson-databind:jar:2.18.2:compile[36m -- module com.fasterxml.jackson.databind[m
+   com.fasterxml.jackson.core:jackson-annotations:jar:2.18.3:compile[36m -- module com.fasterxml.jackson.annotation[m
+   com.fasterxml.jackson.core:jackson-core:jar:2.18.3:compile[36m -- module com.fasterxml.jackson.core[m
+   com.fasterxml.jackson.core:jackson-databind:jar:2.18.3:compile[36m -- module com.fasterxml.jackson.databind[m
    com.fasterxml.woodstox:woodstox-core:jar:7.1.0:compile[36m -- module com.ctc.wstx[m
    com.github.docker-java:docker-java-api:jar:3.4.1:test[36m -- module com.github.dockerjava.api[0;1m [auto][m
    com.github.docker-java:docker-java-transport-zerodep:jar:3.4.1:test[36m -- module com.github.dockerjava.transport.zerodep[0;1m [auto][m
