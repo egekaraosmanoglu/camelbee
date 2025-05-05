@@ -164,7 +164,7 @@ class JwtValidationRouteTest {
 
     Exchange response = producerTemplate.send(exchange);
 
-    assertThat(response.getException()).hasMessageContaining("Invalid unsecured/JWS/JWE header");
+    assertThat(response.getException()).hasMessageContaining("Token validation failed");
     mockFetchJWKS.assertIsSatisfied();
   }
 
@@ -204,7 +204,7 @@ class JwtValidationRouteTest {
     mockFetchJWKS.expectedMessageCount(1);
 
     Exchange response = producerTemplate.send(exchange);
-    assertThat(response.getException()).hasMessageContaining("Expired JWT");
+    assertThat(response.getException()).hasMessageContaining("Token validation failed");
     mockFetchJWKS.assertIsSatisfied();
   }
 

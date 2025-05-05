@@ -21,6 +21,12 @@ package org.camelbee.security.routes.constant;
  */
 public class Constants {
 
+  public static final String ORIGINAL_BODY = "camelbee-originalBody";
+
   public static final String ORIGINAL_HEADERS = "camelbee-original-headers";
+
+  public static final String ORIGINAL_CONTENT_TYPE = "camelbee-originalRequestContentType";
+
+  public static final String ORIGINAL_ACCEPT_CONTENT_TYPE = "camelbee-originalRequestAcceptContentType";
 
 }

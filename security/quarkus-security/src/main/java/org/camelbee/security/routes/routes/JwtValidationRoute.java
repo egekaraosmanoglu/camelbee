@@ -1,5 +1,7 @@
 package org.camelbee.security.routes.routes;
 
+import static org.apache.camel.Exchange.CONTENT_TYPE;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -21,7 +23,11 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
-import org.camelbee.security.routes.exception.InvalidRequestException;
+import org.camelbee.security.routes.constant.Constants;
+import org.camelbee.security.routes.exception.AuthenticationFailedException;
+import org.camelbee.security.routes.exception.InvalidTokenException;
+import org.camelbee.security.routes.exception.TokenExpiredException;
+import org.camelbee.security.routes.exception.TokenValidationException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,12 +73,15 @@ public class JwtValidationRoute extends RouteBuilder {
     from("direct:validateJWT")
         .id("jwt-validation")
         .errorHandler(noErrorHandler())
+        .setProperty(Constants.ORIGINAL_BODY, body())
+        .setProperty(Constants.ORIGINAL_CONTENT_TYPE, header(CONTENT_TYPE))
+        .setProperty(Constants.ORIGINAL_ACCEPT_CONTENT_TYPE, header("Accept"))
         .to("direct:fetchJWKS").id("fetchJWKSEndpoint")
         .process(exchange -> {
           String token = extractToken(exchange);
           JWKSet jwkSet = exchange.getProperty("jwkSet", JWKSet.class);
           if (jwkSet == null) {
-            throw new InvalidRequestException("ERROR-AUTH002", "JWKS not available");
+            throw new AuthenticationFailedException("ERROR-AUTH002", "JWKS not available");
           }
 
           // Validate token using Nimbus
@@ -83,7 +92,13 @@ public class JwtValidationRoute extends RouteBuilder {
           );
           jwtProcessor.setJWSKeySelector(keySelector);
 
-          JWTClaimsSet claims = jwtProcessor.process(token, null);
+          JWTClaimsSet claims;
+          try {
+            claims = jwtProcessor.process(token, null);
+          } catch (Exception e) {
+            throw new TokenValidationException("ERROR-AUTH007", "Token validation failed", e);
+          }
+
           validateClaims(claims);
 
           // Store claims
@@ -108,15 +123,21 @@ public class JwtValidationRoute extends RouteBuilder {
 
           // Optionally return a success flag
           exchange.getIn().setBody(true);
-        });
+        })
+        .setBody(exchangeProperty(Constants.ORIGINAL_BODY))
+        .setHeader(CONTENT_TYPE, exchangeProperty(Constants.ORIGINAL_CONTENT_TYPE))
+        .setHeader("Accept", exchangeProperty(Constants.ORIGINAL_ACCEPT_CONTENT_TYPE));
   }
 
   private String extractToken(Exchange exchange) {
     String token = exchange.getIn().getHeader("Authorization", String.class);
-    if (token != null && token.startsWith("Bearer ")) {
-      return token.substring(7);
+    if (token == null) {
+      throw new InvalidTokenException("ERROR-AUTH001", "Authorization header is missing");
     }
-    throw new InvalidRequestException("ERROR-AUTH001", "Authorization header is missing or malformed");
+    if (!token.startsWith("Bearer ")) {
+      throw new InvalidTokenException("ERROR-AUTH001", "Authorization header is malformed");
+    }
+    return token.substring(7);
   }
 
   private void validateClaims(JWTClaimsSet claims) {
@@ -125,25 +146,25 @@ public class JwtValidationRoute extends RouteBuilder {
 
     // Validate issuer
     if (!jwkIssuer.equals(claims.getIssuer())) {
-      throw new InvalidRequestException("ERROR-AUTH003", "Invalid token issuer");
+      throw new TokenValidationException("ERROR-AUTH003", "Invalid token issuer");
     }
 
     // Validate audience
     List<String> audience = claims.getAudience();
     if (audience == null || audience.isEmpty() || !jwkAudience.equals(audience.getFirst())) {
-      throw new InvalidRequestException("ERROR-AUTH004", "Invalid token audience");
+      throw new TokenValidationException("ERROR-AUTH004", "Invalid token audience");
     }
 
     // Validate expiration with skew
     Date exp = claims.getExpirationTime();
     if (exp != null && now > (exp.getTime() + skewMillis)) {
-      throw new InvalidRequestException("ERROR-AUTH005", "Token has expired");
+      throw new TokenExpiredException("ERROR-AUTH005", "Token has expired");
     }
 
     // Validate not-before with skew
     Date nbf = claims.getNotBeforeTime();
     if (nbf != null && now < (nbf.getTime() - skewMillis)) {
-      throw new InvalidRequestException("ERROR-AUTH006", "Token not yet valid");
+      throw new TokenValidationException("ERROR-AUTH006", "Token not yet valid");
     }
   }
 
