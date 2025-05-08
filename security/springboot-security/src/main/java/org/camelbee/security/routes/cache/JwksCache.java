@@ -19,7 +19,7 @@ public class JwksCache {
   private static final ConcurrentHashMap<String, JWKSet> jwksCache = new ConcurrentHashMap<>();
 
   /** Cache duration in milliseconds. */
-  @Value("${camelbee.security.jwks.cache-duration:3600000}")
+  @Value("${camelbee.security.jwks-cache-duration:3600000}")
   private long cacheDuration;
 
   /** Timestamp of the last cache update. */

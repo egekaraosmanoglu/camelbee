@@ -1,5 +1,7 @@
 package org.camelbee.security.routes.routes;
 
+import static org.apache.camel.Exchange.CONTENT_TYPE;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -12,7 +14,6 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -21,18 +22,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.camelbee.security.routes.config.SecurityProperties;
+import org.camelbee.security.routes.constant.Constants;
 import org.camelbee.security.routes.exception.AuthenticationFailedException;
 import org.camelbee.security.routes.exception.InvalidTokenException;
 import org.camelbee.security.routes.exception.TokenExpiredException;
 import org.camelbee.security.routes.exception.TokenValidationException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
  * Camel route for JWT validation.
- * This route handles the validation of JWT tokens using JWKS (JSON Web Key Sets).
- * It performs various validation steps including signature verification, issuer and audience validation.
+ * Validates JWTs using JWKS and extracts roles and scopes based on configured claim paths.
  */
 @Component
 @RequiredArgsConstructor
@@ -40,23 +41,10 @@ import org.springframework.stereotype.Component;
 @ConditionalOnProperty(value = "camelbee.security.enabled", havingValue = "true")
 public class JwtValidationRoute extends RouteBuilder {
 
-  @Value("${camelbee.security.issuer:test-issuer}")
-  String jwkIssuer;
-
-  @Value("${camelbee.security.audience:test-audience}")
-  String jwkAudience;
-
-  @Value("${camelbee.security.role-claims}")
-  List<String> roleClaimPaths;
-
-  @Value("${camelbee.security.scope-claims:scope,scp,scopes}")
-  List<String> scopeClaimPaths;
-
-  @Value("${camelbee.security.algorithm:RS256}")
-  String algorithm;
-
-  @Value("${camelbee.security.clock-skew:30}")
-  private int clockSkewSeconds;
+  /**
+   * Security configuration properties.
+   */
+  private final SecurityProperties securityProperties;
 
   /**
    * Configures the JWT validation route.
@@ -71,6 +59,9 @@ public class JwtValidationRoute extends RouteBuilder {
     from("direct:validateJWT")
         .id("jwt-validation")
         .errorHandler(noErrorHandler())
+        .setProperty(Constants.ORIGINAL_BODY, body())
+        .setProperty(Constants.ORIGINAL_CONTENT_TYPE, header(CONTENT_TYPE))
+        .setProperty(Constants.ORIGINAL_ACCEPT_CONTENT_TYPE, header("Accept"))
         .to("direct:fetchJWKS").id("fetchJWKSEndpoint")
         .process(exchange -> {
           String token = extractToken(exchange);
@@ -82,7 +73,7 @@ public class JwtValidationRoute extends RouteBuilder {
           // Validate token using Nimbus
           ConfigurableJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
           JWSKeySelector<SecurityContext> keySelector = new JWSVerificationKeySelector<>(
-              JWSAlgorithm.parse(algorithm),
+              JWSAlgorithm.parse(securityProperties.getAlgorithm()),
               new ImmutableJWKSet<>(jwkSet)
           );
           jwtProcessor.setJWSKeySelector(keySelector);
@@ -118,9 +109,19 @@ public class JwtValidationRoute extends RouteBuilder {
 
           // Optionally return a success flag
           exchange.getIn().setBody(true);
-        });
+        })
+        .setBody(exchangeProperty(Constants.ORIGINAL_BODY))
+        .setHeader(CONTENT_TYPE, exchangeProperty(Constants.ORIGINAL_CONTENT_TYPE))
+        .setHeader("Accept", exchangeProperty(Constants.ORIGINAL_ACCEPT_CONTENT_TYPE));
   }
 
+  /**
+   * Extracts the JWT token from the Authorization header.
+   *
+   * @param exchange the Camel exchange
+   * @return the extracted JWT token
+   * @throws InvalidTokenException if the Authorization header is missing or malformed
+   */
   private String extractToken(Exchange exchange) {
     String token = exchange.getIn().getHeader("Authorization", String.class);
     if (token == null) {
@@ -132,18 +133,25 @@ public class JwtValidationRoute extends RouteBuilder {
     return token.substring(7);
   }
 
+  /**
+   * Validates the JWT claims against configured expectations.
+   *
+   * @param claims the JWT claims set to validate
+   * @throws TokenValidationException if the token fails validation
+   * @throws TokenExpiredException    if the token has expired
+   */
   private void validateClaims(JWTClaimsSet claims) {
     long now = System.currentTimeMillis();
-    long skewMillis = clockSkewSeconds * 1000L;
+    long skewMillis = securityProperties.getClockSkew() * 1000L;
 
     // Validate issuer
-    if (!jwkIssuer.equals(claims.getIssuer())) {
+    if (!securityProperties.getIssuer().equals(claims.getIssuer())) {
       throw new TokenValidationException("ERROR-AUTH003", "Invalid token issuer");
     }
 
     // Validate audience
     List<String> audience = claims.getAudience();
-    if (audience == null || audience.isEmpty() || !jwkAudience.equals(audience.getFirst())) {
+    if (audience == null || audience.isEmpty() || !securityProperties.getAudience().equals(audience.getFirst())) {
       throw new TokenValidationException("ERROR-AUTH004", "Invalid token audience");
     }
 
@@ -160,13 +168,19 @@ public class JwtValidationRoute extends RouteBuilder {
     }
   }
 
+  /**
+   * Extracts role information from JWT claims based on configured claim paths.
+   *
+   * @param claims the JWT claims set
+   * @return list of extracted roles
+   */
   private List<String> extractRoles(JWTClaimsSet claims) {
     Map<String, Object> allClaims = claims.getClaims();
     Set<String> roles = new HashSet<>();
 
-    log.debug("Extracting roles from claims with paths: {}", roleClaimPaths);
+    log.debug("Extracting roles from claims with paths: {}", securityProperties.getRoleClaims());
 
-    for (String path : roleClaimPaths) {
+    for (String path : securityProperties.getRoleClaims()) {
       Object value = getNestedClaimValue(allClaims, path);
 
       if (value != null) {
@@ -193,13 +207,19 @@ public class JwtValidationRoute extends RouteBuilder {
     return new ArrayList<>(roles);
   }
 
+  /**
+   * Extracts scope information from JWT claims based on configured claim paths.
+   *
+   * @param claims the JWT claims set
+   * @return list of extracted scopes
+   */
   private List<String> extractScopes(JWTClaimsSet claims) {
     Map<String, Object> allClaims = claims.getClaims();
     Set<String> scopes = new HashSet<>();
 
-    log.debug("Extracting scopes from claims with paths: {}", scopeClaimPaths);
+    log.debug("Extracting scopes from claims with paths: {}", securityProperties.getScopeClaims());
 
-    for (String path : scopeClaimPaths) {
+    for (String path : securityProperties.getScopeClaims()) {
       Object value = getNestedClaimValue(allClaims, path);
 
       if (value != null) {
@@ -219,6 +239,13 @@ public class JwtValidationRoute extends RouteBuilder {
     return new ArrayList<>(scopes);
   }
 
+  /**
+   * Retrieves a nested value from a claims map using a dotted path notation.
+   *
+   * @param claims the claims map
+   * @param path   the path to the nested value using dot notation (e.g., "realm_access.roles")
+   * @return the retrieved value, or null if not found
+   */
   private Object getNestedClaimValue(Map<String, Object> claims, String path) {
     String[] parts = path.split("\\.");
     Object current = claims;
@@ -234,122 +261,5 @@ public class JwtValidationRoute extends RouteBuilder {
     }
 
     return current;
-  }
-
-  /**
-   * Checks if the JWT token in the exchange has a specific role.
-   *
-   * @param exchange     the Camel exchange containing JWT properties
-   * @param requiredRole the role to check for
-   * @return true if the token has the specified role, false otherwise
-   */
-  public static boolean hasRole(Exchange exchange, String requiredRole) {
-    @SuppressWarnings("unchecked")
-    List<String> roles = exchange.getProperty("jwt.roles", List.class);
-    return roles != null && roles.contains(requiredRole);
-  }
-
-  /**
-   * Checks if the JWT token in the exchange has any of the specified roles.
-   *
-   * @param exchange      the Camel exchange containing JWT properties
-   * @param requiredRoles array of roles to check for
-   * @return true if the token has at least one of the specified roles, false otherwise
-   */
-  public static boolean hasAnyRole(Exchange exchange, String... requiredRoles) {
-    @SuppressWarnings("unchecked")
-    List<String> roles = exchange.getProperty("jwt.roles", List.class);
-    if (roles == null) {
-      return false;
-    }
-    for (String requiredRole : requiredRoles) {
-      if (roles.contains(requiredRole)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the JWT token in the exchange has all of the specified roles.
-   *
-   * @param exchange      the Camel exchange containing JWT properties
-   * @param requiredRoles array of roles to check for
-   * @return true if the token has all of the specified roles, false otherwise
-   */
-  public static boolean hasAllRoles(Exchange exchange, String... requiredRoles) {
-    @SuppressWarnings("unchecked")
-    List<String> roles = exchange.getProperty("jwt.roles", List.class);
-    if (roles == null) {
-      return false;
-    }
-    return Arrays.stream(requiredRoles).allMatch(roles::contains);
-  }
-
-  /**
-   * Checks if the JWT token in the exchange has a specific scope.
-   *
-   * @param exchange      the Camel exchange containing JWT properties
-   * @param requiredScope the scope to check for
-   * @return true if the token has the specified scope, false otherwise
-   */
-  public static boolean hasScope(Exchange exchange, String requiredScope) {
-    @SuppressWarnings("unchecked")
-    List<String> scopes = exchange.getProperty("jwt.scopes", List.class);
-    return scopes != null && scopes.contains(requiredScope);
-  }
-
-  /**
-   * Checks if the JWT token in the exchange has any of the specified scopes.
-   *
-   * @param exchange       the Camel exchange containing JWT properties
-   * @param requiredScopes array of scopes to check for
-   * @return true if the token has at least one of the specified scopes, false otherwise
-   */
-  public static boolean hasAnyScope(Exchange exchange, String... requiredScopes) {
-    @SuppressWarnings("unchecked")
-    List<String> scopes = exchange.getProperty("jwt.scopes", List.class);
-    if (scopes == null) {
-      return false;
-    }
-    for (String requiredScope : requiredScopes) {
-      if (scopes.contains(requiredScope)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Checks if the JWT token in the exchange has all of the specified scopes.
-   *
-   * @param exchange       the Camel exchange containing JWT properties
-   * @param requiredScopes array of scopes to check for
-   * @return true if the token has all of the specified scopes, false otherwise
-   */
-  public static boolean hasAllScopes(Exchange exchange, String... requiredScopes) {
-    @SuppressWarnings("unchecked")
-    List<String> scopes = exchange.getProperty("jwt.scopes", List.class);
-    if (scopes == null) {
-      return false;
-    }
-    return Arrays.stream(requiredScopes).allMatch(scopes::contains);
-  }
-
-  /**
-   * Retrieves all JWT-related properties from the exchange.
-   * Properties are identified by the "jwt." prefix in their names.
-   *
-   * @param exchange the Camel exchange to extract JWT properties from
-   * @return a map containing all JWT properties (without the "jwt." prefix as keys)
-   */
-  public static Map<String, Object> getJwtProperties(Exchange exchange) {
-    Map<String, Object> jwtProps = new HashMap<>();
-    exchange.getProperties().forEach((key, value) -> {
-      if (key.startsWith("jwt.")) {
-        jwtProps.put(key, value);
-      }
-    });
-    return jwtProps;
   }
 }

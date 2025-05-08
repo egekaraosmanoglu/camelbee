@@ -27,6 +27,7 @@ import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.apache.camel.test.spring.junit5.UseAdviceWith;
 import org.camelbee.security.routes.cache.JwksCache;
+import org.camelbee.security.routes.config.SecurityProperties;
 import org.camelbee.security.routes.routes.FetchJwksRoute;
 import org.camelbee.security.routes.routes.JwtValidationRoute;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,10 +48,10 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 @SpringBootTest(
     properties = {
         "camelbee.security.enabled=true",
-        "camelbee.security.jwksUrl=http://test-auth-server/.well-known/jwks.json",
+        "camelbee.security.jwks-url=http://test-auth-server/.well-known/jwks.json",
         "camelbee.security.issuer=test-issuer",
         "camelbee.security.audience=test-audience",
-        "camelbee.security.jwks.cache-duration=2000",
+        "camelbee.security.jwks-cache-duration=2000",
         "camelbee.security.role-claims=roles,resource_access.account.roles",
         "camelbee.security.scope-claims=scope,scp,scopes",
         "camelbee.security.clock-skew=30"
@@ -58,7 +59,8 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
     classes = {
         JwksCache.class,
         FetchJwksRoute.class,
-        JwtValidationRoute.class
+        JwtValidationRoute.class,
+        SecurityProperties.class
     }
 )
 @UseAdviceWith
