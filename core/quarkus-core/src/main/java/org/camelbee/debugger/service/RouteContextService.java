@@ -41,6 +41,8 @@ public class RouteContextService {
   public static final String OPENAPI_OPERATIONID = "operationId";
   public static final String REST_OPENAPI_COMPONENT = "rest-openapi://";
 
+  private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{\\{(.*?)}}");
+
   /**
    * The logger.
    */
@@ -137,26 +139,50 @@ public class RouteContextService {
   }
 
   private String updateWithSystemProperties(String id) {
-
     if (id.contains("{{") && id.contains("}}")) {
-      Pattern pattern = Pattern.compile("\\{\\{(.*?)}}");
-      Matcher matcher = pattern.matcher(id);
+      Matcher matcher = PLACEHOLDER_PATTERN.matcher(id);
+      StringBuilder result = new StringBuilder();
 
-      // Replace the matched values with their corresponding hard-coded values
-      StringBuffer result = new StringBuffer();
       while (matcher.find()) {
-        String key = matcher.group(1);
-        Optional<String> replacement = config.getOptionalValue(key, String.class);
-        matcher.appendReplacement(result, replacement.orElse(""));
+        String fullMatch = matcher.group(1);
+        String key;
+        String defaultValue = null;
+
+        // Check if there's a colon in the property key
+        int colonIndex = fullMatch.indexOf(':');
+        if (colonIndex > 0) {
+          // Extract the key (before the colon)
+          key = fullMatch.substring(0, colonIndex);
+          // Extract the default value (after the colon)
+          defaultValue = fullMatch.substring(colonIndex + 1);
+        } else {
+          key = fullMatch;
+        }
+
+        // Get property value from config
+        Optional<String> configValue = config.getOptionalValue(key, String.class);
+        String replacement;
+
+        // Use config value if present, otherwise use default value
+        if (configValue.isPresent()) {
+          replacement = configValue.get();
+        } else if (defaultValue != null) {
+          replacement = defaultValue;
+        } else {
+          replacement = "";
+        }
+
+        // Escape special characters in the replacement string
+        replacement = Matcher.quoteReplacement(replacement);
+
+        matcher.appendReplacement(result, replacement);
       }
+
       matcher.appendTail(result);
-
       return result.toString();
-
     } else {
       return id;
     }
-
   }
 
   private void adjustRestInputRoutes(List<CamelRoute> restApiRoutes, List<CamelRoute> routes) {
