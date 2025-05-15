@@ -21,7 +21,7 @@
     <parent>
         <groupId>io.camelbee</groupId>
         <artifactId>camelbee</artifactId>
-        <version>2.0.1</version>
+        <version>2.0.2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -35,7 +35,7 @@
         <argLine>-Duser.language=en</argLine>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
         <camel-maven-plugin.version>4.11.0</camel-maven-plugin.version>
-        <checkstyle.version>10.23.0</checkstyle.version>
+        <checkstyle.version>10.23.1</checkstyle.version>
         <commons-io.version>2.19.0</commons-io.version>
         <commons-lang3.version>3.17.0</commons-lang3.version>
         <cxf-core.version>4.1.1</cxf-core.version>
@@ -78,10 +78,10 @@
         <spotbugs-annotations.version>4.9.3</spotbugs-annotations.version>
         <spotbugs-maven-plugin.version>4.9.3.0</spotbugs-maven-plugin.version>
         <spotbugs.version>4.9.3</spotbugs.version>
-        <testcontainers-bom.version>1.20.6</testcontainers-bom.version>
+        <testcontainers-bom.version>1.21.0</testcontainers-bom.version>
         <snakeyaml.version>2.4</snakeyaml.version>
-        <wiremock.version>3.12.1</wiremock.version>
-        <nimbus-jose-jwt.version>10.2</nimbus-jose-jwt.version>
+        <wiremock.version>3.13.0</wiremock.version>
+        <nimbus-jose-jwt.version>10.3</nimbus-jose-jwt.version>
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
         <cxf-xjc-runtime.version>4.1.0</cxf-xjc-runtime.version>
         <cxf-xjc-ts.version>4.1.0</cxf-xjc-ts.version>
@@ -91,7 +91,7 @@
         <maven-replacer-plugin.version>1.5.3</maven-replacer-plugin.version>
         <protobuf-maven-plugin.version>0.6.1</protobuf-maven-plugin.version>
         <jakarta.xml.ws-api.version>4.0.2</jakarta.xml.ws-api.version>
-        <swagger-annotations-jakarta.version>2.2.30</swagger-annotations-jakarta.version>
+        <swagger-annotations-jakarta.version>2.2.32</swagger-annotations-jakarta.version>
 
     </properties>
 
@@ -241,7 +241,7 @@
                                 <artifactItem>
                                     <groupId>io.camelbee</groupId>
                                     <artifactId>common</artifactId>
-                                    <version>2.0.1</version>
+                                    <version>2.0.2</version>
                                     <type>jar</type>
                                     <outputDirectory>${project.build.directory}</outputDirectory>
                                     <includes>config/**, formatter/**</includes>

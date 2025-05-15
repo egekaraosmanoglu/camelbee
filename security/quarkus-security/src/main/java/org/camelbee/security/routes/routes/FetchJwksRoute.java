@@ -37,7 +37,10 @@ public class FetchJwksRoute extends RouteBuilder {
         .errorHandler(noErrorHandler())
         .choice()
         .when(this::shouldRefreshJwks)
-        .to("http://{{camelbee.security.jwksUrl:http://test-auth-server/.well-known/jwks.json}}?bridgeEndpoint=true").id("invokeJwksUrlEnpoint")
+        .removeHeader(Exchange.HTTP_PATH)
+        .removeHeader(Exchange.HTTP_URL)
+        .setHeader(Exchange.HTTP_METHOD, constant("GET"))
+        .to("http://{{camelbee.security.jwks-url:http://test-auth-server/.well-known/jwks.json}}?bridgeEndpoint=true").id("invokeJwksUrlEnpoint")
         .process(exchange -> {
           String jwksJson = exchange.getIn().getBody(String.class);
           JWKSet jwkSet = JWKSet.parse(jwksJson);

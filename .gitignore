@@ -1,3 +1,8 @@
+settings.xml
+maven_central_deployment.txt
+pom.xml.versionsBackup
+pom_maven_central.xml
+
 target/
 !**/src/main/**/target/
 !**/src/test/**/target/
