@@ -95,8 +95,23 @@ export interface Flow {
    * Null when it cannot be determined. See {@link resolveFromRouteId} for why that happens.
    */
   fromRouteId: string | null;
+  /**
+   * Epoch ms of the flow's left edge - the earliest {@link Span.barStart}, i.e. what is DRAWN
+   * rather than what was measured. See buildFlows.
+   */
   start: number;
+  /**
+   * Epoch ms of the flow's right edge - the far end of the rightmost BAR, which is its `barStart`
+   * plus its width, not the latest {@link Span.end}. See buildFlows.
+   */
   end: number;
+  /**
+   * `end - start`: the span the bars are laid out against, and the figure the header shows.
+   *
+   * Where nestBars had to pull a bar forward this reads up to the clamp amount - a millisecond or
+   * two - longer than the wall clock says the flow took. That is the accepted cost of the bounds
+   * above; see buildFlows for why the alternatives are worse.
+   */
   durationMs: number;
   hasError: boolean;
   spans: Span[];
@@ -287,7 +302,7 @@ function nestBars(spans: Span[]): void {
   // a split() over a large body puts every item's exchange here, and a scan that has to reject each
   // one individually is quadratic over the whole flow, re-run on every poll.
   const servedBy = new Map<string, Span>();
-  const key = (exchangeId: string, endpoint: string) => `${exchangeId} ${endpoint}`;
+  const key = (exchangeId: string, endpoint: string) => `${exchangeId}\u0000${endpoint}`;
 
   for (const span of spans) {
     span.barStart = span.start;
@@ -357,11 +372,26 @@ export function buildFlows(messages: Message[]): Flow[] {
     // bars only; row order above is already correct and is not touched
     nestBars(spans);
 
-    // Bounded by what is DRAWN, so barStart - otherwise a span whose raw start rounds behind its
-    // own caller stretches the flow past the earliest bar: every bar is then inset from the left
-    // edge, and the header reports a duration a millisecond longer than any hop reflects.
+    // Bounded by what is DRAWN - barStart and the bar's own extent - rather than by the measured
+    // start/end, on BOTH sides.
+    //
+    // Left: a span whose raw start rounds behind its own caller would otherwise stretch the flow
+    // past the earliest bar. Every bar is then inset from the left edge, and the header reports a
+    // duration a millisecond longer than any hop reflects.
+    //
+    // Right: a bar nestBars pulled forward reaches that much further right, and if it was already
+    // the last thing to finish it now ends past `end`. spanGeometry would clamp it back inside the
+    // track - which moves it LEFT, undoing the nesting and putting the child in front of its caller
+    // again, in exactly the rounding regime nestBars exists for. Measuring the flow by the clamped
+    // extent means every bar already fits, so that clamp never has to fire.
+    //
+    // The cost is on the right only, and it is the mirror of what the left bound avoids: the header
+    // can read up to the clamp amount longer than the wall clock. Accepted deliberately - the extra
+    // millisecond is OCCUPIED by the bar that needed it, so there is no dead space to see, whereas
+    // the alternatives are a visibly inverted bar or a bar whose width contradicts its own ms
+    // label. Bounded by the rounding error, so a millisecond or two at most.
     const start = Math.min(...spans.map((s) => s.barStart));
-    const end = Math.max(...spans.map((s) => s.end));
+    const end = Math.max(...spans.map((s) => s.barStart + s.durationMs));
 
     flows.push({
       rootExchangeId,

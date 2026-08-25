@@ -215,7 +215,10 @@ function FlowRow({
   const hidden = flow.spans.length - shown.length;
 
   return (
-    <div className="rounded border border-gray-200 dark:border-gray-700">
+    <div
+      data-testid="waterfall-flow"
+      className="rounded border border-gray-200 dark:border-gray-700"
+    >
       <button
         onClick={onToggle}
         aria-expanded={!collapsed}

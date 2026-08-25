@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 import { openDebugger, startTracing, triggerPipeline, clickEdge, CAMELBEE_API } from '../fixtures';
 import { APP_URL } from '../playwright.config';
 
@@ -511,6 +511,189 @@ test.describe('waterfall', () => {
     const highlighted = page.getByTestId('waterfall-row-selected').first();
     await expect(highlighted).toBeVisible();
     expect(await scrollArea.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  });
+
+  /**
+   * Bar GEOMETRY, as opposed to row order.
+   *
+   * `Span.start` is not measured, it is computed as `SENT.timeStamp - timeTaken`, and both of those
+   * are already rounded to the millisecond from separate clock reads - so it carries up to 2ms of
+   * error and can put a bar visibly to the left of the caller still waiting on it. `nestBars` and
+   * the flow bounds in `waterfall.ts` correct that.
+   *
+   * Unit tests cover the arithmetic by engineering the tie by hand. This is here because the
+   * condition itself - genuine same-millisecond rounding across nested sub-millisecond `direct:`
+   * hops - is a property of a real running Camel context, not of a fixture. The sample's
+   * `direct:invokeX` -> `mock:X` pairs are exactly that shape, and the http hop to /api/health gives
+   * the flow enough real duration to have a scale to be wrong against.
+   *
+   * The assertions are invariants, so they hold whether or not any given run happens to produce an
+   * inversion. That is the point: they cannot be satisfied by luck the way an equality could.
+   */
+  test.describe('bar geometry', () => {
+    /**
+     * Every direct:invokeX -> child pair in the pipeline that nests on ONE exchange, where the
+     * wrapping producer's SENT cannot fire until its child's has. Across exchanges a branch
+     * outliving its parent is real rather than rounding, so those are deliberately not here.
+     */
+    const NESTED_PAIRS: [string, string][] = [
+      ['direct://invokeMockA', 'mock://A'],
+      ['direct://invokeMockB', 'mock://B'],
+      ['direct://invokeMockC', 'mock://C'],
+      ['direct://invokeMockD', 'mock://D'],
+      ['direct://invokeEnrich', 'mock://enrich'],
+      ['direct://invokeEnrichDynamic', 'mock://enrichDynamic'],
+      ['direct://invokeFile', 'file://outputdir'],
+    ];
+
+    /**
+     * Endpoint, caller endpoint and rendered bar percentages for every row, in row order.
+     *
+     * Read off the row's `title`, which SpanRow builds as endpoint / 'route: X' / duration, one per
+     * line - so the endpoint is exact rather than a prefix match against the visible text.
+     */
+    function readRows(scope: Locator) {
+      return scope.locator('[data-testid^="waterfall-row"]').evaluateAll((els) =>
+        els.map((el) => {
+          const bar = el.querySelector('[data-testid="waterfall-bar"]') as HTMLElement | null;
+          const style = bar?.getAttribute('style') ?? '';
+          const pct = (prop: string) =>
+            Number(new RegExp(`${prop}:\\s*([\\d.]+)%`).exec(style)?.[1] ?? NaN);
+          const lines = (el.getAttribute('title') ?? '').split('\n');
+          return {
+            endpoint: lines[0] ?? '',
+            // the caller the tracer recorded, which is what nestBars clamps against
+            callerEndpoint: lines.find((l) => l.startsWith('route: '))?.slice(7) ?? null,
+            left: pct('left'),
+            width: pct('width'),
+          };
+        }),
+      );
+    }
+
+    /** Every row in the panel, across all expanded flows. */
+    const rows = (page: Page) => readRows(page.getByTestId('waterfall-panel'));
+
+    test.beforeEach(async ({ page }) => {
+      await page.getByRole('button', { name: 'Waterfall', exact: true }).click();
+      await expect(
+        page.getByTestId('waterfall-panel').getByTestId('waterfall-bar').first(),
+      ).toBeVisible(ARRIVAL);
+    });
+
+    /**
+     * The regression guard for the fix. A bar pulled forward to its caller reaches further right,
+     * and if it was already the last thing to finish it ends past the flow's measured end; fitting
+     * it back into the track moved it LEFT again, reinstating the inversion. Bounding the flow by
+     * the drawn extent is what stops that, and this is the invariant it exists to protect.
+     *
+     * Only the pairs that nest on ONE exchange are checked - the same set the causal-order spec
+     * uses. Across exchanges a branch outliving its parent is real, not rounding, and clamping
+     * there would be wrong.
+     */
+    test('never draws a nested hop to the left of the hop that called it', async ({ page }) => {
+      const all = await rows(page);
+
+      // matched on the title's first line, which is the endpoint alone - so 'direct://invokeEnrich'
+      // cannot also match 'direct://invokeEnrichDynamic', of which it is a literal prefix
+      const barsOf = (endpoint: string) => all.filter((r) => r.endpoint === endpoint);
+
+      let checked = 0;
+      for (const [parent, child] of NESTED_PAIRS) {
+        const parents = barsOf(parent);
+        const children = barsOf(child);
+        expect(parents.length, `no rows for ${parent}`).toBeGreaterThan(0);
+        expect(children, `${parent} and its child should have the same visit count`).toHaveLength(
+          parents.length,
+        );
+
+        parents.forEach((p, i) => {
+          expect(
+            children[i]!.left,
+            `${child} #${i + 1} starts left of ${parent}, which was waiting on it`,
+          ).toBeGreaterThanOrEqual(p.left);
+          checked++;
+        });
+      }
+
+      // the loop above is only meaningful if it actually ran
+      expect(checked).toBeGreaterThan(6);
+    });
+
+    /**
+     * A 0ms hop that is the last thing to happen used to render past the end of its own row - a dot
+     * floating in the margin. Every bar has to fit the track it is drawn in.
+     */
+    test('keeps every bar inside its own track', async ({ page }) => {
+      const all = await rows(page);
+      expect(all.length).toBeGreaterThan(10);
+
+      for (const row of all) {
+        expect(Number.isFinite(row.left), `no left on ${row.endpoint}`).toBe(true);
+        expect(row.left, row.endpoint).toBeGreaterThanOrEqual(0);
+        // a hair over 100 to absorb float error on the percentage arithmetic, not real overflow
+        expect(row.left + row.width, row.endpoint).toBeLessThanOrEqual(100.001);
+      }
+    });
+
+    /**
+     * A flow is laid out against its own span, so something in it must start at the left edge.
+     * When the flow was bounded by the measured starts instead of the drawn ones, a single bar
+     * rounding behind its caller stretched the flow past the earliest bar and inset every one of
+     * them - a leading dead zone, with the header reporting a millisecond no hop accounted for.
+     */
+    /**
+     * Asserted per flow, not over the panel. Each flow is laid out against its OWN span, so a dead
+     * zone in one is invisible in a panel-wide minimum as soon as a second flow has a bar at 0 -
+     * and this sample renders two.
+     */
+    test('starts each flow at its own left edge, with no dead zone', async ({ page }) => {
+      const flows = page.getByTestId('waterfall-flow');
+      const count = await flows.count();
+      expect(count).toBeGreaterThan(0);
+
+      let checkedFlows = 0;
+      for (let i = 0; i < count; i++) {
+        const flowRows = await readRows(flows.nth(i));
+        // a collapsed flow draws no rows; nothing to assert about its layout
+        if (flowRows.length === 0) continue;
+
+        expect(
+          Math.min(...flowRows.map((r) => r.left)),
+          `flow ${i} has no bar at its own left edge`,
+        ).toBe(0);
+        checkedFlows++;
+      }
+
+      expect(checkedFlows).toBeGreaterThan(0);
+    });
+
+    /**
+     * The relation the whole clamp rests on, checked against live data.
+     *
+     * nestBars resolves a span's caller by looking up its `routeId` among the endpoints of earlier
+     * spans - which only works because the Java tracer stamps `routeId` with the CALLER'S ENDPOINT
+     * URI (ExchangeSendingEventTracer sets CURRENT_ROUTE_NAME to the endpoint it is sending to, and
+     * the next SENDING on that exchange reads it back). If that ever became a route id instead, the
+     * lookup would silently find nothing, nestBars would degrade to a no-op, and every other test
+     * here would still pass - the inversion only shows up when the rounding happens to go the wrong
+     * way. So assert the relation itself resolves, on real traced traffic.
+     */
+    test('records each nested hop\'s caller as the endpoint that called it', async ({ page }) => {
+      const all = await rows(page);
+      const endpoints = new Set(all.map((r) => r.endpoint));
+
+      for (const [parent, child] of NESTED_PAIRS) {
+        for (const row of all.filter((r) => r.endpoint === child)) {
+          expect(row.callerEndpoint, `${child} should record ${parent} as its caller`).toBe(parent);
+        }
+      }
+
+      // and those callers are really present as spans, which is what makes the lookup resolve
+      for (const [parent] of NESTED_PAIRS) {
+        expect(endpoints, `${parent} is not among the traced spans`).toContain(parent);
+      }
+    });
   });
 
   test('closes from its own button and from the toolbar toggle', async ({ page }) => {

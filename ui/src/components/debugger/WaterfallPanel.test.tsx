@@ -605,3 +605,87 @@ describe('WaterfallPanel - flow origin type', () => {
     expect(screen.getByText('file')).toBeInTheDocument();
   });
 });
+
+/**
+ * Bar geometry as it is actually rendered.
+ *
+ * `waterfall.test.ts` covers `spanGeometry` as a function; this is the layer where its output
+ * becomes a `style` attribute AND where `visibleSpans` has already dropped rows, so it is the only
+ * place the two are exercised together on real DOM.
+ */
+describe('WaterfallPanel bar geometry', () => {
+  /** `left`/`width` percentages off each rendered bar, in row order. */
+  function bars() {
+    return screen.getAllByTestId('waterfall-bar').map((bar) => {
+      const style = bar.getAttribute('style') ?? '';
+      const pct = (prop: string) =>
+        Number(new RegExp(`${prop}:\\s*([\\d.]+)%`).exec(style)?.[1] ?? NaN);
+      return { left: pct('left'), width: pct('width') };
+    });
+  }
+
+  it('never renders a child bar to the left of the bar that called it', () => {
+    // the rounding shape that used to invert: the inner hop rounds to a duration >= its caller's
+    // and closes on the same millisecond, and a leading sibling puts the flow's edge before both
+    seed([
+      ...hop('ex-1', 'direct://first', 1, 1),
+      ...hop('ex-1', 'direct://invokeAap', 12, 11),
+      ...hop('ex-1', 'http://wiremock', 12, 12, { routeId: 'direct://invokeAap' }),
+    ]);
+
+    render(<WaterfallPanel onClose={() => {}} />);
+
+    const rendered = bars();
+    const [, invokeAap, http] = rendered;
+    expect(rendered).toHaveLength(3);
+    expect(http!.left).toBeGreaterThanOrEqual(invokeAap!.left);
+  });
+
+  it('keeps every bar inside its track', () => {
+    seed([
+      ...hop('ex-1', 'direct://first', 1, 1),
+      ...hop('ex-1', 'direct://invokeAap', 12, 11),
+      ...hop('ex-1', 'http://wiremock', 12, 12, { routeId: 'direct://invokeAap' }),
+      // a 0ms hop that is the last thing to happen - the marker that used to land past 100%
+      ...hop('ex-1', 'direct://marshalErrorRest', 12, 0, { routeId: 'direct://invokeAap' }),
+    ]);
+
+    render(<WaterfallPanel onClose={() => {}} />);
+
+    for (const { left, width } of bars()) {
+      expect(left).toBeGreaterThanOrEqual(0);
+      expect(left + width).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it('leaves no dead space before the first bar', () => {
+    seed([
+      ...hop('ex-1', 'direct://first', 1, 1),
+      ...hop('ex-1', 'direct://invokeAap', 12, 11),
+      ...hop('ex-1', 'http://wiremock', 12, 12, { routeId: 'direct://invokeAap' }),
+    ]);
+
+    render(<WaterfallPanel onClose={() => {}} />);
+
+    expect(Math.min(...bars().map((b) => b.left))).toBe(0);
+  });
+
+  it('still starts a visible bar at the left edge once the row cap has dropped rows', () => {
+    // MAX_SPANS_PER_FLOW rows are kept from the front, so the flow's own left edge must be among
+    // them - otherwise every drawn bar is inset and the panel reads as though nothing started yet
+    const messages: Message[] = [];
+    for (let i = 0; i < MAX_SPANS_PER_FLOW + 100; i++) {
+      messages.push(...hop('ex-1', `mock://h${i}`, 1000 + i * 10, i === MAX_SPANS_PER_FLOW + 50 ? 900 : 1));
+    }
+    seed(messages);
+
+    render(<WaterfallPanel onClose={() => {}} />);
+
+    const rendered = bars();
+    expect(rendered.length).toBeLessThan(MAX_SPANS_PER_FLOW + 100);
+    expect(Math.min(...rendered.map((b) => b.left))).toBe(0);
+    for (const { left, width } of rendered) {
+      expect(left + width).toBeLessThanOrEqual(100);
+    }
+  });
+});
