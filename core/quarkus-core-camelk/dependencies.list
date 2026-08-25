@@ -20,7 +20,7 @@ The following files have been resolved:
    com.github.java-json-tools:jackson-coreutils:jar:2.0:compile -- module jackson.coreutils (auto)
    com.github.java-json-tools:json-patch:jar:1.13:compile -- module json.patch (auto)
    com.github.java-json-tools:msg-simple:jar:1.2:compile -- module msg.simple (auto)
-   com.github.spotbugs:spotbugs-annotations:jar:4.10.3:compile -- module com.github.spotbugs.annotations [auto]
+   com.github.spotbugs:spotbugs-annotations:jar:4.10.4:compile -- module com.github.spotbugs.annotations [auto]
    com.google.code.findbugs:jsr305:jar:3.0.2:compile -- module jsr305 (auto)
    com.google.guava:failureaccess:jar:1.0.1:test -- module failureaccess (auto)
    com.google.guava:guava:jar:33.2.1-jre:test -- module com.google.common [auto]

@@ -9,11 +9,14 @@ import type { Message } from '@/types';
  * a wireTap's SENDING is recorded on the calling thread, while the work happens elsewhere.
  *
  * That makes `start`/`end`/`durationMs` a self-consistent description of WHEN the hop ran
- * (`end - start === durationMs` always holds), and they are what the bar's position and width are
- * drawn from. They are deliberately NOT what row order is decided by - see {@link Span.seq}: these
- * are wall-clock samples, and a wall clock is too coarse to order hops that take under a
- * millisecond. Keeping the two concerns separate is why a bar can legitimately sit fractionally
- * left of the row above it; the rows are in causal order, the bars are on a time axis.
+ * (`end - start === durationMs` always holds). They are deliberately NOT what row order is decided
+ * by - see {@link Span.seq}: these are wall-clock samples, and a wall clock is too coarse to order
+ * hops that take under a millisecond.
+ *
+ * They are not quite what the bar is positioned by either. `start` is a DERIVED quantity, and both
+ * numbers it is derived from are already rounded to the millisecond, so it carries up to 2ms of
+ * error - enough to place a hop visibly before the caller that is still waiting on it. See
+ * {@link Span.barStart} and {@link nestBars}.
  */
 export interface Span {
   exchangeId: string;
@@ -25,6 +28,12 @@ export interface Span {
   start: number;
   /** Epoch ms. Equal to `start` for a hop with no recorded duration. */
   end: number;
+  /**
+   * Where the BAR starts, which is `start` pulled forward to its caller's bar when the arithmetic
+   * put it behind - see {@link nestBars}. Only the bar's position is drawn from this; `start` stays
+   * the measured value.
+   */
+  barStart: number;
   durationMs: number;
   isError: boolean;
   exception: string | null;
@@ -153,6 +162,8 @@ function buildSpansForExchange(
         routeId: anchor.routeId ?? request?.routeId ?? null,
         start: stamp - durationMs,
         end: stamp,
+        // provisional; nestBars() finalises it once the flow's causal order is known
+        barStart: stamp - durationMs,
         durationMs,
         isError: response?.messageType === 'ERROR_RESPONSE',
         exception: response?.exception ?? null,
@@ -241,6 +252,58 @@ function resolveFromRouteId(rootMessages: Message[] | undefined): string | null 
   return rootMessages.find((m) => m.exchangeEventType === 'SENDING' && m.routeId)?.routeId ?? null;
 }
 
+/**
+ * Pull each bar forward to its caller's bar where the clock arithmetic put it behind.
+ *
+ * <p>{@link Span.start} is not measured, it is computed as `SENT.timeStamp - timeTaken`. BOTH of
+ * those are already rounded to whole milliseconds, and they come from separate reads of
+ * `System.currentTimeMillis()` - `timeTaken` is Camel's own measurement, `timeStamp` is stamped when
+ * CamelBee constructs the Message just afterwards. Subtracting one from the other therefore
+ * accumulates up to 2ms of error, in either direction.
+ *
+ * <p>On the sub-10ms `direct:` hops that dominate a real route that is enough to invert a nesting.
+ * A measured example: `callAap` (SENT at 12, took 10) renders at start 2, while the `http:` call
+ * INSIDE it (SENT at 10, took 9) renders at start 1 - the child appears to begin a millisecond
+ * before the parent that called it. The true starts were 1.9 and 1.8; nothing is wrong with the
+ * data, and no amount of care on the Java side can fix it while the clock has millisecond
+ * resolution.
+ *
+ * <p>So the bar is nested by the CALLER relation, which is recorded rather than inferred: a span's
+ * `routeId` is the endpoint of the hop that called it (see the Java-side tracers, which stamp the
+ * caller from their route stack), so its parent is the nearest preceding span whose `endpoint`
+ * matches. Only the offset is clamped - the width still comes from `durationMs`, so no bar is
+ * resized and no ms label ever disagrees with the bar it labels.
+ *
+ * <p>Restricted to spans of the SAME exchange, where nesting is a genuine stack discipline. Across
+ * exchanges it is not: a wireTap branch outliving the exchange that spawned it is real, not
+ * rounding, and must keep showing that way.
+ *
+ * @param spans the flow's spans, already in causal order; mutated in place.
+ */
+function nestBars(spans: Span[]): void {
+  // Endpoint -> the most recent span that served it, which is what "the caller" resolves to.
+  // Scoped per exchange, so a lookup cannot cross into a sibling branch's copy of the same route.
+  // A map rather than a backward scan because a flow's span count is unbounded (see visibleSpans):
+  // a split() over a large body puts every item's exchange here, and a scan that has to reject each
+  // one individually is quadratic over the whole flow, re-run on every poll.
+  const servedBy = new Map<string, Span>();
+  const key = (exchangeId: string, endpoint: string) => `${exchangeId} ${endpoint}`;
+
+  for (const span of spans) {
+    span.barStart = span.start;
+
+    // Parents precede their children in causal order, so the caller's own barStart is already
+    // final. Looked up BEFORE this span is registered, so a route that calls itself resolves to
+    // the outer invocation rather than to itself.
+    const caller = span.routeId === null ? undefined : servedBy.get(key(span.exchangeId, span.routeId));
+    if (caller) {
+      span.barStart = Math.max(span.barStart, caller.barStart);
+    }
+
+    servedBy.set(key(span.exchangeId, span.endpoint), span);
+  }
+}
+
 export function buildFlows(messages: Message[]): Flow[] {
   const byExchange = new Map<string, Message[]>();
   const parentOf = new Map<string, string | null>();
@@ -291,7 +354,13 @@ export function buildFlows(messages: Message[]): Flow[] {
     // to both. It is a message array index and therefore already unique - nothing follows it.
     spans.sort((a, b) => a.seq - b.seq);
 
-    const start = Math.min(...spans.map((s) => s.start));
+    // bars only; row order above is already correct and is not touched
+    nestBars(spans);
+
+    // Bounded by what is DRAWN, so barStart - otherwise a span whose raw start rounds behind its
+    // own caller stretches the flow past the earliest bar: every bar is then inset from the left
+    // edge, and the header reports a duration a millisecond longer than any hop reflects.
+    const start = Math.min(...spans.map((s) => s.barStart));
     const end = Math.max(...spans.map((s) => s.end));
 
     flows.push({
@@ -331,11 +400,12 @@ export function spanGeometry(span: Span, flow: Flow): { offsetPct: number; width
     return { offsetPct: 0, widthPct: MIN_WIDTH_PCT };
   }
 
-  const offsetPct = clamp(((span.start - flow.start) / total) * 100, 0, 100);
-  const widthPct = Math.max(
-    MIN_WIDTH_PCT,
-    Math.min((span.durationMs / total) * 100, 100 - offsetPct),
-  );
+  // Width first, then the offset is fitted to it. Doing it the other way round cannot place a
+  // minimum-width marker that starts at the flow's own end: `100 - offsetPct` is 0 there, and
+  // restoring MIN_WIDTH_PCT afterwards pushes the whole marker outside the track. A 0ms hop that
+  // is the last thing to happen - `marshalErrorRest` closing an error flow - is exactly that case.
+  const widthPct = Math.max(MIN_WIDTH_PCT, Math.min((span.durationMs / total) * 100, 100));
+  const offsetPct = clamp(((span.barStart - flow.start) / total) * 100, 0, 100 - widthPct);
 
   return { offsetPct, widthPct };
 }

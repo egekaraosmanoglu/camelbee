@@ -10,7 +10,7 @@ The following files have been resolved:
    com.github.docker-java:docker-java-api:jar:3.7.1:test -- module com.github.dockerjava.api [auto]
    com.github.docker-java:docker-java-transport-zerodep:jar:3.7.1:test -- module com.github.dockerjava.transport.zerodep [auto]
    com.github.docker-java:docker-java-transport:jar:3.7.1:test -- module com.github.dockerjava.transport [auto]
-   com.github.spotbugs:spotbugs-annotations:jar:4.10.3:compile -- module com.github.spotbugs.annotations [auto]
+   com.github.spotbugs:spotbugs-annotations:jar:4.10.4:compile -- module com.github.spotbugs.annotations [auto]
    com.google.code.findbugs:jsr305:jar:3.0.2:compile -- module jsr305 (auto)
    com.sun.istack:istack-commons-runtime:jar:4.1.2:compile -- module com.sun.istack.runtime
    commons-codec:commons-codec:jar:1.19.0:test -- module org.apache.commons.codec
@@ -19,7 +19,7 @@ The following files have been resolved:
    io.micrometer:micrometer-commons:jar:1.17.0:compile (optional) -- module micrometer.commons [auto]
    io.micrometer:micrometer-core:jar:1.17.0:compile (optional) -- module micrometer.core [auto]
    io.micrometer:micrometer-observation:jar:1.17.0:compile (optional) -- module micrometer.observation [auto]
-   io.micrometer:micrometer-registry-prometheus:jar:1.17.0:compile (optional) -- module micrometer.registry.prometheus [auto]
+   io.micrometer:micrometer-registry-prometheus:jar:1.17.1:compile (optional) -- module micrometer.registry.prometheus [auto]
    io.netty:netty-buffer:jar:4.1.136.Final:provided -- module io.netty.buffer [auto]
    io.netty:netty-codec-dns:jar:4.1.136.Final:provided -- module io.netty.codec.dns [auto]
    io.netty:netty-codec-http2:jar:4.1.136.Final:provided -- module io.netty.codec.http2 [auto]
@@ -119,7 +119,7 @@ The following files have been resolved:
    org.glassfish.jaxb:txw2:jar:4.0.9:compile -- module com.sun.xml.txw2
    org.hdrhistogram:HdrHistogram:jar:2.2.2:runtime (optional) -- module HdrHistogram (auto)
    org.jetbrains:annotations:jar:17.0.0:test -- module org.jetbrains.annotations [auto]
-   org.jspecify:jspecify:jar:1.0.0:compile (optional) -- module org.jspecify
+   org.jspecify:jspecify:jar:1.0.1:compile (optional) -- module org.jspecify
    org.junit.jupiter:junit-jupiter-api:jar:5.14.4:test -- module org.junit.jupiter.api
    org.junit.jupiter:junit-jupiter-engine:jar:5.14.4:test -- module org.junit.jupiter.engine
    org.junit.jupiter:junit-jupiter-params:jar:5.14.4:test -- module org.junit.jupiter.params

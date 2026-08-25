@@ -36,6 +36,24 @@
     <Bug pattern="CT_CONSTRUCTOR_THROW"/>
   </Match>
 
+  <!--
+    ExchangeUtils holds the process-wide Masker in a static field so every tracer and the topology
+    redact through the same configuration, rather than each carrying its own copy that could drift
+    out of sync after configureMasking() runs. SpotBugs flags both the write and the getter because
+    Masker isn't a JDK type it recognises as immutable, but it is immutable in practice: `final
+    class`, every field `private final`, built once in the constructor and never mutated or exposed
+    as a live collection afterward. Narrowed to this class so the check keeps running everywhere else.
+  -->
+  <Match>
+    <Class name="~.*\.utils\.ExchangeUtils"/>
+    <Bug pattern="EI_EXPOSE_STATIC_REP2"/>
+  </Match>
+
+  <Match>
+    <Class name="~.*\.utils\.ExchangeUtils"/>
+    <Bug pattern="MS_EXPOSE_REP"/>
+  </Match>
+
   <!-- === Generated Code Exclusions === -->
 
   <!-- Exclude all generated sources by source file path -->
