@@ -6,5 +6,41 @@
   "branchPrefix": "renovate/",
   "baseBranchPatterns": [
     "dev"
+  ],
+  "customManagers": [
+    {
+      "description": "Surface new Camel K runtime releases by watching the version recorded in the quarkus-camelk comment block. This never auto-merges: the matching packageRule holds it behind Dependency Dashboard approval, because bumping this line alone would make the comment describe a platform combination no operator actually reports.",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "dependencies/quarkus-camelk/pom.xml"
+      ],
+      "matchStrings": [
+        "camel-k-runtime (?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "org.apache.camel.k:camel-k-runtime",
+      "datasourceTemplate": "maven"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "The Camel K flavour pins the platform the Camel K runtime actually ships (read off the operator's camelcatalog). These two BOMs must not be bumped to catch up with the sibling quarkus BOM - see the comment in dependencies/quarkus-camelk/pom.xml. The core-only-quarkus-sample example pins the same floor for the same reason (see its own comment). Test-only deps in dependencies/quarkus-camelk/pom.xml are still updated.",
+      "matchFileNames": [
+        "dependencies/quarkus-camelk/pom.xml",
+        "examples/core-only-quarkus-sample/pom.xml"
+      ],
+      "matchPackageNames": [
+        "io.quarkus:quarkus-bom",
+        "org.apache.camel.quarkus:camel-quarkus-bom"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Notify only. A new camel-k-runtime release appears as an unchecked box on the Dependency Dashboard and creates no branch or PR until someone ticks it. Ticking it is not the fix: re-read a live operator with 'kubectl get camelcatalog -o jsonpath={.items[0].spec.runtime.metadata}' and update the comment block AND quarkus.version / camel-quarkus.version together in one hand-written PR.",
+      "matchPackageNames": [
+        "org.apache.camel.k:camel-k-runtime"
+      ],
+      "dependencyDashboardApproval": true,
+      "commitMessageTopic": "Camel K runtime (re-pin quarkus-camelk BOMs by hand)"
+    }
   ]
 }
