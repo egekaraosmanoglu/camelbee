@@ -31,10 +31,9 @@
              MistralAiChatModel$Builder etc.) for base URLs, endpoint paths, auth headers, and
              response shapes — don't bump without re-verifying provider wiring in the archetype. -->
         <langchain4j.version>1.19.0</langchain4j.version>
-        <!-- Match the avro-maven-plugin (1.12.1) used to generate the Avro record classes, and the
-             1.12.1 runtime Camel 4.20.0 ships. apicurio-registry-serdes-avro-serde transitively pulls
-             avro 1.12.0, which would win mediation and lacks Utf8.compareSequences(...) — breaking the
-             generated code. The Quarkus side is already on 1.12.1 via its platform BOM. -->
+        <!-- Must match ${avro-maven-plugin.version} in the parent pom: the generated Avro record
+             classes call runtime API from the codegen version. apicurio-registry-serdes-avro-serde
+             pulls an older avro transitively, which would otherwise win mediation. Bump both together. -->
         <avro.version>1.12.2</avro.version>
     </properties>
 
@@ -113,7 +112,7 @@
                 <scope>import</scope>
             </dependency>
 
-            <!-- Force avro 1.12.1 over apicurio's transitive 1.12.0 so the runtime matches the
+            <!-- Force avro over apicurio's older transitive one so the runtime matches the
                  avro-maven-plugin codegen (see avro.version above). -->
             <dependency>
                 <groupId>org.apache.avro</groupId>
