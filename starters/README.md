@@ -32,7 +32,7 @@ Use the starter as your project's parent POM (suitable for new projects without 
 <parent>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-starter</artifactId> <!-- or -springboot- / -standalone- -->
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </parent>
 ```
 
