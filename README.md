@@ -448,7 +448,7 @@ camel.server.port = 8080
 
 *Example: [allcomponent-camelk-sample](examples/allcomponent-camelk-sample/README.md)*
 
-Camel K runs integrations on the **Camel Quarkus** runtime, but pins an older Camel than this project's main build (Camel 4.8.5 vs 4.21). Use `camelbee-quarkus-core-camelk` — the same sources built against Camel K's baseline. Declare everything in your integration file's modeline (the core's CDI beans are auto-discovered because the jar ships a Jandex index):
+Camel K runs integrations on the **Camel Quarkus** runtime, but pins an older Camel than this project's main build (Camel 4.8.5 vs 4.22). Use `camelbee-quarkus-core-camelk` — the same sources built against Camel K's baseline. Declare everything in your integration file's modeline (the core's CDI beans are auto-discovered because the jar ships a Jandex index):
 
 ```java
 // camel-k: dependency=mvn:io.camelbee:camelbee-quarkus-core-camelk:4.0.0
@@ -500,7 +500,7 @@ public class YourRoute extends RouteBuilder {
 > |---|---|
 > | `camelbee-springboot-starter` | Spring Boot 4.1.0 · Camel 4.22.0 |
 > | `camelbee-standalone-starter` | Camel 4.22.0 |
-> | `camelbee-quarkus-starter` | Quarkus 3.38.2 · Camel 4.21.0 (the platform decides the Camel version) |
+> | `camelbee-quarkus-starter` | Quarkus 3.39.1 · Camel 4.22.0 (the platform decides the Camel version) |
 >
 > That is the trade-off against [Option 1](#option-1-add-the-core-library-as-a-dependency-recommended): the starter decides your framework versions, so
 > your stack moves when CamelBee releases. If you need to stay on your own versions, use the core as

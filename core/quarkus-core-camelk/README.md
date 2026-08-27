@@ -67,7 +67,7 @@ runs the same Camel K runtime this module was built against (see below).
 Declare every Camel component you use explicitly — Camel K's dependency auto-detection reads URIs
 written literally at a `from(...)`/`to(...)` call site and misses any built from a constant, which
 then fails at pod startup rather than at build time. **The starters are not usable on Camel K** —
-`camelbee-quarkus-starter` pulls the 4.21 core, not this one.
+`camelbee-quarkus-starter` pulls the 4.22 core, not this one.
 
 As on plain Quarkus, call the route configurer as the first statement of every `RouteBuilder`, looked
 up from the registry by type (Camel K compiles integration files outside CDI):

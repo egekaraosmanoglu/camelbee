@@ -2,7 +2,7 @@
 
 Camel K runs integrations on the **Camel Quarkus** runtime, so CamelBee works on Camel K — but not
 with the same jar as the other samples. Camel K pins an older runtime than CamelBee's main build
-(Camel 4.8.5 vs 4.21), so this sample uses **`camelbee-quarkus-core-camelk`**: the same sources,
+(Camel 4.8.5 vs 4.22), so this sample uses **`camelbee-quarkus-core-camelk`**: the same sources,
 same version, built against Camel K's Camel baseline. See
 [Which core, and why](#which-core-and-why) below.
 
@@ -71,12 +71,12 @@ kubectl get camelcatalog -o jsonpath='{.items[0].spec.runtime.metadata}'
 ```
 
 On Camel K 2.10.1 that reports `camel-quarkus 3.15.3 / camel 4.8.5 / quarkus 3.15.4`, whereas
-CamelBee's main build targets Camel 4.21. Hence a second artifact, built from the *same sources* by
+CamelBee's main build targets Camel 4.22. Hence a second artifact, built from the *same sources* by
 [`core/quarkus-core-camelk`](../../core/quarkus-core-camelk/pom.xml):
 
 | | `camelbee-quarkus-core` | `camelbee-quarkus-core-camelk` |
 |---------------------|-------------------------|--------------------------------|
-| Camel | 4.21 | 4.8.5 |
+| Camel | 4.22 | 4.8.5 |
 | REST/Jackson deps | `provided` | transitive |
 | `cxf-soap` | `provided` | absent (unused by the core) |
 | Jandex index format | v13 | v12 (Camel K's reader caps at v12) |
@@ -84,14 +84,14 @@ CamelBee's main build targets Camel 4.21. Hence a second artifact, built from th
 CamelBee's source needs **no changes** to run on 4.8.5 — the `quarkus-core-camelk` module rebuilds
 both the engine and the Quarkus wiring against that baseline and runs **280 of their 282 tests**
 there unmodified (46 test classes: 239 engine + 43 wiring, less 2). The two exclusions are
-characterization tests that pin 4.21's exact output; the pom documents them.
+characterization tests that pin 4.22's exact output; the pom documents them.
 
 **Known difference on Camel K:** `.description()` binds to the *route* on Camel 4.8.5 rather than to
 the node, so route and node description text is wrong in the UI here. Cosmetic, but real. Everything
 else — topology, tracing, replay, metrics — behaves the same. The recipe strings also differ
 (`To[x]` vs `to[x]`, `DynamicTo[x]` vs `DynamicTo[toD[x]]`), but the UI parses both.
 
-The **starters are not usable on Camel K**: `camelbee-quarkus-starter` pulls the 4.21 core.
+The **starters are not usable on Camel K**: `camelbee-quarkus-starter` pulls the 4.22 core.
 
 ## Prerequisites
 
