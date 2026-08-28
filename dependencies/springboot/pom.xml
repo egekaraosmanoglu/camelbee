@@ -33,8 +33,11 @@
         <langchain4j.version>1.19.0</langchain4j.version>
         <!-- Must match ${avro-maven-plugin.version} in the parent pom: the generated Avro record
              classes call runtime API from the codegen version. apicurio-registry-serdes-avro-serde
-             pulls an older avro transitively, which would otherwise win mediation. Bump both together. -->
-        <avro.version>1.12.2</avro.version>
+             pulls an older avro transitively, which would otherwise win mediation. Bump both together.
+             Do NOT go to 1.12.2: it adds ClassSecurityValidator, whose default trust list is JDK
+             scalars only, so SpecificDatumReader throws SecurityException on every generated record
+             ("... is not trusted to be included in Avro schemas") under camel-avro's data format. -->
+        <avro.version>1.12.1</avro.version>
     </properties>
 
     <dependencyManagement>
