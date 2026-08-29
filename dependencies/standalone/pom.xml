@@ -21,7 +21,7 @@
     <parent>
         <groupId>io.camelbee</groupId>
         <artifactId>dependencies</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -32,7 +32,7 @@
     <properties>
         <camel.version>4.22.0</camel.version>
         <jackson-jsr310.version>2.22.2</jackson-jsr310.version>
-        <micrometer.version>1.17.0</micrometer.version>
+        <micrometer.version>1.17.1</micrometer.version>
         <rest-assured.version>6.0.1</rest-assured.version>
         <!-- Test libraries + the runtime logging backend, centralized here (consumed by
              standalone-core and the standalone sample via their parent chain). -->

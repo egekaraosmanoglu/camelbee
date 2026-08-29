@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildFlows, spanGeometry, visibleSpans } from './waterfall';
+import { buildFlows, spanGeometry, visibleSpans, type Flow } from './waterfall';
 import { makeMessage } from '@/test/factories';
 
 /** SENDING/SENT pair for one hop. `at` is when the hop finished; `took` its duration. */
@@ -91,6 +91,166 @@ describe('buildFlows', () => {
 
     expect(flows[0]!.spans).toHaveLength(2);
     expect(flows[0]!.spans.map((s) => s.durationMs)).toEqual([100, 120]);
+  });
+
+  it('keeps true arrival order when a same-exchange endpoint is revisited and timestamps tie', () => {
+    // e.g. a routingSlip stop revisited later by a dynamicRouter, on the exchange's own thread -
+    // both hit direct:invokeMockC/mock:C, with direct:invokeMockD/mock:D truly in between. Fast
+    // in-memory hops commonly tie on the millisecond, so this only surfaces via the seq tiebreak.
+    const messages = [
+      ...hop('ex-1', 'direct:invokeMockC', 1000, 0),
+      ...hop('ex-1', 'mock:C', 1000, 0),
+      ...hop('ex-1', 'direct:invokeMockD', 1000, 0),
+      ...hop('ex-1', 'mock:D', 1000, 0),
+      ...hop('ex-1', 'direct:invokeMockC', 1000, 0),
+      ...hop('ex-1', 'mock:C', 1000, 0),
+    ];
+
+    const flows = buildFlows(messages);
+
+    expect(flows[0]!.spans.map((s) => s.endpoint)).toEqual([
+      'direct:invokeMockC',
+      'mock:C',
+      'direct:invokeMockD',
+      'mock:D',
+      'direct:invokeMockC',
+      'mock:C',
+    ]);
+  });
+
+  it('does not let a coarse SENT clock invert a synchronous parent above its own child', () => {
+    // Windows' System.currentTimeMillis() ticks in ~15ms steps. A parent that truly closes 1ms
+    // after its child can have its SENT land in the next tick, so the parent's derived start
+    // (stamp - durationMs = 1009) comes out AFTER the child's (994) even though the parent opened
+    // first and was still waiting on the child the whole time. Row order therefore cannot be taken
+    // from `start` at all; it comes from the order the hops were observed to OPEN (Span.seq), which
+    // no clock resolution can distort. The bars still sit on the timestamps - only the row order is
+    // decided by seq - so this deliberately asserts order, not geometry.
+    const messages = [
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'direct:invokeHttp',
+        exchangeEventType: 'SENDING',
+        messageType: 'REQUEST',
+        timeStamp: '993',
+      }),
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'http:health',
+        exchangeEventType: 'SENDING',
+        messageType: 'REQUEST',
+        timeStamp: '994',
+      }),
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'http:health',
+        exchangeEventType: 'SENT',
+        messageType: 'RESPONSE',
+        timeStamp: '1000', // still the earlier clock tick
+        timeTaken: 6,
+      }),
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'direct:invokeHttp',
+        exchangeEventType: 'SENT',
+        messageType: 'RESPONSE',
+        timeStamp: '1016', // jumped to the next ~15ms tick, though it truly closed ~1ms later
+        timeTaken: 7,
+      }),
+    ];
+
+    const flows = buildFlows(messages);
+
+    expect(flows[0]!.spans.map((s) => s.endpoint)).toEqual(['direct:invokeHttp', 'http:health']);
+  });
+
+  it('orders a nested same-exchange pair by SENDING order, not by which SENT arrived first', () => {
+    // direct:invokeMockC wraps mock:C on one exchange - the same shape as invokeHttp/health above,
+    // but with timings taken from what the real sample actually reports for this pair: mock:C
+    // closes at 1000 having taken 0ms (start 1000, end 1000); invokeMockC closes 1ms later at 1001
+    // having taken 1ms (start 1000, end 1001). So their derived starts TIE, which is routine for
+    // near-instant direct: hops and needs no clock quirk at all.
+    //
+    // Both of the obvious ways to break that tie are wrong, and this case catches both: the inner's
+    // SENT always arrives before the outer's (the parent cannot close until its child has), so
+    // ordering on SENT arrival ranks the child first; and a nested pair's `end` values structurally
+    // never tie for the same reason, so a secondary sort on `end` also resolves in the child's
+    // favour. Only the order the hops OPENED in (Span.seq, keyed on the SENDING) gets this right.
+    const messages = [
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'direct:invokeMockC',
+        exchangeEventType: 'SENDING',
+        messageType: 'REQUEST',
+        timeStamp: '1000',
+      }),
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'mock:C',
+        exchangeEventType: 'SENDING',
+        messageType: 'REQUEST',
+        timeStamp: '1000',
+      }),
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'mock:C',
+        exchangeEventType: 'SENT',
+        messageType: 'RESPONSE',
+        timeStamp: '1000', // inner closes first
+        timeTaken: 0,
+      }),
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'direct:invokeMockC',
+        exchangeEventType: 'SENT',
+        messageType: 'RESPONSE',
+        timeStamp: '1001', // outer closes 1ms later, but computes the same start (1001 - 1 = 1000)
+        timeTaken: 1,
+      }),
+    ];
+
+    const flows = buildFlows(messages);
+
+    expect(flows[0]!.spans.map((s) => s.endpoint)).toEqual(['direct:invokeMockC', 'mock:C']);
+  });
+
+  it('keeps a bar self-consistent: end - start is always exactly durationMs', () => {
+    // The bar's position comes from `start` and its width from `durationMs`, so the two have to
+    // describe the same interval or a bar is drawn somewhere it did not run. An earlier attempt at
+    // the ordering fix clamped `start` back to the SENDING timestamp without touching `end` or
+    // `durationMs`, which broke exactly this: an async hop (SENDING recorded on the calling thread
+    // at 1000, work actually running 1450..1500) came out start=1000/end=1500/durationMs=50 and
+    // rendered a 50ms bar 450ms to the left of the work it represented. Row order is Span.seq's
+    // job; `start` must stay a truthful timestamp.
+    const messages = [
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'direct:asyncThing',
+        exchangeEventType: 'SENDING',
+        messageType: 'REQUEST',
+        timeStamp: '1000', // queued on the caller thread, long before the work runs
+      }),
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'direct:asyncThing',
+        exchangeEventType: 'SENT',
+        messageType: 'RESPONSE',
+        timeStamp: '1500',
+        timeTaken: 50,
+      }),
+      ...hop('ex-1', 'mock:sync', 1600, 20),
+    ];
+
+    const spans = buildFlows(messages)[0]!.spans;
+
+    expect(spans).toHaveLength(2);
+    spans.forEach((span) => {
+      expect(span.end - span.start, `${span.endpoint} bar does not match its own duration`).toBe(
+        span.durationMs,
+      );
+    });
+    // and the async hop is placed at the work, not at the enqueue
+    expect(spans.find((s) => s.endpoint === 'direct:asyncThing')!.start).toBe(1450);
   });
 
   it('marks a hop with no SENT as pending, with no invented duration', () => {
@@ -354,5 +514,409 @@ describe('buildFlows - fromRouteId', () => {
     ]);
 
     expect(flows[0]!.fromRouteId).toBe('restEntryRoute');
+  });
+});
+
+describe('bar nesting', () => {
+  /**
+   * The exact shape measured off a running bip-inventory-mobileproduct-api trace: three nested
+   * `direct:`/`http:` hops whose rounded arithmetic puts the innermost hop a millisecond before the
+   * caller that is waiting on it.
+   *
+   * invokeAap SENT@12 took 12 -> start 0
+   * callAap   SENT@12 took 10 -> start 2   (inside invokeAap)
+   * http      SENT@10 took  9 -> start 1   (inside callAap, but computes EARLIER than it)
+   */
+  const nestedFlow = () =>
+    buildFlows([
+      ...hop('ex-1', 'direct://invokeAap', 12, 12, { routeId: 'centralRoute' }),
+      ...hop('ex-1', 'direct://callAap', 12, 10, { routeId: 'direct://invokeAap' }),
+      ...hop('ex-1', 'http://wiremock', 10, 9, { routeId: 'direct://callAap' }),
+    ])[0]!;
+
+  it('leaves the measured start untouched', () => {
+    const [invokeAap, callAap, http] = nestedFlow().spans;
+
+    expect(invokeAap!.start).toBe(0);
+    expect(callAap!.start).toBe(2);
+    expect(http!.start).toBe(1);
+  });
+
+  it('pulls a bar forward so it never starts before its caller', () => {
+    const [invokeAap, callAap, http] = nestedFlow().spans;
+
+    expect(invokeAap!.barStart).toBe(0);
+    expect(callAap!.barStart).toBe(2);
+    // clamped up to its caller callAap, instead of rendering a millisecond to its left
+    expect(http!.barStart).toBe(2);
+  });
+
+  it('positions the bar from barStart but keeps the width measured', () => {
+    const flow = nestedFlow();
+    const http = flow.spans[2]!;
+    const callAap = flow.spans[1]!;
+
+    const httpGeom = spanGeometry(http, flow);
+    const callAapGeom = spanGeometry(callAap, flow);
+
+    // equal to well within a pixel; not exactly equal, because callAap's bar ends at the flow's
+    // own end and so is fitted against its own width (see spanGeometry)
+    expect(httpGeom.offsetPct).toBeCloseTo(callAapGeom.offsetPct, 10);
+    // width still comes from durationMs, so the bar cannot disagree with its own ms label
+    expect(httpGeom.widthPct).toBeCloseTo((9 / flow.durationMs) * 100, 5);
+  });
+
+  /**
+   * The SAME route on the preceding call, where the rounding fell the other way: the `http:` hop
+   * reported 8ms rather than 9ms, so its start landed exactly on its caller's and nested cleanly
+   * with no help. Pins that the clamp is a no-op on data that was already consistent - a rendering
+   * fix that quietly shifted correct bars would be worse than the artifact it removes.
+   */
+  it('leaves an already-consistent nesting exactly where it was', () => {
+    const flow = buildFlows([
+      ...hop('ex-2', 'direct://central', 13, 13, { routeId: 'operationRoute' }),
+      ...hop('ex-2', 'direct://invokeAap', 13, 12, { routeId: 'direct://central' }),
+      ...hop('ex-2', 'direct://callAap', 12, 10, { routeId: 'direct://invokeAap' }),
+      ...hop('ex-2', 'http://wiremock', 10, 8, { routeId: 'direct://callAap' }),
+    ])[0]!;
+
+    for (const span of flow.spans) {
+      expect(span.barStart).toBe(span.start);
+    }
+    expect(flow.spans.map((s) => s.barStart)).toEqual([0, 1, 2, 2]);
+  });
+
+  it('does not clamp across exchanges, where a branch outliving its parent is real', () => {
+    const flow = buildFlows([
+      ...hop('ex-1', 'direct://tap', 10, 2, { routeId: 'mainRoute' }),
+      ...hop('ex-2', 'http://slow', 40, 30, {
+        routeId: 'direct://tap',
+        parentExchangeId: 'ex-1',
+      }),
+    ])[0]!;
+
+    const branch = flow.spans.find((s) => s.endpoint === 'http://slow')!;
+    expect(branch.barStart).toBe(branch.start);
+  });
+});
+
+describe('bar nesting at scale', () => {
+  /**
+   * A split() puts every item's exchange in one flow, so a flow's span count is unbounded. Every
+   * one of those children lives in a DIFFERENT exchange from its siblings, which is the case a
+   * backward scan has to reject one span at a time - quadratic over the whole flow, re-run on every
+   * poll. The lookup is a map for that reason; this exercises the shape at size and pins that
+   * scoping the map per exchange still finds the real caller.
+   */
+  it('clamps every child of a large split to the splitter, across thousands of exchanges', () => {
+    const messages = [
+      ...hop('root', 'direct://split', 5000, 5000, { routeId: 'splitterRoute' }),
+    ];
+    for (let i = 0; i < 3000; i++) {
+      messages.push(
+        ...hop(`child-${i}`, 'direct://process', 100 + i, 1, {
+          routeId: 'direct://split',
+          parentExchangeId: 'root',
+        }),
+      );
+    }
+
+    const flow = buildFlows(messages)[0]!;
+    const splitter = flow.spans.find((s) => s.endpoint === 'direct://split')!;
+    const children = flow.spans.filter((s) => s.endpoint === 'direct://process');
+
+    expect(children).toHaveLength(3000);
+    for (const child of children) {
+      expect(child.barStart).toBe(Math.max(child.start, splitter.barStart));
+    }
+  });
+
+  it('resolves a self-calling route to the outer invocation, not to itself', () => {
+    const flow = buildFlows([
+      ...hop('ex-1', 'direct://loop', 20, 20, { routeId: 'entryRoute' }),
+      ...hop('ex-1', 'direct://loop', 18, 10, { routeId: 'direct://loop' }),
+    ])[0]!;
+
+    const [outer, inner] = flow.spans;
+    expect(outer!.barStart).toBe(0 + outer!.start);
+    // clamped to the outer invocation's bar, and not left pinned to its own
+    expect(inner!.barStart).toBe(Math.max(inner!.start, outer!.barStart));
+  });
+});
+
+describe('flow bounds follow the drawn bars', () => {
+  /**
+   * The measured flow ...0005 shape: invokeAuth's raw start rounds a millisecond BEHIND central,
+   * the hop that called it. nestBars pulls its bar back to central, so if the flow's own bounds
+   * still came from the raw start the flow would span a millisecond that no bar occupies - every
+   * bar inset from the left edge, and a header duration longer than the outermost hop.
+   */
+  const skewedFlow = () =>
+    buildFlows([
+      ...hop('ex-1', 'direct://central', 117, 117, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://invokeAuth', 0, 1, { routeId: 'direct://central' }),
+    ])[0]!;
+
+  it('starts the flow at the earliest bar, not the earliest raw start', () => {
+    const flow = skewedFlow();
+    const invokeAuth = flow.spans.find((s) => s.endpoint === 'direct://invokeAuth')!;
+
+    // the raw start really is behind the caller, and is left untouched
+    expect(invokeAuth.start).toBe(-1);
+    expect(flow.start).toBe(Math.min(...flow.spans.map((s) => s.barStart)));
+    expect(flow.durationMs).toBe(117);
+  });
+
+  it('leaves no dead space before the first bar', () => {
+    const flow = skewedFlow();
+    const offsets = flow.spans.map((s) => spanGeometry(s, flow).offsetPct);
+
+    expect(Math.min(...offsets)).toBe(0);
+  });
+});
+
+describe('bars stay inside the track', () => {
+  /**
+   * The measured error-flow shape: a 1ms flow closed by a 0ms hop. `marshalErrorRest` is called by
+   * `direct://error` and is the last thing to happen, so its offset is the flow's own end - 100%.
+   * Restoring MIN_WIDTH_PCT after fitting the width to `100 - offset` put the whole marker outside
+   * the grey track, which is what it looked like: a dot floating past the end of its own row.
+   */
+  const errorFlow = () =>
+    buildFlows([
+      ...hop('ex-1', 'direct://central', 0, 0, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://error', 1, 1, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://marshalErrorRest', 1, 0, { routeId: 'direct://error' }),
+    ])[0]!;
+
+  it('keeps a zero-length trailing hop within 100%', () => {
+    const flow = errorFlow();
+    const marshal = flow.spans.find((s) => s.endpoint === 'direct://marshalErrorRest')!;
+
+    const { offsetPct, widthPct } = spanGeometry(marshal, flow);
+
+    expect(widthPct).toBe(0.75);
+    expect(offsetPct + widthPct).toBeLessThanOrEqual(100);
+    // flush against the right edge rather than past it
+    expect(offsetPct).toBeCloseTo(100 - 0.75, 5);
+  });
+
+  it('never lets any span overflow the track, in any flow', () => {
+    for (const flow of buildFlows([
+      ...hop('ex-1', 'direct://central', 0, 0, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://error', 1, 1, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://marshalErrorRest', 1, 0, { routeId: 'direct://error' }),
+      ...hop('ex-2', 'direct://a', 30, 30, { routeId: 'operationRoute' }),
+      ...hop('ex-2', 'direct://b', 30, 10, { routeId: 'direct://a' }),
+    ])) {
+      for (const span of flow.spans) {
+        const { offsetPct, widthPct } = spanGeometry(span, flow);
+        expect(offsetPct).toBeGreaterThanOrEqual(0);
+        expect(offsetPct + widthPct).toBeLessThanOrEqual(100);
+      }
+    }
+  });
+
+  it('still gives a full-width bar to a hop that spans its whole flow', () => {
+    const flow = errorFlow();
+    const error = flow.spans.find((s) => s.endpoint === 'direct://error')!;
+
+    expect(spanGeometry(error, flow)).toEqual({ offsetPct: 0, widthPct: 100 });
+  });
+});
+
+/**
+ * The invariant the user actually sees, asserted where it is actually rendered.
+ *
+ * `bar nesting` above asserts on `barStart`, which is only half the story: `spanGeometry` applies a
+ * SECOND clamp when it fits a bar into the track, and that clamp moves bars LEFT. So nesting can be
+ * correct in `barStart` and still be wrong on screen. These cover the composed result.
+ */
+describe('nesting survives the track clamp', () => {
+  /** offsetPct of every span, keyed by endpoint. */
+  const offsets = (flow: Flow) =>
+    new Map(flow.spans.map((s) => [s.endpoint, spanGeometry(s, flow).offsetPct]));
+
+  /**
+   * The case that used to break. A child that rounds to a duration >= its own caller's AND finishes
+   * on the same millisecond is pulled forward by nestBars, which pushes its right edge past the
+   * flow's measured end; the track clamp then dragged it back to 0% while its caller sat at 8.33%,
+   * reinstating the very inversion nestBars exists to remove.
+   *
+   *   direct://first      SENT@1  took  1  -> start 0, sets the flow's left edge
+   *   direct://invokeAap  SENT@12 took 11  -> start 1
+   *   http://wiremock     SENT@12 took 12  -> start 0, inside invokeAap, ends WITH it
+   *
+   * The leading sibling matters: without it the flow starts at the parent and both bars sit at 0%,
+   * so the bug is invisible. That is why the originally measured three-hop trace never showed it.
+   */
+  const clampedFlow = () =>
+    buildFlows([
+      ...hop('ex-1', 'direct://first', 1, 1, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://invokeAap', 12, 11, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'http://wiremock', 12, 12, { routeId: 'direct://invokeAap' }),
+    ])[0]!;
+
+  it('does not let the track clamp push a child back in front of its caller', () => {
+    const flow = clampedFlow();
+    const at = offsets(flow);
+
+    // nestBars agreed they start together...
+    const invokeAap = flow.spans.find((s) => s.endpoint === 'direct://invokeAap')!;
+    const http = flow.spans.find((s) => s.endpoint === 'http://wiremock')!;
+    expect(http.barStart).toBe(invokeAap.barStart);
+
+    // ...and so does the geometry, which is what is drawn
+    expect(at.get('http://wiremock')).toBeGreaterThanOrEqual(at.get('direct://invokeAap')!);
+  });
+
+  it('measures the flow by the drawn bars, so the clamped one still fits', () => {
+    const flow = clampedFlow();
+
+    // The left edge is `first` at 0. The right edge is the pulled-forward http bar: it now starts
+    // at 1 and runs 12ms, so it reaches 13 - past the measured end of 12 that used to bound the
+    // flow and force the clamp.
+    expect(flow.start).toBe(0);
+    expect(flow.end).toBe(13);
+
+    for (const span of flow.spans) {
+      const { offsetPct, widthPct } = spanGeometry(span, flow);
+      expect(offsetPct + widthPct).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it('holds for every caller/child pair, not just the one that regressed', () => {
+    // a deeper chain, each level rounding a millisecond against its parent
+    const flow = buildFlows([
+      ...hop('ex-1', 'direct://first', 1, 1, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://a', 20, 18, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://b', 20, 19, { routeId: 'direct://a' }),
+      ...hop('ex-1', 'direct://c', 20, 20, { routeId: 'direct://b' }),
+    ])[0]!;
+
+    const at = offsets(flow);
+    const byEndpoint = new Map(flow.spans.map((s) => [s.endpoint, s]));
+
+    for (const span of flow.spans) {
+      const caller = span.routeId ? byEndpoint.get(span.routeId) : undefined;
+      if (!caller) continue;
+      expect(
+        at.get(span.endpoint),
+        `${span.endpoint} renders before its caller ${span.routeId}`,
+      ).toBeGreaterThanOrEqual(at.get(caller.endpoint)!);
+    }
+  });
+
+  it('leaves a self-consistent flow measured exactly as before', () => {
+    // nothing needed clamping here, so bounding by the drawn extent must change nothing
+    const flow = buildFlows([
+      ...hop('ex-1', 'direct://outer', 30, 30, { routeId: 'operationRoute' }),
+      ...hop('ex-1', 'direct://inner', 25, 10, { routeId: 'direct://outer' }),
+    ])[0]!;
+
+    expect(flow.start).toBe(0);
+    expect(flow.end).toBe(30);
+    expect(flow.durationMs).toBe(30);
+    for (const span of flow.spans) {
+      expect(span.barStart).toBe(span.start);
+    }
+  });
+});
+
+describe('a pending hop is laid out like any other', () => {
+  /**
+   * A hop still in flight has no SENT, so `start` is its SENDING timestamp - directly measured, not
+   * derived - and its duration is 0. It still takes part in the flow's bounds and in nesting, and
+   * an in-flight hop being the EARLIEST thing in the flow is the ordinary case while a slow call is
+   * still running.
+   */
+  const pendingFirst = () =>
+    buildFlows([
+      // SENDING only: this hop opened the flow and has not come back
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'http://slow',
+        exchangeEventType: 'SENDING',
+        messageType: 'REQUEST',
+        timeStamp: '100',
+        timeTaken: 0,
+        routeId: 'operationRoute',
+      }),
+      ...hop('ex-1', 'direct://after', 140, 20, { routeId: 'operationRoute' }),
+    ])[0]!;
+
+  it('starts the flow at an in-flight hop when that is the earliest thing in it', () => {
+    const flow = pendingFirst();
+
+    expect(flow.start).toBe(100);
+    // the pending marker has no width, so the flow still ends at the measured hop
+    expect(flow.end).toBe(140);
+  });
+
+  it('draws the in-flight marker at the left edge rather than off the track', () => {
+    const flow = pendingFirst();
+    const slow = flow.spans.find((s) => s.endpoint === 'http://slow')!;
+
+    expect(slow.pending).toBe(true);
+    const { offsetPct, widthPct } = spanGeometry(slow, flow);
+    expect(offsetPct).toBe(0);
+    expect(offsetPct + widthPct).toBeLessThanOrEqual(100);
+  });
+
+  it('clamps an in-flight hop to its caller like a measured one', () => {
+    const flow = buildFlows([
+      ...hop('ex-1', 'direct://caller', 12, 11, { routeId: 'operationRoute' }),
+      // opened before its caller's bar computes to have started
+      makeMessage({
+        exchangeId: 'ex-1',
+        endpoint: 'http://slow',
+        exchangeEventType: 'SENDING',
+        messageType: 'REQUEST',
+        timeStamp: '0',
+        timeTaken: 0,
+        routeId: 'direct://caller',
+      }),
+    ])[0]!;
+
+    const slow = flow.spans.find((s) => s.endpoint === 'http://slow')!;
+    const caller = flow.spans.find((s) => s.endpoint === 'direct://caller')!;
+
+    expect(slow.start).toBe(0);
+    expect(slow.barStart).toBe(caller.barStart);
+  });
+});
+
+describe('geometry after the row cap', () => {
+  /**
+   * `visibleSpans` drops rows, but geometry stays relative to the WHOLE flow's bounds. So if the
+   * filter ever stopped keeping the leading hops, the flow's left edge would belong to a row that
+   * is no longer drawn and every visible bar would be inset - the dead zone that bounding by
+   * barStart was meant to remove. The two are coupled; nothing else pins that down.
+   */
+  /** 400 hops with a single slow outlier in the tail, i.e. what the cap and the rescue both act on. */
+  const cappedFlow = () => {
+    const messages = [];
+    for (let i = 0; i < 400; i++) {
+      messages.push(...hop('ex-1', `mock://h${i}`, 1000 + i * 10, i === 300 ? 900 : 1));
+    }
+    return buildFlows(messages)[0]!;
+  };
+
+  it('still puts a visible bar at the left edge once rows are capped', () => {
+    const flow = cappedFlow();
+    const shown = visibleSpans(flow, 100, 10);
+
+    expect(shown.length).toBeLessThan(flow.spans.length);
+    expect(Math.min(...shown.map((s) => spanGeometry(s, flow).offsetPct))).toBe(0);
+  });
+
+  it('keeps every visible bar inside the track', () => {
+    const flow = cappedFlow();
+
+    for (const span of visibleSpans(flow, 100, 10)) {
+      const { offsetPct, widthPct } = spanGeometry(span, flow);
+      expect(offsetPct).toBeGreaterThanOrEqual(0);
+      expect(offsetPct + widthPct).toBeLessThanOrEqual(100);
+    }
   });
 });

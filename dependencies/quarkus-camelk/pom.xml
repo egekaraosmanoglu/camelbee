@@ -21,7 +21,7 @@
     <parent>
         <groupId>io.camelbee</groupId>
         <artifactId>dependencies</artifactId>
-        <version>4.0.0</version>
+        <version>4.0.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -51,7 +51,7 @@
           BOM is to pin what Camel K actually runs.
         -->
         <commons-lang3.version>3.17.0</commons-lang3.version>
-        <mockito-junit-jupiter.version>5.14.2</mockito-junit-jupiter.version>
+        <mockito-junit-jupiter.version>5.23.0</mockito-junit-jupiter.version>
         <assertj-core.version>3.27.7</assertj-core.version>
     </properties>
 

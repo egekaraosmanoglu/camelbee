@@ -40,7 +40,7 @@ Built as part of the normal reactor build (`mvn clean install` from the repo roo
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-core-camelk</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 ```
 
@@ -55,7 +55,7 @@ runs the same Camel K runtime this module was built against (see below).
 ## Consuming it from a Camel K modeline
 
 ```java
-// camel-k: dependency=mvn:io.camelbee:camelbee-quarkus-core-camelk:4.0.0
+// camel-k: dependency=mvn:io.camelbee:camelbee-quarkus-core-camelk:4.0.1
 // camel-k: dependency=camel:direct
 // camel-k: dependency=camel:log
 // camel-k: build-property=camelbee.context-enabled=true
@@ -67,7 +67,7 @@ runs the same Camel K runtime this module was built against (see below).
 Declare every Camel component you use explicitly — Camel K's dependency auto-detection reads URIs
 written literally at a `from(...)`/`to(...)` call site and misses any built from a constant, which
 then fails at pod startup rather than at build time. **The starters are not usable on Camel K** —
-`camelbee-quarkus-starter` pulls the 4.21 core, not this one.
+`camelbee-quarkus-starter` pulls the 4.22 core, not this one.
 
 As on plain Quarkus, call the route configurer as the first statement of every `RouteBuilder`, looked
 up from the registry by type (Camel K compiles integration files outside CDI):

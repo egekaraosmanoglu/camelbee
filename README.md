@@ -268,7 +268,7 @@ Add the CamelBee core dependency:
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-core</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 ```
 
@@ -287,10 +287,11 @@ camelbee:
   auth-enabled: true
   username: camelbee
   password: change-me
-  # Sensitive values are redacted at the point of capture. Replace the built-in key
-  # list if yours differs; set tracer-body-enabled: false to never capture bodies at all.
+  # Sensitive values are redacted at the point of capture. Setting masked-keys REPLACES
+  # the 19 built-in keys rather than adding to them, so list every key you still want;
+  # set tracer-body-enabled: false to never capture bodies at all.
   masking-enabled: true
-  # masked-keys: password,token,authorization,apikey,creditcard,cvv,iban,ssn
+  # masked-keys: password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
   tracer-body-enabled: true
 
 quarkus:
@@ -316,7 +317,7 @@ Add the CamelBee core dependency. `spring-boot-starter-web` and `camel-spring-bo
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-springboot-core</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 <!-- supplied by your application, at your versions -->
 <dependency>
@@ -344,10 +345,11 @@ camelbee:
   auth-enabled: true
   username: camelbee
   password: change-me
-  # Sensitive values are redacted at the point of capture. Replace the built-in key
-  # list if yours differs; set tracer-body-enabled: false to never capture bodies at all.
+  # Sensitive values are redacted at the point of capture. Setting masked-keys REPLACES
+  # the 19 built-in keys rather than adding to them, so list every key you still want;
+  # set tracer-body-enabled: false to never capture bodies at all.
   masking-enabled: true
-  # masked-keys: password,token,authorization,apikey,creditcard,cvv,iban,ssn
+  # masked-keys: password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
   tracer-body-enabled: true
 
 management:
@@ -387,7 +389,7 @@ Add the CamelBee core dependency, together with `camel-platform-http-main` (Came
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-standalone-core</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 <dependency>
   <groupId>org.apache.camel</groupId>
@@ -427,10 +429,11 @@ camelbee.logging-enabled = false
 camelbee.auth-enabled = true
 camelbee.username = camelbee
 camelbee.password = change-me
-# Sensitive values are redacted at the point of capture. Replace the built-in key
-# list if yours differs; set tracer-body-enabled = false to never capture bodies at all.
+# Sensitive values are redacted at the point of capture. Setting masked-keys REPLACES
+# the 19 built-in keys rather than adding to them, so list every key you still want;
+# set tracer-body-enabled = false to never capture bodies at all.
 camelbee.masking-enabled = true
-# camelbee.masked-keys = password,token,authorization,apikey,creditcard,cvv,iban,ssn
+# camelbee.masked-keys = password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
 camelbee.tracer-body-enabled = true
 
 # the application's own platform-http server (your routes)
@@ -445,10 +448,10 @@ camel.server.port = 8080
 
 *Example: [allcomponent-camelk-sample](examples/allcomponent-camelk-sample/README.md)*
 
-Camel K runs integrations on the **Camel Quarkus** runtime, but pins an older Camel than this project's main build (Camel 4.8.5 vs 4.21). Use `camelbee-quarkus-core-camelk` — the same sources built against Camel K's baseline. Declare everything in your integration file's modeline (the core's CDI beans are auto-discovered because the jar ships a Jandex index):
+Camel K runs integrations on the **Camel Quarkus** runtime, but pins an older Camel than this project's main build (Camel 4.8.5 vs 4.22). Use `camelbee-quarkus-core-camelk` — the same sources built against Camel K's baseline. Declare everything in your integration file's modeline (the core's CDI beans are auto-discovered because the jar ships a Jandex index):
 
 ```java
-// camel-k: dependency=mvn:io.camelbee:camelbee-quarkus-core-camelk:4.0.0
+// camel-k: dependency=mvn:io.camelbee:camelbee-quarkus-core-camelk:4.0.1
 // camel-k: dependency=camel:direct
 // camel-k: dependency=camel:log
 // camel-k: build-property=camelbee.context-enabled=true
@@ -497,7 +500,7 @@ public class YourRoute extends RouteBuilder {
 > |---|---|
 > | `camelbee-springboot-starter` | Spring Boot 4.1.0 · Camel 4.22.0 |
 > | `camelbee-standalone-starter` | Camel 4.22.0 |
-> | `camelbee-quarkus-starter` | Quarkus 3.38.2 · Camel 4.21.0 (the platform decides the Camel version) |
+> | `camelbee-quarkus-starter` | Quarkus 3.39.1 · Camel 4.22.0 (the platform decides the Camel version) |
 >
 > That is the trade-off against [Option 1](#option-1-add-the-core-library-as-a-dependency-recommended): the starter decides your framework versions, so
 > your stack moves when CamelBee releases. If you need to stay on your own versions, use the core as
@@ -514,7 +517,7 @@ Only suitable for new projects without an existing parent POM. The starters are 
 <parent>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-starter</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </parent>
 ```
 
@@ -533,10 +536,11 @@ camelbee:
   auth-enabled: true
   username: camelbee
   password: change-me
-  # Sensitive values are redacted at the point of capture. Replace the built-in key
-  # list if yours differs; set tracer-body-enabled: false to never capture bodies at all.
+  # Sensitive values are redacted at the point of capture. Setting masked-keys REPLACES
+  # the 19 built-in keys rather than adding to them, so list every key you still want;
+  # set tracer-body-enabled: false to never capture bodies at all.
   masking-enabled: true
-  # masked-keys: password,token,authorization,apikey,creditcard,cvv,iban,ssn
+  # masked-keys: password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
   tracer-body-enabled: true
 
 quarkus:
@@ -560,7 +564,7 @@ quarkus:
 <parent>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-springboot-starter</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </parent>
 ```
 
@@ -579,10 +583,11 @@ camelbee:
   auth-enabled: true
   username: camelbee
   password: change-me
-  # Sensitive values are redacted at the point of capture. Replace the built-in key
-  # list if yours differs; set tracer-body-enabled: false to never capture bodies at all.
+  # Sensitive values are redacted at the point of capture. Setting masked-keys REPLACES
+  # the 19 built-in keys rather than adding to them, so list every key you still want;
+  # set tracer-body-enabled: false to never capture bodies at all.
   masking-enabled: true
-  # masked-keys: password,token,authorization,apikey,creditcard,cvv,iban,ssn
+  # masked-keys: password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
   tracer-body-enabled: true
 
 management:
@@ -619,7 +624,7 @@ public class YourApplication {
 <parent>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-standalone-starter</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </parent>
 ```
 
@@ -655,10 +660,11 @@ camelbee.logging-enabled = false
 camelbee.auth-enabled = true
 camelbee.username = camelbee
 camelbee.password = change-me
-# Sensitive values are redacted at the point of capture. Replace the built-in key
-# list if yours differs; set tracer-body-enabled = false to never capture bodies at all.
+# Sensitive values are redacted at the point of capture. Setting masked-keys REPLACES
+# the 19 built-in keys rather than adding to them, so list every key you still want;
+# set tracer-body-enabled = false to never capture bodies at all.
 camelbee.masking-enabled = true
-# camelbee.masked-keys = password,token,authorization,apikey,creditcard,cvv,iban,ssn
+# camelbee.masked-keys = password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
 camelbee.tracer-body-enabled = true
 
 # the application's own platform-http server (your routes)
@@ -684,7 +690,7 @@ provided `pom-custom.xml` and add it as a dependency.
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-core-custom</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 ```
 
@@ -703,10 +709,11 @@ camelbee:
   auth-enabled: true
   username: camelbee
   password: change-me
-  # Sensitive values are redacted at the point of capture. Replace the built-in key
-  # list if yours differs; set tracer-body-enabled: false to never capture bodies at all.
+  # Sensitive values are redacted at the point of capture. Setting masked-keys REPLACES
+  # the 19 built-in keys rather than adding to them, so list every key you still want;
+  # set tracer-body-enabled: false to never capture bodies at all.
   masking-enabled: true
-  # masked-keys: password,token,authorization,apikey,creditcard,cvv,iban,ssn
+  # masked-keys: password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
   tracer-body-enabled: true
 
 quarkus:
@@ -727,7 +734,7 @@ quarkus:
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-springboot-core-custom</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 ```
 
@@ -746,10 +753,11 @@ camelbee:
   auth-enabled: true
   username: camelbee
   password: change-me
-  # Sensitive values are redacted at the point of capture. Replace the built-in key
-  # list if yours differs; set tracer-body-enabled: false to never capture bodies at all.
+  # Sensitive values are redacted at the point of capture. Setting masked-keys REPLACES
+  # the 19 built-in keys rather than adding to them, so list every key you still want;
+  # set tracer-body-enabled: false to never capture bodies at all.
   masking-enabled: true
-  # masked-keys: password,token,authorization,apikey,creditcard,cvv,iban,ssn
+  # masked-keys: password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
   tracer-body-enabled: true
 
 management:
@@ -783,7 +791,7 @@ public class YourApplication {
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-standalone-core-custom</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 <dependency>
   <groupId>org.apache.camel</groupId>
@@ -805,7 +813,7 @@ configuration. Three further properties are available when you need them:
 # redact configured keys out of traced headers and bodies (default: true)
 camelbee.masking-enabled = true
 # your own comma-separated key list, replacing the built-in one
-camelbee.masked-keys = password,token,authorization,apikey,creditcard,cvv,iban,ssn
+camelbee.masked-keys = password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
 # never capture body text at all - the only hard guarantee (default: true)
 camelbee.tracer-body-enabled = true
 ```
@@ -834,7 +842,7 @@ started; nothing else has to be set. Same names on all runtimes — `camelbee.*`
 | `camelbee.tracer-max-messages-count` | `1000` | Cap on retained traced messages; the UI warns when it is hit. |
 | `camelbee.tracer-body-enabled` | `true` | Set `false` to never capture body text at all — the only hard guarantee. |
 | `camelbee.masking-enabled` | `true` | Redacts sensitive values out of traced headers and bodies at the point of capture. |
-| `camelbee.masked-keys` | *(built-in list)* | Comma-separated keys replacing the built-in list (`password,token,authorization,apikey,creditcard,cvv,iban,ssn`). |
+| `camelbee.masked-keys` | *(19 built-in keys)* | Comma-separated list that **replaces** the built-in one, rather than adding to it: `password, passwd, secret, token, authorization, auth, apikey, accesskey, privatekey, credential, creditcard, cardnumber, cardno, cvv, cvc, iban, ssn, pin, otp`. A key is matched whole-word and separator-insensitively, so `apikey` covers `X-Api-Key`, `api_key` and `apiKey`, and `userPassword` is caught by `password` - but `shipping` is not caught by `pin`. |
 | `camelbee.auth-enabled` | `true` | Requires a login for the UI and REST API. Leave on outside a laptop. |
 | `camelbee.username` | `camelbee` | Login user when authentication is on. |
 | `camelbee.password` | *(none)* | Login password. Set it, or via `CAMELBEE_PASSWORD`. No default — auth cannot be used until it is set. |

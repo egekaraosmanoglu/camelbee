@@ -2,7 +2,7 @@
 
 Camel K runs integrations on the **Camel Quarkus** runtime, so CamelBee works on Camel K — but not
 with the same jar as the other samples. Camel K pins an older runtime than CamelBee's main build
-(Camel 4.8.5 vs 4.21), so this sample uses **`camelbee-quarkus-core-camelk`**: the same sources,
+(Camel 4.8.5 vs 4.22), so this sample uses **`camelbee-quarkus-core-camelk`**: the same sources,
 same version, built against Camel K's Camel baseline. See
 [Which core, and why](#which-core-and-why) below.
 
@@ -31,7 +31,7 @@ so the helper beans of the other samples are methods on the route builder here, 
 ## How it works
 
 - The modeline at the top of [`MusicianRoute.java`](./MusicianRoute.java) adds:
-  - `mvn:io.camelbee:camelbee-quarkus-core-camelk:4.0.0` — the CamelBee monitoring beans + embedded
+  - `mvn:io.camelbee:camelbee-quarkus-core-camelk:4.0.1` — the CamelBee monitoring beans + embedded
     UI. It brings the REST/Jackson stack transitively (unlike `camelbee-quarkus-core`, where those
     are `provided`), so the modeline does not list them.
   - `camel:http`, `camel:mock`, `camel:seda`, `camel:file`, `camel:timer`, `camel:direct`,
@@ -71,12 +71,12 @@ kubectl get camelcatalog -o jsonpath='{.items[0].spec.runtime.metadata}'
 ```
 
 On Camel K 2.10.1 that reports `camel-quarkus 3.15.3 / camel 4.8.5 / quarkus 3.15.4`, whereas
-CamelBee's main build targets Camel 4.21. Hence a second artifact, built from the *same sources* by
+CamelBee's main build targets Camel 4.22. Hence a second artifact, built from the *same sources* by
 [`core/quarkus-core-camelk`](../../core/quarkus-core-camelk/pom.xml):
 
 | | `camelbee-quarkus-core` | `camelbee-quarkus-core-camelk` |
 |---------------------|-------------------------|--------------------------------|
-| Camel | 4.21 | 4.8.5 |
+| Camel | 4.22 | 4.8.5 |
 | REST/Jackson deps | `provided` | transitive |
 | `cxf-soap` | `provided` | absent (unused by the core) |
 | Jandex index format | v13 | v12 (Camel K's reader caps at v12) |
@@ -84,14 +84,14 @@ CamelBee's main build targets Camel 4.21. Hence a second artifact, built from th
 CamelBee's source needs **no changes** to run on 4.8.5 — the `quarkus-core-camelk` module rebuilds
 both the engine and the Quarkus wiring against that baseline and runs **280 of their 282 tests**
 there unmodified (46 test classes: 239 engine + 43 wiring, less 2). The two exclusions are
-characterization tests that pin 4.21's exact output; the pom documents them.
+characterization tests that pin 4.22's exact output; the pom documents them.
 
 **Known difference on Camel K:** `.description()` binds to the *route* on Camel 4.8.5 rather than to
 the node, so route and node description text is wrong in the UI here. Cosmetic, but real. Everything
 else — topology, tracing, replay, metrics — behaves the same. The recipe strings also differ
 (`To[x]` vs `to[x]`, `DynamicTo[x]` vs `DynamicTo[toD[x]]`), but the UI parses both.
 
-The **starters are not usable on Camel K**: `camelbee-quarkus-starter` pulls the 4.21 core.
+The **starters are not usable on Camel K**: `camelbee-quarkus-starter` pulls the 4.22 core.
 
 ## Prerequisites
 
@@ -103,7 +103,7 @@ The **starters are not usable on Camel K**: `camelbee-quarkus-starter` pulls the
   4.0.0 the core is built for JDK 17 (`core/quarkus-core-camelk` sets `java.version` to 17), so the
   stock image works. If you ever raise that back to 21, restore the `-21-jdk` requirement here and
   see [the Camel K JDK docs](https://camel.apache.org/camel-k/2.10.x/installation/advanced/jdk-version.html).
-- **An operator whose runtime matches the published core.** `camelbee-quarkus-core-camelk:4.0.0` is
+- **An operator whose runtime matches the published core.** `camelbee-quarkus-core-camelk:4.0.1` is
   on Maven Central, built against the runtime Camel K 2.10.1 ships (`camel-quarkus 3.15.3` /
   Camel 4.8.5), so the operator resolves it in-cluster with nothing for you to build or host. On an
   operator with a *different* runtime you have to rebuild the core against it and make your build
@@ -254,7 +254,7 @@ Failures actually hit while validating this sample, and what each means:
 - **Maven resolution timing out against your served repo, or a pod-side `curl` returning `000`** —
   you used `host.minikube.internal`. Pods cannot resolve it; use the IP (see
   [Serving the core from your machine](#serving-the-core-from-your-machine)).
-- **`Could not find artifact io.camelbee:camelbee-quarkus-camelk-dependencies:pom:4.0.0`** — you
+- **`Could not find artifact io.camelbee:camelbee-quarkus-camelk-dependencies:pom:4.0.1`** — you
   served the core's jar and POM but not its parent chain. See
   [Serving the core from your machine](#serving-the-core-from-your-machine), step 3b.
 - **The same resolution error repeating after you fixed it** — the operator caches failed lookups
@@ -377,7 +377,7 @@ HTTP, and point `kamel run` at it.
 **Publish the parent POMs too, not just the jar.** Since 4.0.0 the core's POM has a `<parent>`
 (`camelbee-quarkus-camelk-dependencies`, which holds the platform versions), and Maven has to
 resolve that whole chain before it can read the POM. Serving only the jar and its own POM fails with
-`Could not find artifact io.camelbee:camelbee-quarkus-camelk-dependencies:pom:4.0.0`. The chain is
+`Could not find artifact io.camelbee:camelbee-quarkus-camelk-dependencies:pom:4.0.1`. The chain is
 `camelbee-quarkus-camelk-dependencies` -> `dependencies` -> `parent` -> `camelbee`.
 
 ```sh
@@ -386,24 +386,24 @@ mvn -pl core/quarkus-core-camelk -am install
 
 # 2. copy the artifacts out of ~/.m2 - deploy:deploy-file refuses to publish from inside it
 mkdir -p /tmp/camelbee-stage /tmp/camelbee-repo
-cp ~/.m2/repository/io/camelbee/camelbee-quarkus-core-camelk/4.0.0/camelbee-quarkus-core-camelk-4.0.0.{jar,pom} \
+cp ~/.m2/repository/io/camelbee/camelbee-quarkus-core-camelk/4.0.1/camelbee-quarkus-core-camelk-4.0.1.{jar,pom} \
    /tmp/camelbee-stage/
 for a in camelbee-quarkus-camelk-dependencies dependencies parent camelbee; do
-  cp ~/.m2/repository/io/camelbee/$a/4.0.0/$a-4.0.0.pom /tmp/camelbee-stage/
+  cp ~/.m2/repository/io/camelbee/$a/4.0.1/$a-4.0.1.pom /tmp/camelbee-stage/
 done
 
 # 3. publish into a real repository layout (this is what generates the checksums)
 mvn org.apache.maven.plugins:maven-deploy-plugin:3.1.2:deploy-file \
-  -DgroupId=io.camelbee -DartifactId=camelbee-quarkus-core-camelk -Dversion=4.0.0 -Dpackaging=jar \
-  -Dfile=/tmp/camelbee-stage/camelbee-quarkus-core-camelk-4.0.0.jar \
-  -DpomFile=/tmp/camelbee-stage/camelbee-quarkus-core-camelk-4.0.0.pom \
+  -DgroupId=io.camelbee -DartifactId=camelbee-quarkus-core-camelk -Dversion=4.0.1 -Dpackaging=jar \
+  -Dfile=/tmp/camelbee-stage/camelbee-quarkus-core-camelk-4.0.1.jar \
+  -DpomFile=/tmp/camelbee-stage/camelbee-quarkus-core-camelk-4.0.1.pom \
   -Durl=file:///tmp/camelbee-repo -DrepositoryId=local-m2
 
 # 3b. and the four parent POMs, or the operator cannot read the POM above
 for a in camelbee-quarkus-camelk-dependencies dependencies parent camelbee; do
   mvn org.apache.maven.plugins:maven-deploy-plugin:3.1.2:deploy-file \
-    -DgroupId=io.camelbee -DartifactId=$a -Dversion=4.0.0 -Dpackaging=pom \
-    -Dfile=/tmp/camelbee-stage/$a-4.0.0.pom \
+    -DgroupId=io.camelbee -DartifactId=$a -Dversion=4.0.1 -Dpackaging=pom \
+    -Dfile=/tmp/camelbee-stage/$a-4.0.1.pom \
     -Durl=file:///tmp/camelbee-repo -DrepositoryId=local-m2
 done
 
@@ -426,7 +426,7 @@ echo "$HOSTIP"   # e.g. 192.168.65.254
 # confirm the operator pod can actually reach you - this must print 200
 kubectl exec deploy/camel-k-operator -- \
   curl -s -o /dev/null -w '%{http_code}\n' \
-  http://$HOSTIP:8000/io/camelbee/camelbee-quarkus-core-camelk/4.0.0/camelbee-quarkus-core-camelk-4.0.0.pom
+  http://$HOSTIP:8000/io/camelbee/camelbee-quarkus-core-camelk/4.0.1/camelbee-quarkus-core-camelk-4.0.1.pom
 
 kamel run MusicianRoute.java --maven-repository "http://$HOSTIP:8000@id=local-m2"
 ```

@@ -33,7 +33,7 @@ Add the CamelBee core dependency:
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-core</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 ```
 
@@ -67,7 +67,7 @@ quarkus:
 >
 > | Starter | Pins |
 > |---|---|
-> | `camelbee-quarkus-starter` | Quarkus 3.38.2 · Camel 4.21.0 (the platform decides the Camel version) |
+> | `camelbee-quarkus-starter` | Quarkus 3.39.1 · Camel 4.22.0 (the platform decides the Camel version) |
 >
 > That is the trade-off against [Option 1](#option-1-add-the-core-library-as-a-dependency-recommended): the starter decides your framework versions, so
 > your stack moves when CamelBee releases. If you need to stay on your own versions, use the core as
@@ -80,7 +80,7 @@ Only suitable for new projects without an existing parent POM. Simply use `camel
 <parent>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-starter</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </parent>
 ```
 
@@ -149,7 +149,7 @@ mvn -f pom-custom.xml clean install    # run in ./camelbee/core/quarkus-core
 <dependency>
   <groupId>io.camelbee</groupId>
   <artifactId>camelbee-quarkus-core-custom</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
 </dependency>
 ```
 
@@ -204,7 +204,7 @@ camelbee:
   # when enabled redacts configured keys out of traced headers and bodies (default: true)
   masking-enabled: true
   # comma-separated key names to redact; replaces the built-in list entirely (default: see below)
-  masked-keys: password,token,authorization,apikey,creditcard,cvv,iban,ssn
+  masked-keys: password,passwd,secret,token,authorization,auth,apikey,accesskey,privatekey,credential,creditcard,cardnumber,cardno,cvv,cvc,iban,ssn,pin,otp,nationalId
   # when disabled no message body text is captured at all - the only hard guarantee (default: true)
   tracer-body-enabled: true
   # when enabled it logs the messages exchanged between endpoints
@@ -259,11 +259,15 @@ password, passwd, secret, token, authorization, auth, apikey, accesskey, private
 credential, creditcard, cardnumber, cardno, cvv, cvc, iban, ssn, pin, otp
 ```
 
-A key matches if it *contains* a configured entry, so `password` also covers `userPassword`.
+A configured entry matches a whole **word** of a key, so `password` also covers
+`userPassword` and `password_confirmation` - but `auth` does not redact `author`, nor `pin` a
+`shippingAddress`. Adjacent words are rejoined before comparing, which is how one `apikey`
+entry still catches `X-Api-Key`.
 
 **What this does and does not guarantee.** Header masking is exact - the key is known, so a
-configured key is always redacted. Body masking is **best effort** pattern matching over JSON, XML
-and form-encoded shapes: it cannot redact a field nobody configured, and a body in some other
+configured key is always redacted. Body masking is **best effort** pattern matching over JSON,
+XML, form-encoded and line-oriented `key: value` shapes: it cannot redact a field nobody
+configured, a nested object under a sensitive key is not descended into, and a body in some other
 format is left untouched. Treat it as defence in depth. The only guarantee available is
 `camelbee.tracer-body-enabled=false`, which reads no body text at all.
 
