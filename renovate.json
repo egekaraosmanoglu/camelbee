@@ -23,6 +23,23 @@
   ],
   "packageRules": [
     {
+      "description": "Front the anonymous Maven Central endpoint with Google's full CDN mirror. Mend-hosted Renovate shares a source-IP pool that Sonatype (repo.maven.apache.org, Cloudflare-fronted) now 429s under load; a 429 on a POM with no warm Redis entry raises an external-host-error, which aborts the whole repository run before the lookup/PR phase - so no PRs and no Dependency Dashboard updates. The GCS bucket is a byte-for-byte mirror of Central with no rate limit; keep Central as the fallback so anything the mirror lags on still resolves.",
+      "matchDatasources": [
+        "maven"
+      ],
+      "registryUrls": [
+        "https://maven-central.storage-download.googleapis.com/maven2/",
+        "https://repo.maven.apache.org/maven2/"
+      ]
+    },
+    {
+      "description": "Never look up CamelBee's own published artifacts. They are released from this repo, so a 'new release' is always something this build just pushed - bumping them here is meaningless and every coordinate costs a maven-metadata.xml + POM fetch on each run, inflating the request burst that trips the Central rate limiter.",
+      "matchPackageNames": [
+        "io.camelbee:**"
+      ],
+      "enabled": false
+    },
+    {
       "description": "The Camel K flavour pins the platform the Camel K runtime actually ships (read off the operator's camelcatalog). These two BOMs must not be bumped to catch up with the sibling quarkus BOM - see the comment in dependencies/quarkus-camelk/pom.xml. The core-only-quarkus-sample example pins the same floor for the same reason (see its own comment). Test-only deps in dependencies/quarkus-camelk/pom.xml are still updated.",
       "matchFileNames": [
         "dependencies/quarkus-camelk/pom.xml",
